@@ -1,0 +1,8 @@
+{
+  "ollama_host": "0.0.0.0",
+  "ollama_port": 11434,
+  "api_url": "http://localhost:11434/api/generate",
+  "max_attempts": 10,
+  "wait_interval_seconds": 2,
+  "max_download_wait_seconds": 900
+}

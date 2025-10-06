@@ -1,0 +1,7 @@
+{
+  "stream": false,
+  "temperature": 0.5,
+  "top_p": 0.9,
+  "max_tokens": 512,
+  "seed": 42
+}
