@@ -1,91 +1,96 @@
-# AI-Testing-Platform
 
-This repository contains the initial source code and relevant files for my master thesis' project "Vulnerability testing sandbox environment for AI-systems"
-
-**Optional gVisor setup**
-
-https://gvisor.dev/docs/user_guide/install/
-
-1.
 ```
-(
-  set -e
-  ARCH=$(uname -m)
-  URL=https://storage.googleapis.com/gvisor/releases/release/latest/${ARCH}
-  wget ${URL}/runsc ${URL}/runsc.sha512 \
-    ${URL}/containerd-shim-runsc-v1 ${URL}/containerd-shim-runsc-v1.sha512
-  sha512sum -c runsc.sha512 \
-    -c containerd-shim-runsc-v1.sha512
-  rm -f *.sha512
-  chmod a+rx runsc containerd-shim-runsc-v1
-  sudo mv runsc containerd-shim-runsc-v1 /usr/local/bin
-)
-```
-2.
-```
-$ /usr/local/bin/runsc install
-$ sudo systemctl reload docker
+    _    _____     __    _____ 
+   / \  |_ _\ \   / /   |_   _|
+  / _ \  | | \ \ / / | | || |  
+ / ___ \ | |  \ V /| |_| || |  
+/_/   \_\___|  \_/  \__,_||_|  
+
+```             
+
+# AIVuT - AI Vulnerability Testing framework
+
+An AI vulnerability testing framework used for testing AI models for security vulnerabilities
+
+### Prerequisites
+
+- Python 3.10+
+- Docker (for Ollama backend)
+- pip
+
+### 1. Clone the Repository
+
+```bash
+git clone <repository-url>
+cd AI-Testing-Platform
 ```
 
-/etc/docker/daemon.json should look like this with nvidia and runsc runtimes installed:
+### 2. Set Up Python Environment
+
+```bash
+# Create virtual environment
+python -m venv myenv
+
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
 ```
+
+### 3. Set Up by using Ollama Backend with Docker
+
+**GPU Version:**
+```bash
+docker-compose -f docker/ollama/docker-compose.yml up -d
+```
+
+**CPU-only Version:**
+```bash
+docker-compose -f docker/ollama/docker-compose-cpu.yml up -d
+```
+
+### 4. Pull Models
+
+After Ollama is running, pull the models you want to test:
+
+```bash
+# Pull models for testing and for evaluation
+docker exec -it ollama ollama pull <model_name>
+```
+
+### 5. Configure Models
+
+Edit `src/configs/model.json`:
+
+```json
 {
-    "runtimes": {
-        "nvidia": {
-            "path": "/usr/bin/nvidia-container-runtime",
-            "runtimeArgs": []
-        },
-        "runsc": {
-            "path": "/usr/local/bin/runsc"
-        }
-    }
+  "testable_model": "X",
+  "evaluation_model": "Y",
+  "api_url": "http://localhost:11434" #Ollama default
 }
 ```
 
-*Setuping the tool*
+## Usage
 
-1.
+```bash
+python -m src.runner -test <test_name> -modelconf <path> -testconf <path> [options]
+```
 
-```git clone git@github.com:Kemppis3/AI-Testing-Platform.git```
+### Required Arguments
 
-2.
+| Argument | Description |
+|----------|-------------|
+| `-test` | Test to run (e.g., `prompt_injection`, `context_test`) |
+| `-modelconf` | Path to model configuration JSON |
+| `-testconf` | Path to test configuration JSON |
 
-Create a Python virtual environtment and activate it
+### Optional Arguments
 
-```python -m venv (name_of_your_venv)```
-
-```source ./(name_of_your_venv)/bin/activate```
-
-3.
-
-Navigate to the tool folder
-
-```cd ../AI-Testing-Platform```
-
-4.
-
-
-Give executon permissions for run-sandbox.sh script
-
-```sudo chmod +x run-sandbox.sh```
-
-5.
-
-Build the docker image
-
-```docker build -t (name_of_your_image) .```
-
-6.
-
-Run the testing tool by executing run-sandbox.sh script
-
-```./run-sandbox.sh```
-
-**NOTE: If you are not running gVisor, remove the gVisor active check from run-sandbox.sh and the $RUNTIME_FLAG from docker run command**
-
-
-
-
-
-
-
+| Argument | Description |
+|----------|-------------|
+| `-format` | Report format: `json`, `html`, `md` |
+| `-output` | Custom output file path |
+| `-reports-dir` | Base directory for reports (default: `reports/`) |
+| `-apikey` | API key for authenticated APIs |
+| `-list` | List available tests and formats |
+| `-v` | Enable verbose logging |

@@ -1,0 +1,19 @@
+version: '3.9'
+
+services:
+  ollama:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aivut-ollama
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+      - MODELS=llama3.2:3b, phi4-mini
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+
+volumes:
+  ollama_data:

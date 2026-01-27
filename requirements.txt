@@ -1,1 +1,4 @@
-requests
+# Dependencies
+ollama>=0.3.0
+openai>=1.0.0
+pyyaml>=6.0

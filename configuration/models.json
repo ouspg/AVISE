@@ -1,4 +1,0 @@
-{
-  "testable_model": "llama3:8b",
-  "evaluator_model": "phi3:mini"
-}
