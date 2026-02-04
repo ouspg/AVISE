@@ -76,7 +76,7 @@ python -m avise --SET <SET_name> --modelconf <path> --SETconf <path> [options]
 |----------|-------------|
 | `--SET` | Security Evaluation Test to run (e.g., `prompt_injection`, `context_test`) |
 | `--modelconf` | Path to model configuration JSON |
-| `--testconf` | Path to test configuration JSON |
+| `--SETconf` | Path to test configuration JSON |
 
 ### Optional Arguments
 
