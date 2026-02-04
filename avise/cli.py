@@ -3,21 +3,21 @@ AVISE Command Line Interface.
 
 Usage:
     Basic:
-    python -m avise.cli --SET <SET_name> --modelconf </path/to/modelconfig/> --SETconf </path/to/testconfig/>
+    python -m avise --SET <SET_name> --modelconf </path/to/modelconfig/> --SETconf </path/to/testconfig/>
 
     Adding report format (default is json):
 
-    python -m avise.cli --SET <SET_name> --modelconf </path/to/modelconfig/> --SETconf </path/to/testconfig/> --format json/html/md
+    python -m avise --SET <SET_name> --modelconf </path/to/modelconfig/> --SETconf </path/to/testconfig/> --format json/html/md
 
     Add custom output directory (optional):
     
-    python -m avise.cli --SET <SET_name> --modelconf </path/to/modelconfig/> --SETconf </path/to/testconfig/> --format json/html/md --output <path/to/outputdir>
+    python -m avise --SET <SET_name> --modelconf </path/to/modelconfig/> --SETconf </path/to/testconfig/> --format json/html/md --output <path/to/outputdir>
 
     # Using API key for authentication
-    python -m avise.cli --SET <SET_name> --modelconf </path/to/modelconfig/> --SETconf </path/to/testconfig/> --apikey <API_KEY>
+    python -m avise --SET <SET_name> --modelconf </path/to/modelconfig/> --SETconf </path/to/testconfig/> --apikey <API_KEY>
 
     Example:
-    python -m avise.cli --SET prompt_injection --modelconf avise/configs/model.json --SETconf avise/configs/prompt_injection_example.json
+    python -m avise --SET prompt_injection --modelconf avise/configs/model.json --SETconf avise/configs/prompt_injection_example.json
 
 """
 import sys
