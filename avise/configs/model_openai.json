@@ -1,0 +1,6 @@
+{
+  "connector": "openai",
+  "testable_model": "gpt-4o-mini",
+  "evaluation_model": "gpt-4o-mini",
+  "api_key": "YOUR_OPENAI_API_KEY_HERE"
+}
