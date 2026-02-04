@@ -54,7 +54,7 @@ docker exec -it ollama ollama pull <model_name>
 
 ### 5. Configure Models
 
-Edit `src/configs/model.json`:
+Edit `avise/configs/model.json`:
 
 ```json
 {
@@ -67,24 +67,25 @@ Edit `src/configs/model.json`:
 ## Usage
 
 ```bash
-python -m src.runner -test <test_name> -modelconf <path> -testconf <path> [options]
+python -m avise --SET <SET_name> --modelconf <path> --SETconf <path> [options]
 ```
 
 ### Required Arguments
 
 | Argument | Description |
 |----------|-------------|
-| `-test` | Test to run (e.g., `prompt_injection`, `context_test`) |
-| `-modelconf` | Path to model configuration JSON |
-| `-testconf` | Path to test configuration JSON |
+| `--SET` | Security Evaluation Test to run (e.g., `prompt_injection`, `context_test`) |
+| `--modelconf` | Path to model configuration JSON |
+| `--testconf` | Path to test configuration JSON |
 
 ### Optional Arguments
 
 | Argument | Description |
 |----------|-------------|
-| `-format` | Report format: `json`, `html`, `md` |
-| `-output` | Custom output file path |
-| `-reports-dir` | Base directory for reports (default: `reports/`) |
-| `-apikey` | API key for authenticated APIs |
-| `-list` | List available tests and formats |
-| `-v` | Enable verbose logging |
+| `--format`, `-f` | Report format: `json`, `html`, `md` |
+| `--output` | Custom output file path |
+| `--reports-dir` | Base directory for reports (default: `reports/`) |
+| `--apikey` | API key for authenticated APIs |
+| `--list` | List available tests and formats |
+| `-verbose` | Enable verbose logging |
+| `-version` | Print version  |
