@@ -1,16 +1,10 @@
 
-```
-    _    _____     __    _____ 
-   / \  |_ _\ \   / /   |_   _|
-  / _ \  | | \ \ / / | | || |  
- / ___ \ | |  \ V /| |_| || |  
-/_/   \_\___|  \_/  \__,_||_|  
+![AVISE logo](/docs/assets/avise_logo.png)  
 
-```             
+# AVISE - AI Vulnerability Identification & Security Evaluation
 
-# AIVuT - AI Vulnerability Testing framework
+A framework for identifying vulnerabilities in, and evaluating the security of, AI systems.
 
-An AI vulnerability testing framework used for testing AI models for security vulnerabilities
 
 ### Prerequisites
 
