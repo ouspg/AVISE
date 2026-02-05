@@ -4,8 +4,8 @@ Unit tests for AVISE CLI
 from avise import cli, __version__
 import pytest
 
-SET_CONF_PATH = "avise/configs/prompt_injection_mini.json"
-MODEL_CONF_PATH = "avise/configs/model.json"
+SET_CONF_PATH = "avise/configs/SET/prompt_injection_mini.json"
+MODEL_CONF_PATH = "avise/configs/model/model.json"
 
 test_incorrect_args_cases = [("--incorrectargument", "unrecognized argument"),
                              (f"--test prompt_injection --modelconf {MODEL_CONF_PATH} --SETcof {SET_CONF_PATH}", "unrecognized argument")]
@@ -113,7 +113,7 @@ def test_SET_runner(capsys):
     Test that SETrunner executes succesfully.
     Uses prompt_injection SET.
     """
-    cli.main(["--SET", "prompt_injection", "--modelconf", "avise/configs/model.json", "--SETconf", "avise/configs/prompt_injection_mini.json"])
+    cli.main(["--SET", "prompt_injection", "--modelconf", "avise/configs/model/model.json", "--SETconf", "avise/configs/SET/prompt_injection_mini.json"])
     captured = capsys.readouterr()
     #with capsys.disabled():
     #    print(f'captured.out: {captured.out}')

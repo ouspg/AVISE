@@ -17,7 +17,7 @@ Usage:
     python -m avise --SET <SET_name> --modelconf </path/to/modelconfig/> --SETconf </path/to/testconfig/> --apikey <API_KEY>
 
     Example:
-    python -m avise --SET prompt_injection --modelconf avise/configs/model.json --SETconf avise/configs/prompt_injection_example.json
+    python -m avise --SET prompt_injection --modelconf avise/configs/model//model.json --SETconf avise/configs/SET/prompt_injection_example.json
 
 """
 import sys
