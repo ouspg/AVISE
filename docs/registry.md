@@ -1,0 +1,1 @@
+# TODO: Write documentation on what registry is and how it works
