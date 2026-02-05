@@ -1,8 +1,3 @@
-
-Framework for identifying vulnerabilities in and evaluating the security of AI systems.
-
-Discord channel: https://discord.gg/CebeeMUqSP
-
 ### Prerequisites
 
 - Python 3.10+
