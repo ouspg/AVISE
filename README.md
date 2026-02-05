@@ -3,7 +3,7 @@
 
 # AVISE - AI Vulnerability Identification & Security Evaluation
 
-A framework for identifying vulnerabilities in, and evaluating the security of, AI systems.
+A framework for identifying vulnerabilities in and evaluating the security of AI systems.
 
 
 ### Prerequisites
