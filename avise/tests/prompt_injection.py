@@ -23,7 +23,7 @@ from ..pipelines.base import (
 )
 from ..registry import test_registry
 from ..connectors.base import BaseConnector
-from ..evaluators import (
+from ..evaluators.language_model import (
     VulnerabilityEvaluator,
     RefusalEvaluator,
     PartialComplianceEvaluator,

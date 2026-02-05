@@ -9,7 +9,7 @@ import logging
 from typing import List, Tuple
 
 from .base import BaseLMEvaluator
-from ..registry import evaluator_registry
+from ...registry import evaluator_registry
 
 logger = logging.getLogger(__name__)
 
