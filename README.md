@@ -1,21 +1,11 @@
 
-```
-    _    _____     __    _____ 
-   / \  |_ _\ \   / /   |_   _|
-  / _ \  | | \ \ / / | | || |  
- / ___ \ | |  \ V /| |_| || |  
-/_/   \_\___|  \_/  \__,_||_|  
-
-```             
-
-# AIVuT - AI Vulnerability Testing framework
-
-An AI vulnerability testing framework used for testing AI models for security vulnerabilities
+"Framework for identifying vulnerabilities in and evaluating the security of AI systems.
+https://discord.gg/CebeeMUqSP"
 
 ### Prerequisites
 
 - Python 3.10+
-- Docker (for Ollama backend)
+- Docker (for running models backend)
 - pip
 
 ### 1. Clone the Repository
