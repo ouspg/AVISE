@@ -29,7 +29,7 @@ from ..analyzers import (
     PartialComplianceAnalyzer,
     SuspiciousOutputAnalyzer
 )
-from ..reporters import JSONReporter, HTMLReporter, MarkdownReporter
+from ..report_gen.reporters import JSONReporter, HTMLReporter, MarkdownReporter
 from ..loaders import ConfigLoader
 
 logger = logging.getLogger(__name__)
