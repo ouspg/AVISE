@@ -21,7 +21,7 @@ from ..pipelines.base import (
 from ..registry import test_registry
 from ..connectors.base import BaseConnector, Message
 from ..report_gen.reporters import JSONReporter, HTMLReporter, MarkdownReporter
-from ..loaders import ConfigLoader
+from ..utils import ConfigLoader
 
 logger = logging.getLogger(__name__)
 

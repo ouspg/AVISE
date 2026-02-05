@@ -30,7 +30,7 @@ from ..analyzers import (
     SuspiciousOutputAnalyzer
 )
 from ..report_gen.reporters import JSONReporter, HTMLReporter, MarkdownReporter
-from ..loaders import ConfigLoader
+from ..utils import ConfigLoader
 
 logger = logging.getLogger(__name__)
 
