@@ -31,7 +31,7 @@ from typing import Optional, Dict, Any
 from avise import __version__
 
 # Import to register different plugins and tests
-from . import analyzers
+from . import evaluators
 from . import connectors
 from . import tests
 

@@ -44,6 +44,6 @@ class Registry:
 
 
 # Make registries global
-analyzer_registry = Registry("analyzers")
+evaluator_registry = Registry("evaluators")
 connector_registry = Registry("connectors")
 test_registry = Registry("tests")

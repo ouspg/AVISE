@@ -1,5 +1,5 @@
 """
-Refusal analyzer
+Refusal evaluator
 
 Detects when the AI Model / LLM correctly refuses a malicious or inappropriate request,
 This indicates that the model's safety guidelines / guardrails are working correctly.
@@ -8,14 +8,14 @@ This indicates that the model's safety guidelines / guardrails are working corre
 import logging
 from typing import List, Tuple
 
-from .base import BaseAnalyzer
-from ..registry import analyzer_registry
+from .base import BaseLMEvaluator
+from ..registry import evaluator_registry
 
 logger = logging.getLogger(__name__)
 
 
-@analyzer_registry.register("refusal")
-class RefusalAnalyzer(BaseAnalyzer):
+@evaluator_registry.register("refusal")
+class RefusalEvaluator(BaseLMEvaluator):
 
     name = "refusal"
     description = "Detects when the AI Model / LLM correctly refuses a malicious or inappropriate request"

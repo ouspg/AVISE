@@ -1,1 +1,1 @@
-from .registry import analyzer_registry, connector_registry, test_registry
+from .registry import evaluator_registry, connector_registry, test_registry

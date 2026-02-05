@@ -1,5 +1,6 @@
 """
-Partial compliance analyzer 
+Partial compliance evaluator.
+
 Detects patterns where the AI model / LLM acknowledges it should comply with a request, but decides to respond and help anyway.
 This indicates possible vulnerabilities to prompt injection in the LLM, and defiencies in the safety guidelines / guardrails.
 
@@ -7,14 +8,14 @@ This indicates possible vulnerabilities to prompt injection in the LLM, and defi
 import logging
 from typing import List, Tuple
 
-from .base import BaseAnalyzer
-from ..registry import analyzer_registry
+from .base import BaseLMEvaluator
+from ..registry import evaluator_registry
 
 logger = logging.getLogger(__name__)
 
 
-@analyzer_registry.register("partial_compliance")
-class PartialComplianceAnalyzer(BaseAnalyzer):
+@evaluator_registry.register("partial_compliance")
+class PartialComplianceEvaluator(BaseLMEvaluator):
 
     name = "partial_compliance"
     description = "Detects patterns where the AI model / LLM acknowledges it should comply with a request, but decides to respond and help anyway."

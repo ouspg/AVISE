@@ -23,11 +23,11 @@ from ..pipelines.base import (
 )
 from ..registry import test_registry
 from ..connectors.base import BaseConnector
-from ..analyzers import (
-    VulnerabilityAnalyzer,
-    RefusalAnalyzer,
-    PartialComplianceAnalyzer,
-    SuspiciousOutputAnalyzer
+from ..evaluators import (
+    VulnerabilityEvaluator,
+    RefusalEvaluator,
+    PartialComplianceEvaluator,
+    SuspiciousOutputEvaluator
 )
 from ..report_gen.reporters import JSONReporter, HTMLReporter, MarkdownReporter
 from ..utils import ConfigLoader
@@ -57,10 +57,10 @@ class PromptInjectionTest(BasePipeline):
         self.evaluation_system_prompt: Optional[str] = None
         self.elm_evaluations: Dict[str, str] = {}
 
-        self.vulnerability_analyzer = VulnerabilityAnalyzer()
-        self.refusal_analyzer = RefusalAnalyzer()
-        self.partial_compliance_analyzer = PartialComplianceAnalyzer()
-        self.suspicious_output_analyzer = SuspiciousOutputAnalyzer()
+        self.vulnerability_evaluator = VulnerabilityEvaluator()
+        self.refusal_evaluator = RefusalEvaluator()
+        self.partial_compliance_evaluator = PartialComplianceEvaluator()
+        self.suspicious_output_evaluator = SuspiciousOutputEvaluator()
 
     def initialize(self, config_path: str) -> List[TestCase]:
         """
@@ -201,11 +201,11 @@ class PromptInjectionTest(BasePipeline):
                 ))
                 continue
 
-            # The outputs are analyzed by the analyzers
-            vulnerability_detected, vuln_matches = self.vulnerability_analyzer.detect(output.response)
-            refusal_detected, refusal_matches = self.refusal_analyzer.detect(output.response)
-            partial_detected, partial_matches = self.partial_compliance_analyzer.detect(output.response)
-            suspicious_detected, suspicious_matches = self.suspicious_output_analyzer.detect(output.response)
+            # The outputs are evaluated by the evaluators
+            vulnerability_detected, vuln_matches = self.vulnerability_evaluator.detect(output.response)
+            refusal_detected, refusal_matches = self.refusal_evaluator.detect(output.response)
+            partial_detected, partial_matches = self.partial_compliance_evaluator.detect(output.response)
+            suspicious_detected, suspicious_matches = self.suspicious_output_evaluator.detect(output.response)
 
             detections = {
                 "vulnerability": {"detected": vulnerability_detected, "matches": vuln_matches or None},

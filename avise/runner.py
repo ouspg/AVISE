@@ -4,7 +4,6 @@ The test runner / execution engine for AVISE.
 Runs tests that inherit from BasePipeline and implement the 5-phase pipeline:
 initialize() -> execute() -> analyze() -> report() -> run()
 """
-import argparse
 import json
 import logging
 from pathlib import Path
@@ -12,7 +11,7 @@ from datetime import datetime
 from typing import Optional, Dict, Any
 
 # Import to register different plugins and tests
-from . import analyzers
+from . import evaluators
 from . import connectors
 from . import tests
 

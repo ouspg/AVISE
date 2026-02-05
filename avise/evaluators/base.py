@@ -1,6 +1,6 @@
 """
-Base class for analyzers.
-Analyzers look for predetermined patterns in responses.
+Base class for evaluators.
+Evaluators look for predetermined patterns in responses.
 """
 import re
 import logging
@@ -10,13 +10,13 @@ from typing import List, Tuple
 logger = logging.getLogger(__name__)
 
 
-class BaseAnalyzer(ABC):
+class BaseLMEvaluator(ABC):
     """
-    Abstract base class for analyzers.
+    Abstract base class for language model evaluators.
 
     Attributes:
-        name: Unique identifier for the analyzer
-        description: Description of what the analyzer detects
+        name: Unique identifier for the evaluator
+        description: Description of what the evaluator detects
         patterns: List of regex patterns used for detection
     """
 
@@ -27,10 +27,10 @@ class BaseAnalyzer(ABC):
     @abstractmethod
     def detect(self, response: str) -> Tuple[bool, List[str]]:
         """
-        Analyze a response for patterns
+        Detect patterns in response.
 
         Args:
-            response: The response to analyze
+            response: The response to evaluate
 
         Returns:
             Tuple containing:
@@ -43,7 +43,7 @@ class BaseAnalyzer(ABC):
         """
         Find all matching patterns in the given response
 
-        Method that iterates through the patterns definined in the analyzer
+        Method that iterates through the patterns definined in the evaluator
         and returns a list of all patterns that match.
 
         Args:
