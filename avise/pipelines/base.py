@@ -1,7 +1,7 @@
 """
-Base class for all vulnerability framework tests.
+Base class for all vulnerability framework SETs.
 
-All tests inherit from BasePipeline and should implement all 5 phases:
+All SETs inherit from BasePipeline and should implement all 5 phases:
 initialize() -> execute() -> analyze() -> report() -> run()
 
 """
@@ -25,7 +25,6 @@ class ReportFormat(Enum):
     HTML = "html"
     MARKDOWN = "md"
 
-#TODO: Mikä tuo Contract on ?
 @dataclass
 class TestCase:
     """

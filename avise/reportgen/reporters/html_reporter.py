@@ -252,7 +252,7 @@ class HTMLReporter(BaseReporter):
             conversation_html += """
                 </div>"""
 
-        # Use prompt/response for non-conversation tests
+        # Use prompt/response for non-conversation SETs
         prompt_response_html = ""
         if not conversation_html:
             prompt_response_html = f"""

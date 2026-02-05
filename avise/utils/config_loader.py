@@ -75,7 +75,7 @@ class ConfigLoader:
         """
         tests = config.get("tests", [])
         if not tests:
-            raise ValueError("No tests found in configuration")
+            raise ValueError("No SETs found in configuration")
 
         test_cases = []
         for i, test in enumerate(tests):

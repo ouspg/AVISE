@@ -34,7 +34,7 @@ class BaseReporter(ABC):
     def escape_html(text: str) -> str:
         """
         Helper method for escaping special HTML characters.
-        Done to prevent possibly malicious outputs from the tests from causing problems when rendering HTML
+        Done to prevent possibly malicious outputs from the SETs from causing problems when rendering HTML
         """
         return (text
             .replace("&", "&amp;")

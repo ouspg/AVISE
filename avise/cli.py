@@ -30,12 +30,12 @@ from typing import Optional, Dict, Any
 
 from avise import __version__
 
-# Import to register different plugins and tests
+# Import to register different plugins and SETs
 from . import evaluators
 from . import connectors
-from . import tests
+from . import sets
 
-from .registry import connector_registry, test_registry
+from .registry import connector_registry, set_registry
 from .pipelines.base import BasePipeline, ReportFormat
 
 from .runner import TestRunner

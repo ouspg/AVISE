@@ -18,7 +18,7 @@ class Registry:
         Decorator to register a class.
 
         Example usage:
-            @test_registry.register("prompt_injection")
+            @SET_registry.register("prompt_injection")
         """
         def decorator(cls):
             if name in self._items:
@@ -46,4 +46,4 @@ class Registry:
 # Make registries global
 evaluator_registry = Registry("evaluators")
 connector_registry = Registry("connectors")
-test_registry = Registry("tests")
+set_registry = Registry("sets")

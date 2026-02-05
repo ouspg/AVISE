@@ -1,5 +1,5 @@
 """
-LLM01: Prompt Injection vulnerability test.
+LLM01: Prompt Injection vulnerability Security Evaluation Test.
 
 Implements the 5-phase pipeline for testing prompt injection vulnerabilities
 as defined in OWASP LLM Top 10.
@@ -12,7 +12,7 @@ from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Tuple
 
-from ..pipelines.base import (
+from ...pipelines.base import (
     BasePipeline,
     ReportFormat,
     TestCase,
@@ -21,21 +21,21 @@ from ..pipelines.base import (
     AnalysisResult,
     ReportData
 )
-from ..registry import test_registry
-from ..connectors.base import BaseConnector
-from ..evaluators.language_model import (
+from ...registry import set_registry
+from ...connectors.base import BaseConnector
+from ...evaluators.languagemodel import (
     VulnerabilityEvaluator,
     RefusalEvaluator,
     PartialComplianceEvaluator,
     SuspiciousOutputEvaluator
 )
-from ..report_gen.reporters import JSONReporter, HTMLReporter, MarkdownReporter
-from ..utils import ConfigLoader
+from ...reportgen.reporters import JSONReporter, HTMLReporter, MarkdownReporter
+from ...utils import ConfigLoader
 
 logger = logging.getLogger(__name__)
 
 
-@test_registry.register("prompt_injection")
+@set_registry.register("prompt_injection")
 class PromptInjectionTest(BasePipeline):
     """
     An early test written for testing prompt injection vulnerabilities.

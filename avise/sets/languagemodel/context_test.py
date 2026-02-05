@@ -9,7 +9,7 @@ from pathlib import Path
 from datetime import datetime
 from typing import List, Optional
 
-from ..pipelines.base import (
+from ...pipelines.base import (
     BasePipeline,
     ReportFormat,
     TestCase,
@@ -18,14 +18,14 @@ from ..pipelines.base import (
     AnalysisResult,
     ReportData
 )
-from ..registry import test_registry
-from ..connectors.base import BaseConnector, Message
-from ..report_gen.reporters import JSONReporter, HTMLReporter, MarkdownReporter
-from ..utils import ConfigLoader
+from ...registry import set_registry
+from ...connectors.base import BaseConnector, Message
+from ...reportgen.reporters import JSONReporter, HTMLReporter, MarkdownReporter
+from ...utils import ConfigLoader
 
 logger = logging.getLogger(__name__)
 
-@test_registry.register("context_test")
+@set_registry.register("context_test")
 class ContextTest(BasePipeline):
 
     name = "Context test"

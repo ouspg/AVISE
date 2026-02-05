@@ -1,7 +1,7 @@
 """
 The test runner / execution engine for AVISE.
 
-Runs tests that inherit from BasePipeline and implement the 5-phase pipeline:
+Runs SETs that inherit from BasePipeline and implement the 5-phase pipeline:
 initialize() -> execute() -> analyze() -> report() -> run()
 """
 import json
@@ -10,12 +10,13 @@ from pathlib import Path
 from datetime import datetime
 from typing import Optional, Dict, Any
 
-# Import to register different plugins and tests
+# Import to register different plugins and SETs
 from . import evaluators
 from . import connectors
-from . import tests
+from . import sets
 
-from .registry import connector_registry, test_registry
+
+from .registry import connector_registry, set_registry
 from .pipelines.base import BasePipeline, ReportFormat
 
 logging.basicConfig(
@@ -127,7 +128,7 @@ class TestRunner:
             except ValueError as e:
                 raise RuntimeError(f"Evaluation model not found: {e}")
 
-        test_type = test_registry.get(test_name)
+        test_type = set_registry.get(test_name)
         test_instance = test_type()
 
         if eval_connector:
@@ -153,9 +154,9 @@ class TestRunner:
     @staticmethod
     def list_available():
         
-        print("\nAvailable Tests:")
-        for test_name in test_registry.list():
-            test_type = test_registry.get(test_name)
+        print("\nAvailable SETs:")
+        for test_name in set_registry.list():
+            test_type = set_registry.get(test_name)
             print(f"  - {test_name}: {test_type.description}")
 
         print("\nAvailable Report Formats:")
