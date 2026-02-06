@@ -9,7 +9,7 @@ from typing import List, Optional
 from openai import OpenAI
 
 from .base import BaseConnector, Message
-from ..registry import connector_registry
+from ...registry import connector_registry
 
 logger = logging.getLogger(__name__)
 

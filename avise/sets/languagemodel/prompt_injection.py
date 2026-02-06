@@ -22,7 +22,7 @@ from ...pipelines.base import (
     ReportData
 )
 from ...registry import set_registry
-from ...connectors.base import BaseConnector
+from ...connectors.languagemodel.base import BaseConnector
 from ...evaluators.languagemodel import (
     VulnerabilityEvaluator,
     RefusalEvaluator,

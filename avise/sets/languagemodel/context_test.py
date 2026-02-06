@@ -19,7 +19,7 @@ from ...pipelines.base import (
     ReportData
 )
 from ...registry import set_registry
-from ...connectors.base import BaseConnector, Message
+from ...connectors.languagemodel.base import BaseConnector, Message
 from ...reportgen.reporters import JSONReporter, HTMLReporter, MarkdownReporter
 from ...utils import ConfigLoader
 
