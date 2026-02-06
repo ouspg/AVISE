@@ -1,3 +1,3 @@
-from .base import BaseConnector, Message
-from .ollama import OllamaConnector
-from .openai import OpenAIConnector
+from .base import BaseLMConnector, Message
+from .ollama import OllamaLMConnector
+from .openai import OpenAILMConnector

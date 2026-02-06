@@ -15,7 +15,7 @@ from math import sqrt
 
 from scipy.special import erfinv
 
-from ..connectors.languagemodel.base import BaseConnector
+from ..connectors.languagemodel.base import BaseLMConnector
 
 """
 Report formats the user can choose from when running tests
@@ -202,7 +202,7 @@ class BasePipeline(ABC):
     @abstractmethod
     def execute(
         self,
-        connector: BaseConnector,
+        connector: BaseLMConnector,
         tests: List[TestCase]
     ) -> OutputData:
         """
@@ -265,7 +265,7 @@ class BasePipeline(ABC):
 
     def run(
         self,
-        connector: BaseConnector,
+        connector: BaseLMConnector,
         config_path: str,
         output_path: str,
         report_format: ReportFormat = ReportFormat.JSON,

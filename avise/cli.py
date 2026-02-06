@@ -65,6 +65,11 @@ def main(arguments=[]) -> None:
         action="store_true",
         help="List available Security Evaluation Tests and formats"
     )
+    parser.add_argument(
+        "--connector_list",
+        action="store_true",
+        help="List available connectors"
+    )
 
     parser.add_argument(
         "--SET",
@@ -120,6 +125,10 @@ def main(arguments=[]) -> None:
 
     if args.SET_list:
         runner.list_available()
+        return
+    
+    if args.connector_list:
+        runner.list_available(sets=False, reportformats=False)
         return
 
     if not args.SET:

@@ -22,7 +22,7 @@ from ...pipelines.base import (
     ReportData
 )
 from ...registry import set_registry
-from ...connectors.languagemodel.base import BaseConnector
+from ...connectors.languagemodel.base import BaseLMConnector
 from ...evaluators.languagemodel import (
     VulnerabilityEvaluator,
     RefusalEvaluator,
@@ -53,7 +53,7 @@ class PromptInjectionTest(BasePipeline):
         Prepare the test object instance, it's dependencies and the tools to be used during the implementation.
         """
         super().__init__()
-        self.evaluation_connector: Optional[BaseConnector] = None
+        self.evaluation_connector: Optional[BaseLMConnector] = None
         self.evaluation_system_prompt: Optional[str] = None
         self.elm_evaluations: Dict[str, str] = {}
 
@@ -113,7 +113,7 @@ class PromptInjectionTest(BasePipeline):
 
     def execute(
         self,
-        connector: BaseConnector,
+        connector: BaseLMConnector,
         tests: List[TestCase]
     ) -> OutputData:
         """

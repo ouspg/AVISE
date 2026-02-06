@@ -28,7 +28,7 @@ class Message:
     content: str
 
 
-class BaseConnector(ABC):
+class BaseLMConnector(ABC):
     """
     A connector handles communication with a specific API / backend,
     abstracting the API usage for the framework.

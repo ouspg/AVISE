@@ -5,14 +5,14 @@ import logging
 import ollama
 from typing import List, Optional
 
-from .base import BaseConnector, Message
+from .base import BaseLMConnector, Message
 from ...registry import connector_registry
 
 logger = logging.getLogger(__name__)
 
 
-@connector_registry.register("ollama")
-class OllamaConnector(BaseConnector):
+@connector_registry.register("ollama-lm")
+class OllamaLMConnector(BaseLMConnector):
     """
     Connector for communicating with the Ollama API.
 
@@ -20,7 +20,7 @@ class OllamaConnector(BaseConnector):
     Supports both simple generation and generation with system prompts.
     """
 
-    name = "ollama"
+    name = "ollama-lm"
 
     def __init__(
         self,

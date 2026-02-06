@@ -39,8 +39,8 @@ class TestRunner:
         Returns:
             Configuration dictionary with:
             - testable_model (required): Model name for testing
-            - connector (optional): Connector type - "ollama" (default) or "openai"
-            - api_url (optional): API base URL (required for ollama, optional for openai)
+            - connector (optional): Connector type - "ollama-lm" (default) or "openai-lm"
+            - api_url (optional): API base URL (required for ollama-lm, optional for openai-lm)
             - api_key (optional): API key for authentication
             - evaluation_model (optional): Model for ELM evaluation
         """
@@ -86,7 +86,7 @@ class TestRunner:
         model_config = self.load_model_config(model_config_path)
         testable_model = model_config["testable_model"]
         evaluation_model = model_config.get("evaluation_model")
-        connector_type = model_config.get("connector", "ollama") #At this stage of development the default is set to ollama. Will be changed.
+        connector_type = model_config.get("connector", "ollama-lm") #At this stage of development the default is set to ollama. Will be changed.
         api_url = model_config.get("api_url")
 
         usable_api_key = api_key or model_config.get("api_key")
@@ -152,17 +152,18 @@ class TestRunner:
         )
 
     @staticmethod
-    def list_available():
+    def list_available(sets:bool=True, connectors:bool=True, reportformats:bool=True):
         
-        print("\nAvailable SETs:")
-        for test_name in set_registry.list():
-            test_type = set_registry.get(test_name)
-            print(f"  - {test_name}: {test_type.description}")
-
-        print("\nAvailable Report Formats:")
-        for format in ReportFormat:
-            print(f"  - {format.value}")
-
-        print("\n Available Connectors:")
-        for connector_name in connector_registry.list():
-            print(f"  - {connector_name}")
+        if sets:
+            print("\nAvailable SETs:")
+            for test_name in set_registry.list():
+                test_type = set_registry.get(test_name)
+                print(f"  - {test_name}: {test_type.description}")
+        if reportformats:
+            print("\nAvailable Report Formats:")
+            for format in ReportFormat:
+                print(f"  - {format.value}")
+        if connectors:
+            print("\n Available Connectors:")
+            for connector_name in connector_registry.list():
+                print(f"  - {connector_name}")

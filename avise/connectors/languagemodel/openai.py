@@ -8,14 +8,14 @@ from typing import List, Optional
 
 from openai import OpenAI
 
-from .base import BaseConnector, Message
+from .base import BaseLMConnector, Message
 from ...registry import connector_registry
 
 logger = logging.getLogger(__name__)
 
 
-@connector_registry.register("openai")
-class OpenAIConnector(BaseConnector):
+@connector_registry.register("openai-lm")
+class OpenAILMConnector(BaseLMConnector):
     """
     Connector for communicating with the OpenAI API.
 
@@ -28,7 +28,7 @@ class OpenAIConnector(BaseConnector):
     - Command line (-apikey argument)
     """
 
-    name = "openai"
+    name = "openai-lm"
 
     # Default models
     DEFAULT_MODEL = "gpt-4o-mini"

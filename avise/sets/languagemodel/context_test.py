@@ -19,7 +19,7 @@ from ...pipelines.base import (
     ReportData
 )
 from ...registry import set_registry
-from ...connectors.languagemodel.base import BaseConnector, Message
+from ...connectors.languagemodel.base import BaseLMConnector, Message
 from ...reportgen.reporters import JSONReporter, HTMLReporter, MarkdownReporter
 from ...utils import ConfigLoader
 
@@ -33,7 +33,7 @@ class ContextTest(BasePipeline):
 
     def __init__(self):
         super().__init__()
-        self.evaluation_connector: Optional[BaseConnector] = None
+        self.evaluation_connector: Optional[BaseLMConnector] = None
 
 
     def initialize(self, config_path: str) -> List[TestCase]:
@@ -65,7 +65,7 @@ class ContextTest(BasePipeline):
 
     def execute(
         self,
-        connector: BaseConnector,
+        connector: BaseLMConnector,
         tests: List[TestCase]
     ) -> OutputData:
         #TODO: Change to lazy formatting (improves run time, reduces compute)
