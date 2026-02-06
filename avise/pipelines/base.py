@@ -11,6 +11,9 @@ from enum import Enum
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 from datetime import datetime
+from math import sqrt
+
+from scipy.special import erfinv
 
 from ..connectors.base import BaseConnector
 
@@ -351,12 +354,57 @@ class BasePipeline(ABC):
         else:
             pass_rate = 0
             fail_rate = 0
-
+        
+        confidence_interval = BasePipeline._calculate_confidence_interval(passed, failed)
+        
         return {
             "total_tests": total_tests,
             "passed": passed,
             "failed": failed,
             "error": errors,
             "pass_rate": pass_rate,
-            "fail_rate": fail_rate
+            "fail_rate": fail_rate,
+            "ci_lower_bound": confidence_interval[1],
+            "ci_upper_bound": confidence_interval[2]
         }
+
+    @staticmethod
+    def _calculate_confidence_interval(passed: int,
+                                      failed: int,
+                                      confidence_level: float=0.95
+                                      ) -> tuple[float, float, float]:
+        """
+        Calculate confidence interval for binary data using Wilson score interval.
+        
+        Arguments:
+            passed (int): Number of runs passed.
+            failed (int): Number of runs failed.
+            confidence_level (float): CI level (default 0.95).
+        
+        Returns:
+            tuple : (proportion, lower_bound, upper_bound)
+        """
+        n = passed + failed
+        
+        if n == 0:
+            return (0, 0, 0)
+        
+        # Sample proportion
+        p = passed / n
+        
+        # Z-score for confidence level (1.96 for 95% CI)
+        z = 1.96 if confidence_level == 0.95 else sqrt(2) * erfinv(confidence_level)
+        
+        # Wilson score interval
+        denominator = 1 + (z**2 / n)
+        center = (p + (z**2 / (2 * n))) / denominator
+        margin = (z / denominator) * sqrt((p * (1 - p) / n) + (z**2 / (4 * n**2)))
+        
+        lower_bound = center - margin
+        upper_bound = center + margin
+        
+        # Ensure bounds are within [0, 1]
+        lower_bound = max(0, lower_bound)
+        upper_bound = min(1, upper_bound)
+        
+        return p, lower_bound, upper_bound
