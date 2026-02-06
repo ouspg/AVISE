@@ -15,7 +15,7 @@ from math import sqrt
 
 from scipy.special import erfinv
 
-from ..connectors.base import BaseConnector
+from ..connectors.languagemodel.base import BaseConnector
 
 """
 Report formats the user can choose from when running tests
@@ -372,7 +372,7 @@ class BasePipeline(ABC):
     def _calculate_confidence_interval(passed: int,
                                       failed: int,
                                       confidence_level: float=0.95
-                                      ) -> tuple[float, float, float]:
+                                      ) -> tuple[int, float, float]:
         """
         Calculate confidence interval for binary data using Wilson score interval.
         
@@ -407,4 +407,4 @@ class BasePipeline(ABC):
         lower_bound = max(0, lower_bound)
         upper_bound = min(1, upper_bound)
         
-        return p, lower_bound, upper_bound
+        return (p, lower_bound, upper_bound)
