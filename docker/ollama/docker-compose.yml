@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: aivut-ollama
+    container_name: avise-ollama
     ports:
       - "11434:11434"
     environment:

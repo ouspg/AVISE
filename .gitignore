@@ -1,0 +1,9 @@
+myenv/
+src/__pycache__
+src/analyzers/__pycache__
+src/connectors/__pycache__
+src/pipelines/__pycache__
+src/loaders/__pycache__
+src/registry/__pycache__
+src/reporters/__pycache__
+src/tests/__pycache__

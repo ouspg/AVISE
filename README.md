@@ -17,7 +17,7 @@ cd AI-Testing-Platform
 # Create virtual environment
 python -m venv myenv
 
-source venv/bin/activate
+source myenv/bin/activate    # On Windows, run: myenv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
@@ -41,7 +41,7 @@ After Ollama is running, pull the models you want to test:
 
 ```bash
 # Pull models for testing and for evaluation
-docker exec -it ollama ollama pull <model_name>
+docker exec -it avise-ollama ollama pull <model_name>
 ```
 
 ### 5. Configure Models
