@@ -3,11 +3,11 @@ Language Model Connector for Custom/Generic REST APIs.
 """
 import logging
 import requests
-from typing import List, Optional
+#from typing import List, Optional
 
 from .base import BaseLMConnector
 from ...registry import connector_registry
-from ...utils import ConfigLoader
+#from ...utils import ConfigLoader
 
 logger = logging.getLogger(__name__)
 
@@ -24,26 +24,50 @@ class GenericRESTLMConnector(BaseLMConnector):
 
     def __init__(
         self,
-        config_path: str,
+        config: dict,
+        evaluation: bool = False
     ):
         """
         Initialize the Generic REST API connector.
 
         Args:
-            config_path: Path to the Connector configuration file. TODO: Link to docs on how to create config file.
+            config: Dictionary containing data from Connector configuration JSON.
+            evaluation: Boolean flag indicating whether initializing a connector for the target model or the evaluation model
         """
-        self.config = ConfigLoader().load(config_path)
-        self.url = self.config["rest"]["RESTLMConnector"]["url"]
-        if "api_key" in self.config["rest"]["RESTLMConnector"]:
-            self.api_key = self.config["rest"]["RESTLMConnector"]["api_key"]
-        else:
-            self.api_key = None
-        if "headers" in self.config["rest"]["RESTLMConnector"]:
-                self.headers = self.config["rest"]["RESTLMConnector"]["headers"]
-        else:
-            self.headers = None
+        self.config = config
+        try:
+            if evaluation:
+                self.url = config["eval_model"]["api_url"]
+                self.name = config["eval_model"]["name"]
+                self.method = config["eval_model"]["method"]
+                self.response_field = config["eval_model"]["response_field"]
+                if "api_key" in config["eval_model"] and config["eval_model"]["api_key"] is not None:
+                    self.api_key = config["eval_model"]["api_key"]
+                else:
+                    self.api_key = None
+                if "headers" in config["eval_model"] and config["eval_model"]["headers"] is not None:
+                        self.headers = config["eval_model"]["headers"]
+                else:
+                    self.headers = None
 
-        logger.info(f"  Generic REST API Connector Initialized")
+            else:
+                self.url = config["target_model"]["api_url"]
+                self.name = config["target_model"]["name"]
+                self.method = config["target_model"]["method"]
+                self.response_field = config["target_model"]["response_field"]
+                if "api_key" in config["target_model"] and config["target_model"]["api_key"] is not None:
+                    self.api_key = config["target_model"]["api_key"]
+                else:
+                    self.api_key = None
+                if "headers" in config["target_model"] and config["target_model"]["headers"] is not None:
+                        self.headers = config["target_model"]["headers"]
+                else:
+                    self.headers = None
+        except (KeyError, ValueError) as e:
+            logger.error(f"ERROR while generating initializing GenericRESTLMConnector: {e}")
+
+        conn = f"Evaluation model {self.name}" if evaluation else f"Target model: {self.name}"
+        logger.info(f"  Generic REST API Connector Initialized for {conn}")
         logger.info(f"  Base URL: {self.url}")
         if self.api_key is not None:
             logger.info(f"  API Key: {'*' * 8}...{self.api_key[-4:] if len(self.api_key) > 4 else '****'}")
@@ -58,29 +82,20 @@ class GenericRESTLMConnector(BaseLMConnector):
             data: Dictionary containing the required data for the API request.
         Returns:
             API response as a dict. The dict includes a "response" key with the model response.
-            
         """
+
         try:
-            method = self.config["rest"]["RESTLMConnector"]["method"]
-            model_response_field = self.config["rest"]["RESTLMConnector"]["response_field"]
-            
-        except Exception as e:
-            logger.error(f"ERROR while loading RESTLMConnector configuration file: {e}")
-            raise ValueError("A required field is missing from RESTLMConnector configuration\
-                              file. TODO: add link to docs.") from e
-        
-        try:
-            if method == "POST":
+            if self.method == "POST":
                 if self.headers is None:
                     response = requests.post(url=self.url, data=data)
                 else:
                     response = requests.post(url=self.url, data=data, headers=self.headers)
-            elif method == "GET":
+            elif self.method == "GET":
                 if self.headers is None:
                     response = requests.get(url=self.url, data=data)
                 else:
                     response = requests.get(url=self.url, data=data, headers=self.headers)
-            elif method == "PUT":
+            elif self.method == "PUT":
                 if self.headers is None:
                     response = requests.put(url=self.url, data=data)
                 else:
@@ -88,13 +103,13 @@ class GenericRESTLMConnector(BaseLMConnector):
             else:
                 raise ValueError(f"GenericRESTLMConnector currently only supports POST, \
                                  GET, and PUT methods. Attempted to generate a response \
-                                 with {method} method.")
+                                 with {self.method} method.")
         except Exception as e:
             logger.error(f"ERROR while generating response from model: {e}")
             raise RuntimeError("Failed to generate a response from model due to an error.") from e
         
         response_data = response.json()
-        response_data["response"] = response_data.get(model_response_field)
+        response_data[self.response_field] = response_data.get(self.response_field)
         return response_data
 
     def status_check(self) -> bool:

@@ -2,8 +2,9 @@
 Connector for Ollama API communication using the ollama library.
 """
 import logging
+from typing import List
+
 import ollama
-from typing import List, Optional
 
 from .base import BaseLMConnector, Message
 from ...registry import connector_registry
@@ -23,36 +24,44 @@ class OllamaLMConnector(BaseLMConnector):
 
     def __init__(
         self,
-        model: str,
-        base_url: str = "http://localhost:11434",
-        api_key: Optional[str] = None
+        config: dict,
+        evaluation: bool = False,
     ):
         """
         Initialize the Ollama connector.
 
         Args:
-            model: Target model name for generation (For example: llama3.2:3b)
-            base_url: Base URL for Ollama API (For example: http://localhost:11434)
-            api_key: Optional API key for authenticated Ollama instances
+            config: Dictionary containing data from Connector configuration JSON.
+            evaluation: Boolean flag indicating whether initializing a connector for the target model or the evaluation model
         """
-        self.model = model
-        self.base_url = base_url
-        self.api_key = api_key
-
-        # Configure client with optional authentication headers
-        if api_key:
-            self.client = ollama.Client(
-                host=base_url,
-                headers={"Authorization": f"Bearer {api_key}"}
-            )
+        self.api_key = None
+        if evaluation:
+            self.model = config["eval_model"]["name"]
+            self.base_url = config["eval_model"]["api_url"]
+            if "api_key" in config["eval_model"] and config["target_model"]["api_key"] is not None:
+                self.api_key = config["eval_model"]["api_key"]
+                self.client = ollama.Client(
+                host=self.base_url,
+                headers={"Authorization": f"Bearer {self.api_key}"}
+                )
         else:
-            self.client = ollama.Client(host=base_url)
+            self.model = config["target_model"]["name"]
+            self.base_url = config["target_model"]["api_url"]
+            if "api_key" in config["target_model"] and config["target_model"]["api_key"] is not None:
+                self.api_key = config["target_model"]["api_key"]
+                # Configure client with optional authentication headers
+                self.client = ollama.Client(
+                host=self.base_url,
+                headers={"Authorization": f"Bearer {self.api_key}"}
+                )
+            else:
+                self.client = ollama.Client(host=self.base_url)
 
         logger.info(f"  Ollama Connector Initialized")
-        logger.info(f"  Base URL: {base_url}")
-        logger.info(f"  Model: {model}")
-        if api_key:
-            logger.info(f"  API Key: {'*' * 8}...{api_key[-4:] if len(api_key) > 4 else '****'}")
+        logger.info(f"  Base URL: {self.base_url}")
+        logger.info(f"  Model: {self.model}")
+        if self.api_key:
+            logger.info(f"  API Key: {'*' * 8}...{self.api_key[-4:] if len(self.api_key) > 4 else '****'}")
 
     def generate(self,
                  data: dict,

@@ -1,6 +1,6 @@
 {
   "description": "Memory test configuration - tests multi-turn conversation context retention",
-  "tests": [
+  "sets": [
     {
       "id": "CONTEXT-001",
       "description": "Name",

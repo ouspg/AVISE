@@ -36,47 +36,47 @@ class ContextTest(BasePipeline):
         self.evaluation_connector: Optional[BaseLMConnector] = None
 
 
-    def initialize(self, config_path: str) -> List[TestCase]:
-        logger.info(f"Initializing test: {self.name}")
+    def initialize(self, set_config_path: str) -> List[TestCase]:
+        logger.info(f"Initializing Security Evaluation Test: {self.name}")
 
-        config = ConfigLoader().load(config_path)
+        set_config = ConfigLoader().load(set_config_path)
 
-        tests = config.get("tests", [])
-        if not tests:
-            raise ValueError("No tests found in the configuration file")
+        sets = set_config.get("sets", [])
+        if not sets:
+            raise ValueError("No Security Evaluation Tests found in the configuration file")
 
-        test_cases = []
-        for i, test in enumerate(tests):
-            test_cases.append(TestCase(
-                id=test.get("id", f"CONTEXT-{i+1}"),
-                prompt=test.get("description", "Context test"),
+        set_cases = []
+        for i, set_ in enumerate(sets):
+            set_cases.append(TestCase(
+                id=set_.get("id", f"CONTEXT-{i+1}"),
+                prompt=set_.get("description", "Context test"),
                 metadata={
-                    "conversation": test.get("conversation", []),
-                    "expected_in_response": test.get("expected_in_response", []),
-                    "description": test.get("description", "")
+                    "conversation": set_.get("conversation", []),
+                    "expected_in_response": set_.get("expected_in_response", []),
+                    "description": set_.get("description", "")
                 }
             ))
 
-        self.test_cases = test_cases
-        logger.info(f"Loaded {len(test_cases)} test cases")
-        return test_cases
+        self.set_cases = set_cases
+        logger.info(f"Loaded {len(set_cases)} SET cases")
+        return set_cases
 
     def execute(
         self,
         connector: BaseLMConnector,
-        tests: List[TestCase]
+        sets: List[TestCase]
     ) -> OutputData:
-        logger.info(f"Executing {len(tests)} context tests")
+        logger.info(f"Executing {len(sets)} context tests")
         self.start_time = datetime.now()
 
         outputs = []
 
 
-        for i, test in enumerate(tests):
-            logger.info(f"Running test {i + 1}/{len(tests)} [{test.id}]")
+        for i, set_ in enumerate(sets):
+            logger.info(f"Running SET {i + 1}/{len(sets)} [{set_.id}]")
 
             try:
-                conversation = test.metadata.get("conversation", [])
+                conversation = set_.metadata.get("conversation", [])
                 data = {"messages": []}
                 data["max_tokens"] = 256 #TODO: This should be configurable by user
                 final_response = ""
@@ -94,11 +94,11 @@ class ContextTest(BasePipeline):
                         data["messages"].insert(0, Message(role="system", content=content))
 
                 outputs.append(ExecutionOutput(
-                    test_id=test.id,
-                    prompt=test.prompt,
+                    set_id=set_.id,
+                    prompt=set_.prompt,
                     response=final_response,
                     metadata={
-                        **test.metadata,
+                        **set_.metadata,
                         "full_conversation": [
                             {"role": m.role, "content": m.content}
                             for m in data["messages"]
@@ -107,12 +107,12 @@ class ContextTest(BasePipeline):
                 ))
 
             except Exception as e:
-                logger.error(f"Test {test.id} failed: {e}")
+                logger.error(f"Security Evaluation Test {set_.id} failed: {e}")
                 outputs.append(ExecutionOutput(
-                    test_id=test.id,
-                    prompt=test.prompt,
+                    set_id=set_.id,
+                    prompt=set_.prompt,
                     response="ERROR: Target failed to respond or an error occured during execution.",
-                    metadata=test.metadata,
+                    metadata=set_.metadata,
                     error=str(e)
                 ))
 
@@ -132,7 +132,7 @@ class ContextTest(BasePipeline):
         for output in execution_data.outputs:
             if output.error:
                 results.append(AnalysisResult(
-                    test_id=output.test_id,
+                    set_id=output.set_id,
                     prompt=output.prompt,
                     response=output.response,
                     status="error",
@@ -173,7 +173,7 @@ class ContextTest(BasePipeline):
                 reason = f"Context interpretation failed: none of {expected} found in response"
 
             results.append(AnalysisResult(
-                test_id=output.test_id,
+                set_id=output.set_id,
                 prompt=output.prompt,
                 response=output.response,
                 status=status,
@@ -193,7 +193,7 @@ class ContextTest(BasePipeline):
         logger.info(f"Generating {report_format.value.upper()} report")
 
         report_data = ReportData(
-            test_name=self.name,
+            set_name=self.name,
             timestamp=datetime.now().strftime("%Y-%m-%d | %H:%M"),
             execution_time_seconds=(
                 round((self.end_time - self.start_time).total_seconds(), 1)
@@ -202,9 +202,9 @@ class ContextTest(BasePipeline):
             summary=self.calculate_passrates(results),
             results=results,
             configuration={
-                "model_config": Path(self.model_config_path).name if self.model_config_path else "",
-                "test_config": Path(self.test_config_path).name if self.test_config_path else "",
-                "testable_model": self.testable_model_name,
+                "model_config": Path(self.connector_config_path).name if self.connector_config_path else "",
+                "set_config": Path(self.set_config_path).name if self.set_config_path else "",
+                "target_model": self.target_model_name,
                 "evaluation_model": self.evaluation_model_name or "",
                 "elm_evaluation_used": self.evaluation_connector is not None
             }

@@ -3,21 +3,18 @@ AVISE Command Line Interface.
 
 Usage:
     Basic:
-    python -m avise --SET <SET_name> --modelconf </path/to/modelconfig/> --SETconf </path/to/testconfig/>
+    python -m avise --SET <SET_name> --connectorconf </path/to/connectorconfig/> --SETconf </path/to/setconfig/>
 
     Adding report format (default is json):
 
-    python -m avise --SET <SET_name> --modelconf </path/to/modelconfig/> --SETconf </path/to/testconfig/> --format json/html/md
+    python -m avise --SET <SET_name> --connectorconf </path/to/connectorconfig/> --SETconf </path/to/setconfig/> --format json/html/md
 
     Add custom output directory (optional):
     
-    python -m avise --SET <SET_name> --modelconf </path/to/modelconfig/> --SETconf </path/to/testconfig/> --format json/html/md --output <path/to/outputdir>
-
-    # Using API key for authentication
-    python -m avise --SET <SET_name> --modelconf </path/to/modelconfig/> --SETconf </path/to/testconfig/> --apikey <API_KEY>
+    python -m avise --SET <SET_name> --connectorconf </path/to/connectorconfig/> --SETconf </path/to/setconfig/> --format json/html/md --output <path/to/outputdir>
 
     Example:
-    python -m avise --SET prompt_injection --modelconf avise/configs/model//model.json --SETconf avise/configs/SET/prompt_injection_example.json
+    python -m avise --SET prompt_injection --connectorconf avise/configs/connector//ollama.json --SETconf avise/configs/SET/prompt_injection_mini.json
 
 """
 import sys
@@ -77,17 +74,15 @@ def main(arguments=[]) -> None:
     )
 
     parser.add_argument(
-        "--modelconf",
-        help="Path to model configuration JSON (testable_model, evaluation_model, api_url)"
+        "--connectorconf",
+        help="Path to connector configuration JSON"
     )
+
     parser.add_argument(
         "--SETconf",
         help="Path to Security Evaluation Test configuration JSON"
     )
-    parser.add_argument(
-        "--connectorconf",
-        help="Path to connector configuration JSON"
-    )
+    
 
     parser.add_argument(
         "--format", "-f",
@@ -103,11 +98,6 @@ def main(arguments=[]) -> None:
         "--reports_dir", "-d",
         default=DEFAULT_REPORTS_DIR,
         help=f"Base directory for reports (default: {DEFAULT_REPORTS_DIR})"
-    )
-
-    parser.add_argument(
-        "--apikey",
-        help="API key for authenticated model API access (overrides config file)"
     )
 
     parser.add_argument(
@@ -140,9 +130,9 @@ def main(arguments=[]) -> None:
         print("\nError: --SET is required")
         return
 
-    if not args.modelconf:
+    if not args.connectorconf:
         parser.print_help()
-        print("\nError: --modelconf is required")
+        print("\nError: --connectorconf is required")
         return
 
     if not args.SETconf:
@@ -158,22 +148,20 @@ def main(arguments=[]) -> None:
     report_format = format_map[args.format]
 
     # Run the test by calling run_test function. The selected test's run() function is called.
-    # TODO: Refactor run to accomodate connectorconf and more args
     try:
         report = runner.run_test(
-            test_name=args.SET,
-            model_config_path=args.modelconf,
-            test_config_path=args.SETconf,
+            set_name=args.SET,
+            set_config_path=args.SETconf,
+            connector_config_path=args.connectorconf,
             output_path=args.output,
             report_format=report_format,
             reports_dir=args.reports_dir,
-            api_key=args.apikey
         )
 
         #Print a small summary to the console
         print(f"\nSecurity Evaluation Test completed!")
         print(f"  Format: {report_format.value.upper()}")
-        print(f"  Total: {report.summary['total_tests']}")
+        print(f"  Total: {report.summary['total_sets']}")
         print(f"  Passed: {report.summary['passed']} ({report.summary['pass_rate']}%)")
         print(f"  Failed: {report.summary['failed']} ({report.summary['fail_rate']}%)")
         print(f"  Errors: {report.summary['error']}")

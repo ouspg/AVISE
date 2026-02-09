@@ -1,0 +1,17 @@
+{
+    "target_model": {
+        "connector": "openai-lm",
+        "type": "language_model",
+        "name": "gpt-4o-mini",
+        "api_url": "",
+        "api_key": "YOUR_OPENAI_API_KEY_HERE"
+    },
+
+    "eval_model": {
+        "connector": "openai-lm",
+        "type": "language_model",
+        "name": "gpt-4o-mini",
+        "api_url": "",
+        "api_key": "YOUR_OPENAI_API_KEY_HERE"
+    }
+}

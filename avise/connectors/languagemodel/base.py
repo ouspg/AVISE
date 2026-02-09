@@ -39,28 +39,9 @@ class BaseLMConnector(ABC):
     - status_check(): Verify that the target API endpoint is available.
 
     Class Attributes:
-        name: Connector type identifier
-        model (Optional): Target model defined in configuration file.
-        api_key (Optional): Optional authorization API key (passed as a command line argument -apikey KEY or alternatively in a connector configuration file). 
-
-        
-
-    - single_turn(): Send a single prompt and get a response
-    - multi_turn(): Send prompts, collect conversation history, and send conversation history back to the stateless API backend for history context.
-    - single_turn_with_system_prompt(): Send a single prompt with a system prompt and get a response. 
-        Used for providing contextual instructions to the evaluative language model.
-    - health_check(): Verify the backend is available
-    - list_models(): Get the list of available models on the backend. Used for 
-
-    Class Attributes:
-        name: Connector type identifier
-        model: The specific model being used by the connertor (Defined in the configuration)
-        api_key: Optional API key for authentication (Passed as a command line argument -apikey KEY)
+        config: Connector configuration data.
     """
-
-    name: str = ""
-    model: Optional[str] = ""
-    api_key: Optional[str] = None
+    config: dict = {}
 
     @abstractmethod
     def generate(

@@ -53,7 +53,7 @@ class HTMLReporter(BaseReporter):
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AIVuT Report - {report_data.test_name}</title>
+    <title>AVISE Report - {report_data.set_name}</title>
     <style>
         body {{
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -103,18 +103,18 @@ class HTMLReporter(BaseReporter):
             border-radius: 10px 10px 0 0;
         }}
         .category-header h2 {{ margin: 0; font-size: 18px; }}
-        .test-item {{
+        .set-item {{
             border-bottom: 1px solid #eee;
             padding: 15px 20px;
         }}
-        .test-item:last-child {{ border-bottom: none; }}
-        .test-header {{
+        .set-item:last-child {{ border-bottom: none; }}
+        .set-header {{
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
         }}
-        .test-id {{ font-weight: bold; color: #2d3436; }}
+        .set-id {{ font-weight: bold; color: #2d3436; }}
         .status {{
             padding: 4px 12px;
             border-radius: 20px;
@@ -161,9 +161,9 @@ class HTMLReporter(BaseReporter):
 </head>
 <body>
     <div class="header">
-        <h1>AIVuT Security Report</h1>
+        <h1>AVISE Security Report</h1>
         <div class="meta">
-            Test: {report_data.test_name} |
+            Security Evaluation Test: {report_data.set_name} |
             Generated: {report_data.timestamp} |
             Duration: {report_data.execution_time_seconds}s
             {' | ELM Evaluation: Yes' if config.get('elm_evaluation_used') else ''}
@@ -177,8 +177,8 @@ class HTMLReporter(BaseReporter):
         return f"""
     <div class="summary-cards">
         <div class="card">
-            <div class="number">{summary['total_tests']}</div>
-            <div class="label">Total Tests</div>
+            <div class="number">{summary['total_sets']}</div>
+            <div class="label">Total Security Evaluation Tests</div>
         </div>
         <div class="card passed">
             <div class="number">{summary['passed']}</div>
@@ -200,13 +200,13 @@ class HTMLReporter(BaseReporter):
         html = """
     <div class="category">
         <div class="category-header">
-            <h2>Test Results</h2>
+            <h2>Security Evaluation Test Results</h2>
         </div>
 """
         for result in results:
             if isinstance(result, AnalysisResult):
-                test = {
-                    "test_id": result.test_id,
+                set_ = {
+                    "set_id": result.set_id,
                     "prompt": result.prompt,
                     "response": result.response,
                     "status": result.status,
@@ -217,34 +217,34 @@ class HTMLReporter(BaseReporter):
                     "description": result.metadata.get("description", "")
                 }
                 if result.elm_evaluation:
-                    test["elm_evaluation"] = result.elm_evaluation
+                    set_["elm_evaluation"] = result.elm_evaluation
             else:
-                test = result
-            html += self._get_test_item(test)
+                set_ = result
+            html += self._get_set_item(set_)
         html += "    </div>\n"
         return html
 
-    def _get_test_item(self, test: Dict[str, Any]) -> str:
-        """Generate HTML for a single test item."""
-        test_label = test.get("attack_type") or test.get("description") or ""
-        if test_label:
-            test_label = f" - {test_label}"
+    def _get_set_item(self, set_: Dict[str, Any]) -> str:
+        """Generate HTML for a single SET item."""
+        set_label = set_.get("attack_type") or set_.get("description") or ""
+        if set_label:
+            set_label = f" - {set_label}"
 
         elm_html = ""
-        if "elm_evaluation" in test:
+        if "elm_evaluation" in set_:
             elm_html = f"""
                 <div class="elm-eval">
                     <div class="label-sm">ELM Evaluation</div>
-                    {self.escape_html(test['elm_evaluation'])}
+                    {self.escape_html(set_['elm_evaluation'])}
                 </div>"""
 
         # Check for conversation format (memory test)
         conversation_html = ""
-        if test.get("full_conversation"):
+        if set_.get("full_conversation"):
             conversation_html = """
                 <div class="label-sm">Conversation</div>
                 <div class="conversation">"""
-            for msg in test["full_conversation"]:
+            for msg in set_["full_conversation"]:
                 role = msg.get("role", "user")
                 content = self.escape_html(msg.get("content", ""))
                 conversation_html += f"""
@@ -257,19 +257,19 @@ class HTMLReporter(BaseReporter):
         if not conversation_html:
             prompt_response_html = f"""
             <div class="label-sm">Prompt</div>
-            <div class="prompt">{self.escape_html(test.get('prompt', ''))}</div>
+            <div class="prompt">{self.escape_html(set_.get('prompt', ''))}</div>
             <div class="label-sm">Response</div>
-            <div class="response">{self.escape_html(test.get('response', ''))}</div>"""
+            <div class="response">{self.escape_html(set_.get('response', ''))}</div>"""
 
         return f"""
-        <div class="test-item">
-            <div class="test-header">
-                <span class="test-id">{test['test_id']}{test_label}</span>
-                <span class="status {test['status']}">{test['status']}</span>
+        <div class="set-item">
+            <div class="set-header">
+                <span class="set-id">{set_['set_id']}{set_label}</span>
+                <span class="status {set_['status']}">{set_['status']}</span>
             </div>
             {prompt_response_html}
             {conversation_html}
-            <div class="reason">{self.escape_html(test.get('reason', ''))}</div>
+            <div class="reason">{self.escape_html(set_.get('reason', ''))}</div>
             {elm_html}
         </div>
 """

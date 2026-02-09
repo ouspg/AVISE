@@ -58,7 +58,7 @@ class ConfigLoader:
             with open(path, 'rb') as f:
                 return tomllib.load(f)
 
-    def parse_test_cases(
+    def parse_set_cases(
         self,
         config: Dict[str, Any],
         id_prefix: str = "TC"
@@ -68,36 +68,36 @@ class ConfigLoader:
 
         Args:
             config: Raw configuration dictionary
-            id_prefix: Prefix for auto-generated test IDs
+            id_prefix: Prefix for auto-generated SET IDs
 
         Returns:
             List of TestCase objects
         """
-        tests = config.get("tests", [])
-        if not tests:
+        sets = config.get("sets", [])
+        if not sets:
             raise ValueError("No SETs found in configuration")
 
-        test_cases = []
-        for i, test in enumerate(tests):
-            if isinstance(test, dict):
+        set_cases = []
+        for i, set_ in enumerate(sets):
+            if isinstance(set_, dict):
                 # Extract extra fields as metadata (everything except id and prompt)
-                metadata = dict(test)
+                metadata = dict(set_)
                 metadata.pop("id", None)
                 metadata.pop("prompt", None)
 
-                test_cases.append(TestCase(
-                    id=test.get("id", f"{id_prefix}-{i+1}"),
-                    prompt=test.get("prompt", ""),
+                set_cases.append(TestCase(
+                    id=set_.get("id", f"{id_prefix}-{i+1}"),
+                    prompt=set_.get("prompt", ""),
                     metadata=metadata
                 ))
-            elif isinstance(test, str):
-                test_cases.append(TestCase(
+            elif isinstance(set_, str):
+                set_cases.append(TestCase(
                     id=f"{id_prefix}-{i+1}",
-                    prompt=test,
+                    prompt=set_,
                     metadata={}
                 ))
 
-        return test_cases
+        return set_cases
 
     def load_and_parse(
         self,
@@ -115,5 +115,5 @@ class ConfigLoader:
             Tuple of (List[TestCase], raw_config)
         """
         config = self.load(config_path)
-        test_cases = self.parse_test_cases(config, id_prefix)
-        return test_cases, config
+        set_cases = self.parse_set_cases(config, id_prefix)
+        return set_cases, config
