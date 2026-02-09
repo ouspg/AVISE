@@ -84,6 +84,10 @@ def main(arguments=[]) -> None:
         "--SETconf",
         help="Path to Security Evaluation Test configuration JSON"
     )
+    parser.add_argument(
+        "--connectorconf",
+        help="Path to connector configuration JSON"
+    )
 
     parser.add_argument(
         "--format", "-f",
@@ -154,6 +158,7 @@ def main(arguments=[]) -> None:
     report_format = format_map[args.format]
 
     # Run the test by calling run_test function. The selected test's run() function is called.
+    # TODO: Refactor run to accomodate connectorconf and more args
     try:
         report = runner.run_test(
             test_name=args.SET,

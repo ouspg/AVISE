@@ -39,7 +39,7 @@ class TestRunner:
         Returns:
             Configuration dictionary with:
             - testable_model (required): Model name for testing
-            - connector (optional): Connector type - "ollama-lm" (default) or "openai-lm"
+            - connector (optional): Connector type - Default "ollma-lm"
             - api_url (optional): API base URL (required for ollama-lm, optional for openai-lm)
             - api_key (optional): API key for authentication
             - evaluation_model (optional): Model for ELM evaluation
@@ -84,47 +84,43 @@ class TestRunner:
         """
         # Load model configuration
         model_config = self.load_model_config(model_config_path)
-        testable_model = model_config["testable_model"]
-        evaluation_model = model_config.get("evaluation_model")
-        connector_type = model_config.get("connector", "ollama-lm") #At this stage of development the default is set to ollama. Will be changed.
-        api_url = model_config.get("api_url")
-
-        usable_api_key = api_key or model_config.get("api_key")
-
-        # Build connector kwargs based on connector type
-        connector_kwargs = {"model": testable_model}
-        if usable_api_key:
-            connector_kwargs["api_key"] = usable_api_key
-        if api_url:
-            connector_kwargs["base_url"] = api_url
 
         # Create a connector for the target model
-        connector = connector_registry.create(connector_type, **connector_kwargs)
+        connector = self._build_connector(model_config, api_key)
 
-        logger.info(f"Running health check for the target model and backend '{testable_model}'...")
-        try:
-            connector.health_check()
-            logger.info("Testable model health check successful")
-        except ConnectionError as e:
-            raise RuntimeError(f"Backend connection failed with error: {e}")
-        except ValueError as e:
-            raise RuntimeError(f"Model not found: {e}")
+        testable_model = model_config.get("testable_model")
+        evaluation_model = model_config.get("evaluation_model")
 
-        eval_connector = None
-        if evaluation_model:
-            eval_kwargs = {"model": evaluation_model}
-            if usable_api_key:
-                eval_kwargs["api_key"] = usable_api_key
-            if api_url:
-                eval_kwargs["base_url"] = api_url
-            eval_connector = connector_registry.create(connector_type, **eval_kwargs)
-
-            logger.info(f"Running health check for evaluation model and backend '{evaluation_model}'...")
+        if testable_model:
+            logger.info(f"Running status check for the target model and API '{testable_model}'...")
             try:
-                eval_connector.health_check()
-                logger.info("Evaluation model health check successful")
+                connector.status_check()
+                logger.info("Target model status check successful.")
             except ConnectionError as e:
-                raise RuntimeError(f"Backend connection failed with error: {e}")
+                raise RuntimeError(f"API connection failed with error: {e}")
+            except ValueError as e:
+                raise RuntimeError(f"Model not found: {e}")
+        else:
+            logger.info(f"Running status check for the target API...")
+            try:
+                connector.status_check()
+                logger.info("Target API status check succesful.")
+            except ConnectionError as e:
+                raise RuntimeError(f"API connection failed with error: {e}")
+            except ValueError as e:
+                raise RuntimeError(f"Model not found: {e}")
+            
+        if evaluation_model is None:
+            eval_connector = None
+
+        else:
+            eval_connector = self._build_connector(model_config, api_key)
+            logger.info(f"Running status check for evaluation model and API '{evaluation_model}'...")
+            try:
+                eval_connector.status_check()
+                logger.info("Evaluation model status check successful")
+            except ConnectionError as e:
+                raise RuntimeError(f"API connection failed with error: {e}")
             except ValueError as e:
                 raise RuntimeError(f"Evaluation model not found: {e}")
 
@@ -150,6 +146,44 @@ class TestRunner:
             report_format,
             model_config_path=model_config_path
         )
+
+    def _build_connector(self,
+                         model_config:dict,
+                         api_key:Optional[str] = None,
+                         evaluation:bool = False
+                         ) -> Any:
+        """
+        Helper fundtion to handle building a connector.
+        
+        Arguments:
+            model_config: Model configuration file contents.
+            api_key: Authorization API key (Optional).
+            evaluation: if True, build a connector for the evaluation model. If False, build a connector
+                  for testable model. 
+
+        Returns:
+            connector: Built connector.
+        """
+        # Load model configuration
+        connector_type = model_config.get("connector", "ollama_lm")
+#        if connector_type == "generic_rest_lm":
+#            connector = connector_registry.create(connector_type, *model_config["request"])
+#        else:
+        api_url = model_config.get("api_url")
+        usable_api_key = api_key or model_config.get("api_key")
+
+        # Build connector kwargs based on connector type
+        if evaluation:
+            connector_kwargs = {"model": model_config["evaluation_model"]}
+        else:
+            connector_kwargs = {"model": model_config["testable_model"]}
+        if usable_api_key:
+            connector_kwargs["api_key"] = usable_api_key
+        if api_url:
+            connector_kwargs["base_url"] = api_url
+        connector = connector_registry.create(connector_type, **connector_kwargs)
+        
+        return connector
 
     @staticmethod
     def list_available(sets:bool=True, connectors:bool=True, reportformats:bool=True):

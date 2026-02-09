@@ -37,7 +37,6 @@ class ContextTest(BasePipeline):
 
 
     def initialize(self, config_path: str) -> List[TestCase]:
-        #TODO: Change to lazy formatting (improves run time, reduces compute)
         logger.info(f"Initializing test: {self.name}")
 
         config = ConfigLoader().load(config_path)
@@ -59,7 +58,6 @@ class ContextTest(BasePipeline):
             ))
 
         self.test_cases = test_cases
-        #TODO: Change to lazy formatting (improves run time, reduces compute)
         logger.info(f"Loaded {len(test_cases)} test cases")
         return test_cases
 
@@ -68,19 +66,19 @@ class ContextTest(BasePipeline):
         connector: BaseLMConnector,
         tests: List[TestCase]
     ) -> OutputData:
-        #TODO: Change to lazy formatting (improves run time, reduces compute)
         logger.info(f"Executing {len(tests)} context tests")
         self.start_time = datetime.now()
 
         outputs = []
 
+
         for i, test in enumerate(tests):
-            #TODO: Change to lazy formatting (improves run time, reduces compute)
             logger.info(f"Running test {i + 1}/{len(tests)} [{test.id}]")
 
             try:
                 conversation = test.metadata.get("conversation", [])
-                messages: List[Message] = []
+                data = {"messages": []}
+                data["max_tokens"] = 256 #TODO: This should be configurable by user
                 final_response = ""
 
                 for turn in conversation:
@@ -88,12 +86,12 @@ class ContextTest(BasePipeline):
                     content = turn.get("content", "")
 
                     if role == "user":
-                        messages.append(Message(role="user", content=content))
-                        response = connector.multi_turn(messages, max_tokens=256)
-                        messages.append(Message(role="assistant", content=response))
-                        final_response = response
+                        data["messages"].append(Message(role="user", content=content))
+                        response = connector.generate(data, multi_turn=True)
+                        data["messages"].append(Message(role="assistant", content=response["response"]))
+                        final_response = response["response"]
                     elif role == "system":
-                        messages.insert(0, Message(role="system", content=content))
+                        data["messages"].insert(0, Message(role="system", content=content))
 
                 outputs.append(ExecutionOutput(
                     test_id=test.id,
@@ -103,13 +101,12 @@ class ContextTest(BasePipeline):
                         **test.metadata,
                         "full_conversation": [
                             {"role": m.role, "content": m.content}
-                            for m in messages
+                            for m in data["messages"]
                         ]
                     }
                 ))
 
             except Exception as e:
-                #TODO: Change to lazy formatting (improves run time, reduces compute)
                 logger.error(f"Test {test.id} failed: {e}")
                 outputs.append(ExecutionOutput(
                     test_id=test.id,
@@ -121,7 +118,6 @@ class ContextTest(BasePipeline):
 
         self.end_time = datetime.now()
         duration = (self.end_time - self.start_time).total_seconds()
-        #TODO: Change to lazy formatting (improves run time, reduces compute)
         logger.info(f"Execution completed in {duration:.1f} seconds")
 
         return OutputData(
@@ -130,7 +126,6 @@ class ContextTest(BasePipeline):
         )
 
     def analyze(self, execution_data: OutputData) -> List[AnalysisResult]:
-        #TODO: Change to lazy formatting (improves run time, reduces compute)
         logger.info(f"Analyzing {len(execution_data.outputs)} outputs")
         results = []
 
@@ -186,7 +181,6 @@ class ContextTest(BasePipeline):
                 detections=detections,
                 metadata=output.metadata
             ))
-        #TODO: Change to lazy formatting (improves run time, reduces compute)
         logger.info(f"Analysis complete: {len(results)} results")
         return results
 
@@ -196,7 +190,6 @@ class ContextTest(BasePipeline):
         output_path: str,
         report_format: ReportFormat = ReportFormat.JSON
     ) -> ReportData:
-        #TODO: Change to lazy formatting (improves run time, reduces compute)
         logger.info(f"Generating {report_format.value.upper()} report")
 
         report_data = ReportData(
@@ -225,6 +218,5 @@ class ContextTest(BasePipeline):
             HTMLReporter().write(report_data, output_file)
         elif report_format == ReportFormat.MARKDOWN:
             MarkdownReporter().write(report_data, output_file)
-        #TODO: Change to lazy formatting (improves run time, reduces compute)
         logger.info(f"Report written to {output_path}")
         return report_data

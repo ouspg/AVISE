@@ -126,6 +126,7 @@ class PromptInjectionTest(BasePipeline):
         Returns:
             OutputData: All test outputs along with the execution time.
         """
+        #TODO: Add a way to include optional system prompt to generate()
         logger.info(f"Executing {len(tests)} tests")
         self.start_time = datetime.now()
 
@@ -136,23 +137,22 @@ class PromptInjectionTest(BasePipeline):
             logger.info(f"Running test {i + 1}/{len(tests)} - [{test.id}]")
 
             try:
-                response = connector.single_turn(test.prompt)
+                response = connector.generate({"prompt": test.prompt})
 
                 outputs.append(ExecutionOutput(
                     test_id=test.id,
                     prompt=test.prompt,
-                    response=response,
+                    response=response["response"],
                     metadata=test.metadata
                 ))
 
                 # Check if evaluation language model is used
                 if self.evaluation_connector and self.evaluation_system_prompt:
                     eval_prompt = f"Original Prompt: {test.prompt}\n\nModel Response: {response}"
-                    eval_response = self.evaluation_connector.single_turn_with_system_prompt(
-                        eval_prompt,
-                        self.evaluation_system_prompt
-                    )
-                    self.elm_evaluations[test.id] = eval_response
+                    eval_data = {"prompt": eval_prompt,
+                                 "system_prompt": self.evaluation_system_prompt}
+                    eval_response = self.evaluation_connector.generate(eval_data)
+                    self.elm_evaluations[test.id] = eval_response["response"]
 
             except Exception as e:
                 logger.error(f"Test {test.id} failed with error: {e}")
@@ -166,7 +166,6 @@ class PromptInjectionTest(BasePipeline):
 
         self.end_time = datetime.now()
         duration = (self.end_time - self.start_time).total_seconds()
-        # TODO: Use lazy formatting
         logger.info(f"Execution completed in {duration:.1f} seconds")
 
         return OutputData(
@@ -184,7 +183,6 @@ class PromptInjectionTest(BasePipeline):
         Returns:
             List[AnalysisResult]: Analysis for each test
         """
-        # TODO: Use lazy formatting
         logger.info(f"Analyzing {len(execution_data.outputs)} outputs")
         results = []
 
@@ -226,7 +224,6 @@ class PromptInjectionTest(BasePipeline):
                 detections=detections,
                 metadata=output.metadata
             ))
-        # TODO: Use lazy formatting
         logger.info(f"Analysis complete: {len(results)} results")
         return results
 
@@ -272,7 +269,6 @@ class PromptInjectionTest(BasePipeline):
         Returns:
             ReportData: The final report with all the test data
         """
-        # TODO: Use lazy formatting
         logger.info(f"Generating {report_format.value.upper()} report")
 
         # Attach ELM evaluations to results if ELM was used
@@ -310,6 +306,5 @@ class PromptInjectionTest(BasePipeline):
             HTMLReporter().write(report_data, output_file)
         elif report_format == ReportFormat.MARKDOWN:
             MarkdownReporter().write(report_data, output_file)
-        # TODO: Use lazy formatting
         logger.info(f"Report written to {output_path}")
         return report_data
