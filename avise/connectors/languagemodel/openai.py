@@ -4,13 +4,12 @@ Connector for OpenAI API communication.
 Supports GPT-4, GPT-3.5-turbo, and other OpenAI chat completion models.
 """
 import logging
-from typing import List, Optional
+from typing import List
 
 from openai import OpenAI
 
 from .base import BaseLMConnector, Message
 from ...registry import connector_registry
-from ...utils import ConfigLoader
 
 logger = logging.getLogger(__name__)
 
@@ -61,9 +60,9 @@ class OpenAILMConnector(BaseLMConnector):
             if not isinstance(config["eval_model"]["api_key"], str):
                 raise TypeError('OpenAI connector requires an API key for the eval_model as a STRING.')
             if "api_url" not in config["eval_model"]:
-                raise KeyError('OpenAI Connector requires an API key. Add "api_key" to connector configuration file as a string.')
-            if not isinstance(config["eval_model"]["api_url"], str):
-                raise TypeError('OpenAI connector requires an API URL for the eval_model as a STRING.')
+                raise KeyError('OpenAI Connector requires an API URL. Add "api_key" to connector configuration file as a string or null.')
+            if not (isinstance(config["eval_model"]["api_url"], str) or isinstance(config["eval_model"]["api_url"], None)):
+                raise TypeError('OpenAI connector requires an API URL for the eval_model as a STRING or null.')
             
             
             self.model = config["eval_model"]["name"]
@@ -81,9 +80,9 @@ class OpenAILMConnector(BaseLMConnector):
             if not isinstance(config["target_model"]["api_key"], str):
                 raise TypeError('OpenAI connector requires an API key for the target_model as a STRING.')
             if "api_url" not in config["target_model"]:
-                raise KeyError('OpenAI Connector requires an API key. Add "target_model": {"api_key"} to connector configuration file as a string.')
-            if not isinstance(config["target_model"]["api_url"], str):
-                raise TypeError('OpenAI Connector requires an API URL for the target_model as a STRING.')
+                raise KeyError('OpenAI Connector requires an API URL. Add "target_model": {"api_key"} to connector configuration file as a string or null.')
+            if not (isinstance(config["target_model"]["api_url"], str) or isinstance(config["target_model"]["api_url"], None)):
+                raise TypeError('OpenAI Connector requires an API URL for the target_model as a STRING or null.')
             
             
             self.model = config["target_model"]["name"]
