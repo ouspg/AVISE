@@ -52,22 +52,33 @@ After Ollama is running, pull the models you want to test:
 docker exec -it ollama ollama pull <model_name>
 ```
 
-### 5. Configure Models
+### 5. Configure Connectors
 
-Edit `avise/configs/model.json`:
+Edit `avise/configs/connector/ollama.json`:
 
 ```json
 {
-  "testable_model": "X",
-  "evaluation_model": "Y",
-  "api_url": "http://localhost:11434" #Ollama default
+    "target_model": {
+        "connector": "ollama-lm",
+        "type": "language_model",
+        "name": "<NAME_OF_TARGET_MODEL>",
+        "api_url": "http://localhost:11434", #Ollama default
+        "api_key": null
+    },
+    "eval_model": {
+        "connector": "ollama-lm",
+        "type": "language_model",
+        "name": "NAME_OF_EVALUATION_MODEL", #Optional
+        "api_url": "http://localhost:11434", #Ollama default
+        "api_key": null
+    }
 }
 ```
 
 ## Usage
 
 ```bash
-python -m avise --SET <SET_name> --modelconf <path> --SETconf <path> [options]
+python -m avise --SET <SET_name> --connectorconf <path> --SETconf <path> [options]
 ```
 
 ### Required Arguments
@@ -75,7 +86,7 @@ python -m avise --SET <SET_name> --modelconf <path> --SETconf <path> [options]
 | Argument | Description |
 |----------|-------------|
 | `--SET` | Security Evaluation Test to run (e.g., `prompt_injection`, `context_test`) |
-| `--modelconf` | Path to model configuration JSON |
+| `--connectorconf` | Path to Connector configuration JSON |
 | `--SETconf` | Path to test configuration JSON |
 
 ### Optional Arguments
@@ -85,7 +96,6 @@ python -m avise --SET <SET_name> --modelconf <path> --SETconf <path> [options]
 | `--format`, `-f` | Report format: `json`, `html`, `md` |
 | `--output` | Custom output file path |
 | `--reports-dir` | Base directory for reports (default: `reports/`) |
-| `--apikey` | API key for authenticated APIs |
 | `--list` | List available tests and formats |
 | `-verbose` | Enable verbose logging |
 | `-version` | Print version  |
