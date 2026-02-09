@@ -5,15 +5,15 @@ from avise import cli, __version__
 import pytest
 
 SET_CONF_PATH = "avise/configs/SET/prompt_injection_mini.json"
-MODEL_CONF_PATH = "avise/configs/model/model.json"
+CONNECTOR_CONF_PATH = "avise/configs/connector/ollama.json"
 
 test_incorrect_args_cases = [("--incorrectargument", "unrecognized argument"),
-                             (f"--test prompt_injection --modelconf {MODEL_CONF_PATH} --SETcof {SET_CONF_PATH}", "unrecognized argument")]
+                             (f"--SET prompt_injection --connectorconf {CONNECTOR_CONF_PATH} --SETcof {SET_CONF_PATH}", "unrecognized argument")]
 test_missing_args_cases=[(f"--SET prompt_injection --SETconf {SET_CONF_PATH}", "is required"),
-                         (f"--modelconf {MODEL_CONF_PATH} --SETconf {SET_CONF_PATH}", "is required"),
-                         (f"--SET prompt_injection --modelconf {MODEL_CONF_PATH}", "is required")]
-test_arg_typos_cases=[(f"--SET prompt_injection --modelconf this/file/should/not/exits.json --SETconf {SET_CONF_PATH}","FileNotFoundError"),
-                      (f"--SET prompt_injection --modelconf {MODEL_CONF_PATH} --SETconf this/file/should/not/exist.json", "FileNotFoundError"),
+                         (f"--connectorconf github{CONNECTOR_CONF_PATH} --SETconf {SET_CONF_PATH}", "is required"),
+                         (f"--SET prompt_injection --connectorconf {CONNECTOR_CONF_PATH}", "is required")]
+test_arg_typos_cases=[(f"--SET prompt_injection --connectorconf this/file/should/not/exits.json --SETconf {SET_CONF_PATH}","FileNotFoundError"),
+                      (f"--SET prompt_injection --connectorconf {CONNECTOR_CONF_PATH} --SETconf this/file/should/not/exist.json", "FileNotFoundError"),
                       ]
 test_arg_datatypes_cases=[(123090, TypeError),
                           (123.231, TypeError),
