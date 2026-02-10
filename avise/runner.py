@@ -7,7 +7,6 @@ initialize() -> execute() -> analyze() -> report() -> run()
 import json
 import logging
 from pathlib import Path
-from datetime import datetime
 from typing import Optional, Dict, Any
 
 # Import to register different plugins and SETs
@@ -17,7 +16,7 @@ from . import sets
 
 
 from .registry import connector_registry, set_registry
-from .pipelines.base import BasePipeline, ReportFormat
+from .utils import ReportFormat, build_output_path
 
 logging.basicConfig(
     level=logging.INFO,
@@ -128,7 +127,7 @@ class TestRunner:
             set_instance.evaluation_model_name = evaluation_model
 
         if not output_path:
-            output_path = BasePipeline.build_output_path(
+            output_path = build_output_path(
                 base_dir=reports_dir,
                 set_name=set_name,
                 model_name=target_model,

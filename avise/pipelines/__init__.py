@@ -1,1 +1,1 @@
-from .base import BasePipeline
+from . import language_model

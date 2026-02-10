@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 from .base import BaseReporter
-from ...pipelines.base import ReportData
+from ...pipelines.language_model import ReportData
 
 
 class JSONReporter(BaseReporter):

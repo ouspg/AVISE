@@ -9,9 +9,8 @@ from pathlib import Path
 from datetime import datetime
 from typing import List, Optional
 
-from ...pipelines.base import (
+from ...pipelines.language_model import (
     BasePipeline,
-    ReportFormat,
     LanguageModelSETCase,
     ExecutionOutput,
     OutputData,
@@ -21,7 +20,7 @@ from ...pipelines.base import (
 from ...registry import set_registry
 from ...connectors.languagemodel.base import BaseLMConnector, Message
 from ...reportgen.reporters import JSONReporter, HTMLReporter, MarkdownReporter
-from ...utils import ConfigLoader
+from ...utils import ConfigLoader, ReportFormat
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +28,7 @@ logger = logging.getLogger(__name__)
 class ContextTest(BasePipeline):
 
     name = "Context test"
-    description = "A simple test for multi-turn conversations where the conversation history is passed to the target"
+    description = "A simple test fabstract methodor multi-turn conversations where the conversation history is passed to the target"
 
     def __init__(self):
         super().__init__()

@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Dict, Any
 
 from .base import BaseReporter
-from ...pipelines.base import ReportData, AnalysisResult
+from ...pipelines.language_model import ReportData, AnalysisResult
 
 
 class HTMLReporter(BaseReporter):

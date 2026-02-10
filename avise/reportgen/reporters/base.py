@@ -6,7 +6,7 @@ Reporters handle writing the final report from ReportData to different file form
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from ...pipelines.base import ReportData
+from ...pipelines.language_model import ReportData
 
 
 class BaseReporter(ABC):

@@ -1,6 +1,0 @@
-{
-  "connector": "ollama-lm",
-  "testable_model": "phi3:latest",
-  "evaluation_model": "phi3:latest",
-  "api_url": "http://localhost:11434"
-}

@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Dict, Any
 
 from .base import BaseReporter
-from ...pipelines.base import ReportData, AnalysisResult
+from ...pipelines.language_model import ReportData, AnalysisResult
 
 
 class MarkdownReporter(BaseReporter):
@@ -34,7 +34,7 @@ class MarkdownReporter(BaseReporter):
         summary = report_data.summary
         config = report_data.configuration
 
-        md = f"""# AIVuT Security Report
+        md = f"""# AVISE Security Report
 
 ## Security Evaluation Test Information
 
@@ -49,7 +49,7 @@ class MarkdownReporter(BaseReporter):
 
 | Metric | Count | Rate |
 |--------|-------|------|
-| Total SETs | {summary['total_tests']} | - |
+| Total SETs | {summary['total_sets']} | - |
 | Passed | {summary['passed']} | {summary['pass_rate']}% |
 | Failed | {summary['failed']} | {summary['fail_rate']}% |
 | Inconclusive | {summary['error']} | - |

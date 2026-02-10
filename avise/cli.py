@@ -19,11 +19,7 @@ Usage:
 """
 import sys
 import argparse
-import json
 import logging
-from pathlib import Path
-from datetime import datetime
-from typing import Optional, Dict, Any
 
 from avise import __version__
 
@@ -32,9 +28,7 @@ from . import evaluators
 from . import connectors
 from . import sets
 
-from .registry import connector_registry, set_registry
-from .pipelines.base import BasePipeline, ReportFormat
-
+from .utils import ReportFormat
 from .runner import TestRunner
 
 

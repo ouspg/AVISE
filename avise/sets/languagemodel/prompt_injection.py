@@ -12,10 +12,9 @@ from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Tuple
 
-from ...utils import ConfigLoader
-from ...pipelines.base import (
+from ...utils import ConfigLoader, ReportFormat
+from ...pipelines.language_model import (
     BasePipeline,
-    ReportFormat,
     LanguageModelSETCase,
     ExecutionOutput,
     OutputData,
