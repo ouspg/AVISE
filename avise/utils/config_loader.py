@@ -7,7 +7,7 @@ import yaml
 from pathlib import Path
 from typing import Dict, Any, List
 
-from ..pipelines.base import TestCase
+from ..pipelines.base import LanguageModelSETCase
 
 
 class ConfigLoader:
@@ -62,16 +62,16 @@ class ConfigLoader:
         self,
         config: Dict[str, Any],
         id_prefix: str = "TC"
-    ) -> List[TestCase]:
+    ) -> List[LanguageModelSETCase]:
         """
-        Parse configuration into TestCase objects.
+        Parse configuration into LanguageModelSETCase objects.
 
         Args:
             config: Raw configuration dictionary
             id_prefix: Prefix for auto-generated SET IDs
 
         Returns:
-            List of TestCase objects
+            List of LanguageModelSETCase objects
         """
         sets = config.get("sets", [])
         if not sets:
@@ -85,13 +85,13 @@ class ConfigLoader:
                 metadata.pop("id", None)
                 metadata.pop("prompt", None)
 
-                set_cases.append(TestCase(
+                set_cases.append(LanguageModelSETCase(
                     id=set_.get("id", f"{id_prefix}-{i+1}"),
                     prompt=set_.get("prompt", ""),
                     metadata=metadata
                 ))
             elif isinstance(set_, str):
-                set_cases.append(TestCase(
+                set_cases.append(LanguageModelSETCase(
                     id=f"{id_prefix}-{i+1}",
                     prompt=set_,
                     metadata={}
@@ -102,8 +102,8 @@ class ConfigLoader:
     def load_and_parse(
         self,
         config_path: str,
-        id_prefix: str = "TC"
-    ) -> tuple[List[TestCase], Dict[str, Any]]:
+        id_prefix: str = "LM-SETCase"
+    ) -> tuple[List[LanguageModelSETCase], Dict[str, Any]]:
         """
         Load config and parse into test cases.
 
@@ -112,7 +112,7 @@ class ConfigLoader:
             id_prefix: Prefix for auto-generated test IDs
 
         Returns:
-            Tuple of (List[TestCase], raw_config)
+            Tuple of (List[LanguageModelSETCase], raw_config)
         """
         config = self.load(config_path)
         set_cases = self.parse_set_cases(config, id_prefix)

@@ -29,16 +29,16 @@ class ReportFormat(Enum):
     MARKDOWN = "md"
 
 @dataclass
-class TestCase:
+class LanguageModelSETCase:
     """
     Contract: Output of initialize(), input to execute().
 
-    ID and prompt are required fields that every test case must contain.
+    ID and prompt are required fields that every SET case must contain.
     Additional fields can be added to 'metadata'.
     """
     id: str
     prompt: str
-    metadata: Dict[str, Any] = field(default_factory=dict) # New dict created for each instance of TestCase.
+    metadata: Dict[str, Any] = field(default_factory=dict) # New dict created for each instance of LanguageModelSETCase.
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -155,7 +155,7 @@ class BasePipeline(ABC):
 
     Based on a 5-phase pipeline with defined data contracts:
 
-    Phase 1 - initialize(config_path) -> List[TestCase] (Get test configuration from a configuration file and return a list of test cases)
+    Phase 1 - initialize(config_path) -> List[LanguageModelSETCase] (Get test configuration from a configuration file and return a list of test cases)
     Phase 2 - execute(connector, tests) -> OutputData (Execute the tests cases against the defined model and return dataobjects for analysis)
     Phase 3 - analyze(execution_data) -> List[AnalysisResult] (Analyze the test results and return analysis objects)
     Phase 4 - report(results, output_path, format) -> ReportData (Take the analysis objects and form a final report in a desired format)
@@ -163,7 +163,7 @@ class BasePipeline(ABC):
 
     Data flow:
 
-    initialize() ---> List[TestCase] ---> execute() ---> OutputData(List[ExecutionOutput, execution_time]) ---> analyze() ---> List[AnalysisObject] ---> report() ---> ReportData
+    initialize() ---> List[LanguageModelSETCase] ---> execute() ---> OutputData(List[ExecutionOutput, execution_time]) ---> analyze() ---> List[AnalysisObject] ---> report() ---> ReportData
 
     When new tests are designed, the users override these methods according to their needs
     New analyzers, connectors, loaders, reporters, configurations, and tests can be written and used as long as they follow this pipeline structure.
@@ -174,7 +174,7 @@ class BasePipeline(ABC):
     SUPPORTED_FORMATS = [ReportFormat.JSON, ReportFormat.HTML, ReportFormat.MARKDOWN]
 
     def __init__(self):
-        self.set_cases: List[TestCase] = []
+        self.set_cases: List[LanguageModelSETCase] = []
         self.start_time: Optional[datetime] = None
         self.end_time: Optional[datetime] = None
         self.connector_config_path: Optional[str] = None
@@ -183,7 +183,7 @@ class BasePipeline(ABC):
         self.evaluation_model_name: Optional[str] = None
 
     @abstractmethod
-    def initialize(self, set_config_path: str) -> List[TestCase]:
+    def initialize(self, set_config_path: str) -> List[LanguageModelSETCase]:
         """
         Load and return SET cases from configuration files.
 
@@ -191,7 +191,7 @@ class BasePipeline(ABC):
             set_config_path: Path to SET configuration file
 
         Returns:
-            List[TestCase]: SET cases used in the run
+            List[LanguageModelSETCase]: SET cases used in the run
 
         Requirements:
             - Each SET case must at least contain an ID and a prompt
@@ -203,7 +203,7 @@ class BasePipeline(ABC):
     def execute(
         self,
         connector: BaseLMConnector,
-        sets: List[TestCase]
+        sets: List[LanguageModelSETCase]
     ) -> OutputData:
         """
         Run the SETs against the target.
@@ -216,8 +216,8 @@ class BasePipeline(ABC):
             OutputData: All SET outputs along with the execution time.
 
         Requirements:
-            - Must produce one ExecutionOutput per TestCase.
-            - Metadata from TestCase should be carried through for final report.
+            - Must produce one ExecutionOutput per LanguageModelSETCase.
+            - Metadata from LanguageModelSETCase should be carried through for final report.
             - Errors should be placed to ExecutionOutput.error for later inspection.
         """
         pass

@@ -16,7 +16,7 @@ from ...utils import ConfigLoader
 from ...pipelines.base import (
     BasePipeline,
     ReportFormat,
-    TestCase,
+    LanguageModelSETCase,
     ExecutionOutput,
     OutputData,
     AnalysisResult,
@@ -63,7 +63,7 @@ class PromptInjectionTest(BasePipeline):
         self.partial_compliance_evaluator = PartialComplianceEvaluator()
         self.suspicious_output_evaluator = SuspiciousOutputEvaluator()
 
-    def initialize(self, set_config_path: str) -> List[TestCase]:
+    def initialize(self, set_config_path: str) -> List[LanguageModelSETCase]:
         """
         Phase 1 of the test pipeline. Load prompt injection SET cases from configuration files.
 
@@ -71,7 +71,7 @@ class PromptInjectionTest(BasePipeline):
             set_config_path: Path to SET configuration file
 
         Returns:
-            List[TestCase]: List of SET cases to be used
+            List[LanguageModelSETCase]: List of SET cases to be used
         """
 
         logger.info(f"Initializing SET: {self.name}")
@@ -88,7 +88,7 @@ class PromptInjectionTest(BasePipeline):
         set_cases = []
         for i, set_ in enumerate(sets):
             if isinstance(set_, dict):
-                set_cases.append(TestCase(
+                set_cases.append(LanguageModelSETCase(
                     id=set_.get("id", f"PI-{i+1}"),
                     prompt=set_["prompt"],
                     metadata={
@@ -98,7 +98,7 @@ class PromptInjectionTest(BasePipeline):
                     }
                 ))
             else:
-                set_cases.append(TestCase(
+                set_cases.append(LanguageModelSETCase(
                     id=f"PI-{i+1}",
                     prompt=set_,
                     metadata={
@@ -115,14 +115,14 @@ class PromptInjectionTest(BasePipeline):
     def execute(
         self,
         connector: BaseLMConnector,
-        sets: List[TestCase]
+        sets: List[LanguageModelSETCase]
     ) -> OutputData:
         """
         Phase 2 of the testing pipeline. Execute SETs against the target model.
 
         Args:
             connector: Target connector instance
-            sets: List[TestCase] from initialize()
+            sets: List[LanguageModelSETCase] from initialize()
 
         Returns:
             OutputData: All SET outputs along with the execution time.

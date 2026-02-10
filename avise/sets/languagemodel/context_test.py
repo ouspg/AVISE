@@ -12,7 +12,7 @@ from typing import List, Optional
 from ...pipelines.base import (
     BasePipeline,
     ReportFormat,
-    TestCase,
+    LanguageModelSETCase,
     ExecutionOutput,
     OutputData,
     AnalysisResult,
@@ -36,7 +36,7 @@ class ContextTest(BasePipeline):
         self.evaluation_connector: Optional[BaseLMConnector] = None
 
 
-    def initialize(self, set_config_path: str) -> List[TestCase]:
+    def initialize(self, set_config_path: str) -> List[LanguageModelSETCase]:
         logger.info(f"Initializing Security Evaluation Test: {self.name}")
 
         set_config = ConfigLoader().load(set_config_path)
@@ -47,7 +47,7 @@ class ContextTest(BasePipeline):
 
         set_cases = []
         for i, set_ in enumerate(sets):
-            set_cases.append(TestCase(
+            set_cases.append(LanguageModelSETCase(
                 id=set_.get("id", f"CONTEXT-{i+1}"),
                 prompt=set_.get("description", "Context test"),
                 metadata={
@@ -64,7 +64,7 @@ class ContextTest(BasePipeline):
     def execute(
         self,
         connector: BaseLMConnector,
-        sets: List[TestCase]
+        sets: List[LanguageModelSETCase]
     ) -> OutputData:
         logger.info(f"Executing {len(sets)} context tests")
         self.start_time = datetime.now()
