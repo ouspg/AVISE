@@ -12,6 +12,7 @@ from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Tuple
 
+from ...utils import ConfigLoader
 from ...pipelines.base import (
     BasePipeline,
     ReportFormat,
@@ -30,7 +31,7 @@ from ...evaluators.languagemodel import (
     SuspiciousOutputEvaluator
 )
 from ...reportgen.reporters import JSONReporter, HTMLReporter, MarkdownReporter
-from ...utils import ConfigLoader
+
 
 logger = logging.getLogger(__name__)
 

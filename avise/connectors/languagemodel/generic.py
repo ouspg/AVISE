@@ -46,9 +46,13 @@ class GenericRESTLMConnector(BaseLMConnector):
                 else:
                     self.api_key = None
                 if "headers" in config["eval_model"] and config["eval_model"]["headers"] is not None:
-                        self.headers = config["eval_model"]["headers"]
+                    self.headers = config["eval_model"]["headers"]
                 else:
                     self.headers = None
+                if "time_out" in config["eval_model"] and config["eval_model"]["time_out"] is not None:
+                    self.time_out = config["eval_model"]["time_out"]
+                else:
+                    self.time_out = 30
 
             else:
                 self.url = config["target_model"]["api_url"]
@@ -60,9 +64,13 @@ class GenericRESTLMConnector(BaseLMConnector):
                 else:
                     self.api_key = None
                 if "headers" in config["target_model"] and config["target_model"]["headers"] is not None:
-                        self.headers = config["target_model"]["headers"]
+                    self.headers = config["target_model"]["headers"]
                 else:
                     self.headers = None
+                if "time_out" in config["target_model"] and config["target_model"]["time_out"] is not None:
+                    self.time_out = config["target_model"]["time_out"]
+                else:
+                    self.time_out = 30
         except (KeyError, ValueError) as e:
             logger.error(f"ERROR while generating initializing GenericRESTLMConnector: {e}")
 
@@ -87,19 +95,19 @@ class GenericRESTLMConnector(BaseLMConnector):
         try:
             if self.method == "POST":
                 if self.headers is None:
-                    response = requests.post(url=self.url, data=data)
+                    response = requests.post(url=self.url, data=data, timeout=self.time_out)
                 else:
-                    response = requests.post(url=self.url, data=data, headers=self.headers)
+                    response = requests.post(url=self.url, data=data, headers=self.headers, timeout=self.time_out)
             elif self.method == "GET":
                 if self.headers is None:
-                    response = requests.get(url=self.url, data=data)
+                    response = requests.get(url=self.url, data=data, timeout=self.time_out)
                 else:
-                    response = requests.get(url=self.url, data=data, headers=self.headers)
+                    response = requests.get(url=self.url, data=data, headers=self.headers, timeout=self.time_out)
             elif self.method == "PUT":
                 if self.headers is None:
-                    response = requests.put(url=self.url, data=data)
+                    response = requests.put(url=self.url, data=data, timeout=self.time_out)
                 else:
-                    response = requests.put(url=self.url, data=data, headers=self.headers)
+                    response = requests.put(url=self.url, data=data, headers=self.headers, timeout=self.time_out)
             else:
                 raise ValueError(f"GenericRESTLMConnector currently only supports POST, \
                                  GET, and PUT methods. Attempted to generate a response \
@@ -117,7 +125,7 @@ class GenericRESTLMConnector(BaseLMConnector):
         Check if the configured API endpoint is available with a GET request.
         """
         try:
-            response = requests.get(self.url) if self.headers is None else requests.get(self.url, headers=self.headers)
+            response = requests.get(self.url, timeout=self.time_out) if self.headers is None else requests.get(self.url, headers=self.headers, timeout=self.time_out)
         except Exception as e:
             logger.error(f"ERROR while doing a status check on the configured API endpoint: {e}")
             raise RuntimeError(f"Failed to send a request to url: {self.url} due to an error.") from e

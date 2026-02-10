@@ -44,6 +44,8 @@ class OllamaLMConnector(BaseLMConnector):
                 host=self.base_url,
                 headers={"Authorization": f"Bearer {self.api_key}"}
                 )
+            else:
+                self.client = ollama.Client(host=self.base_url)
         else:
             self.model = config["target_model"]["name"]
             self.base_url = config["target_model"]["api_url"]

@@ -94,7 +94,7 @@ class TestRunner:
 
 
         target_model = connector_config["target_model"].get("name")
-        evaluation_model = connector_config["eval_model"].get("evaluation_model")
+        evaluation_model = connector_config["eval_model"].get("name")
 
         logger.info(f"Running status check for the target model and API '{target_model}'...")
         try:

@@ -47,7 +47,6 @@ class BaseLMConnector(ABC):
     def generate(
         self,
         data: dict,
-        multi_turn: bool = False
     ) -> dict:
         """
         Generate a response from the target model via the target API.
