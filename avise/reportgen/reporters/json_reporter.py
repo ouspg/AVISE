@@ -11,7 +11,6 @@ from ...pipelines.language_model import ReportData
 class JSONReporter(BaseReporter):
     """
     Writes reports in JSON format.
-    
     """
 
     format_name = "json"
@@ -19,11 +18,18 @@ class JSONReporter(BaseReporter):
 
     def write(self, report_data: ReportData, output_path: Path) -> None:
         """
-        Write report data as JSON file.
+        Write report data as JSON file, including grouped results.
 
         Args:
             report_data: The report data to write
             output_path: Path to the output file / directory
         """
-        with open(output_path, 'w') as f:
-            json.dump(report_data.to_dict(), f, indent=2)
+
+        data = report_data.to_dict()
+
+        # Add grouped_results
+        if hasattr(report_data, "grouped_results") and report_data.grouped_results:
+            data["grouped_results"] = report_data.grouped_results
+
+        with open(output_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2)

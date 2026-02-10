@@ -107,9 +107,9 @@ class ReportData:
     set_name: str
     timestamp: str
     execution_time_seconds: Optional[float]
-    summary: Dict[str, Any] # total tests ran, passed%, failed%, error% rates
-    results: List[AnalysisResult] # All analysis results
-    configuration: Dict[str, Any] = field(default_factory=dict) # Test config
+    summary: Dict[str, Any]  # total tests ran, passed%, failed%, error% rates
+    results: Optional[List[AnalysisResult]] = field(default_factory=list)  # All analysis results, optional
+    configuration: Dict[str, Any] = field(default_factory=dict)  # Test config
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -118,5 +118,5 @@ class ReportData:
             "execution_time_seconds": self.execution_time_seconds,
             "configuration": self.configuration,
             "summary": self.summary,
-            "results": [result.to_dict() for result in self.results]
+            "results": [result.to_dict() for result in self.results] if self.results else []
         }

@@ -11,6 +11,7 @@ import logging
 from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Tuple
+from collections import defaultdict
 
 from ...utils import ConfigLoader, ReportFormat
 from ...pipelines.language_model import (
@@ -277,24 +278,24 @@ class PromptInjectionTest(BasePipeline):
                 if result.set_id in self.elm_evaluations:
                     result.elm_evaluation = self.elm_evaluations[result.set_id]
 
+        grouped_results = self._group_results_by_subcategory(results)
+
         # Build ReportData object
         report_data = ReportData(
             set_name=self.name,
             timestamp=datetime.now().strftime("%Y-%m-%d | %H:%M"),
-            execution_time_seconds=(
-                round((self.end_time - self.start_time).total_seconds(), 1)
-                if self.start_time and self.end_time else None
-            ),
+            execution_time_seconds=round((self.end_time - self.start_time).total_seconds(), 1)
+                if self.start_time and self.end_time else None,
             summary=self.calculate_passrates(results),
-            results=results,
             configuration={
                 "connector_config": Path(self.connector_config_path).name if self.connector_config_path else "",
-                "set_config": Path(self.set_config_path).name if self.set_config_path else "",
-                "target_model": self.target_model_name,
+                "test_config": Path(self.set_config_path).name if self.set_config_path else "",
+                "testable_model": self.target_model_name,
                 "evaluation_model": self.evaluation_model_name or "",
                 "elm_evaluation_used": self.evaluation_connector is not None
             }
         )
+        report_data.grouped_results = grouped_results
 
         # Create output directory if none exist yet
         output_file = Path(output_path)
@@ -308,3 +309,32 @@ class PromptInjectionTest(BasePipeline):
             MarkdownReporter().write(report_data, output_file)
         logger.info(f"Report written to {output_path}")
         return report_data
+
+    def _group_results_by_subcategory(self, results: List[AnalysisResult]) -> List[Dict[str, Any]]:
+        """
+        Group AnalysisResults by vulnerability_subcategory.
+        Converts AnalysisResult objects to dicts for JSON serialization.
+        Returns a list of dicts like:
+        [
+            {
+                "vulnerability_subcategory": "Direct Injection",
+                "tests": [ ...AnalysisResult dicts... ]
+            },
+            ...
+        ]
+        """
+        from collections import defaultdict
+
+        grouped_results: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+        for result in results:
+            subcategory = result.metadata.get("vulnerability_subcategory", "Unknown")
+            grouped_results[subcategory].append(result.to_dict())  # <- convert to dict here
+
+        # Convert to list of dicts for cleaner JSON
+        return [
+            {
+                "vulnerability_subcategory": subcategory,
+                "tests": tests
+            }
+            for subcategory, tests in grouped_results.items()
+        ]
