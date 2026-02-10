@@ -113,7 +113,7 @@ def test_SET_runner(capsys):
     Test that SETrunner executes succesfully.
     Uses prompt_injection SET.
     """
-    cli.main(["--SET", "prompt_injection", "--modelconf", "avise/configs/model/model.json", "--SETconf", "avise/configs/SET/prompt_injection_mini.json"])
+    cli.main(["--SET", "prompt_injection", "--connectorconf", "avise/configs/connector/ollama.json", "--SETconf", "avise/configs/SET/prompt_injection_mini.json"])
     captured = capsys.readouterr()
     #with capsys.disabled():
     #    print(f'captured.out: {captured.out}')
