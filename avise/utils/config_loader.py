@@ -7,7 +7,7 @@ import yaml
 from pathlib import Path
 from typing import Dict, Any, List
 
-from ..pipelines.base import LanguageModelSETCase
+from ..pipelines.language_model import LanguageModelSETCase
 
 
 class ConfigLoader:
@@ -109,7 +109,7 @@ class ConfigLoader:
 
         Args:
             config_path: Path to the configuration file
-            id_prefix: Prefix for auto-generated test IDs
+            id_prefix: PrefiExecutionOutx for auto-generated test IDs
 
         Returns:
             Tuple of (List[LanguageModelSETCase], raw_config)
