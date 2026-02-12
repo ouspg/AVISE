@@ -66,9 +66,9 @@ class OutputData:
         }
 
 @dataclass
-class AnalysisResult:
+class EvaluationResult:
     """
-    Analysis result of a single test
+    Evaluation result of a single test
 
     Produced by analyze() function for each ExecutionOutput.
     """
@@ -77,7 +77,7 @@ class AnalysisResult:
     response: str # Model response
     status: str # "passed", "failed", or "error". "pass" or "fail" based on what kind of patterns were found. "Error" if none were found.
     reason: str # Explanation for status
-    detections: Dict[str, Any] = field(default_factory=dict) # Analyzer findings. Based on the selected analyzers
+    detections: Dict[str, Any] = field(default_factory=dict) # Evaluator findings. Based on the selected evaluators
     metadata: Dict[str, Any] = field(default_factory=dict)
     elm_evaluation: Optional[str] = None # ELM evaluation result (if evaluation model was used)
 
@@ -108,7 +108,7 @@ class ReportData:
     timestamp: str
     execution_time_seconds: Optional[float]
     summary: Dict[str, Any] # total tests ran, passed%, failed%, error% rates
-    results: List[AnalysisResult] # All analysis results
+    results: List[EvaluationResult] # All evaluation results
     configuration: Dict[str, Any] = field(default_factory=dict) # Test config
 
     def to_dict(self) -> Dict[str, Any]:

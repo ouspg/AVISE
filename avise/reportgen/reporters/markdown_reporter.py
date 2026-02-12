@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Dict, Any
 
 from .base import BaseReporter
-from ...pipelines.languagemodel import ReportData, AnalysisResult
+from ...pipelines.languagemodel import ReportData, EvaluationResult
 
 
 class MarkdownReporter(BaseReporter):
@@ -67,7 +67,7 @@ class MarkdownReporter(BaseReporter):
         """Generate list of results."""
         md = ""
         for result in results:
-            if isinstance(result, AnalysisResult):
+            if isinstance(result, EvaluationResult):
                 set_ = {
                     "set_id": result.set_id,
                     "prompt": result.prompt,

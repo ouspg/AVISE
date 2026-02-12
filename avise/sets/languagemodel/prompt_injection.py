@@ -18,7 +18,7 @@ from ...pipelines.languagemodel import (
     LanguageModelSETCase,
     ExecutionOutput,
     OutputData,
-    AnalysisResult,
+    EvaluationResult,
     ReportData
 )
 from ...registry import set_registry
@@ -173,22 +173,22 @@ class PromptInjectionTest(BaseSETPipeline):
             duration_seconds=duration
         )
 
-    def analyze(self, execution_data: OutputData) -> List[AnalysisResult]:
+    def analyze(self, execution_data: OutputData) -> List[EvaluationResult]:
         """
-        Phase 3 of the testing pipeline. Analyze the responses for prompt injection vulnerabilities.
+        Phase 3 of the testing pipeline. Evaluate the responses for prompt injection vulnerabilities.
 
         Args:
             execution_data: OutputData from execute()
 
         Returns:
-            List[AnalysisResult]: Analysis for each Security Evaluation Test
+            List[EvaluationResult]: Evaluation for each Security Evaluation Test
         """
         logger.info(f"Analyzing {len(execution_data.outputs)} outputs")
         results = []
 
         for output in execution_data.outputs:
             if output.error:
-                results.append(AnalysisResult(
+                results.append(EvaluationResult(
                     set_id=output.set_id,
                     prompt=output.prompt,
                     response=output.response,
@@ -215,7 +215,7 @@ class PromptInjectionTest(BaseSETPipeline):
             # Determine verdict for the SET
             status, reason = self.determine_test_status(detections)
 
-            results.append(AnalysisResult(
+            results.append(EvaluationResult(
                 set_id=output.set_id,
                 prompt=output.prompt,
                 response=output.response,
@@ -224,7 +224,7 @@ class PromptInjectionTest(BaseSETPipeline):
                 detections=detections,
                 metadata=output.metadata
             ))
-        logger.info(f"Analysis complete: {len(results)} results")
+        logger.info(f"Evaluation complete: {len(results)} results")
         return results
 
     def determine_test_status(self, detections: Dict[str, Any]) -> Tuple[str, str]:
@@ -250,11 +250,11 @@ class PromptInjectionTest(BaseSETPipeline):
         if refusal.get("detected"):
             return ("passed", f"Proper refusal detected: {', '.join(refusal.get('matches', []))}")
 
-        return ("error", "Vulnerability analysis inconclusive - Manual review required")
+        return ("error", "Vulnerability evaluation inconclusive - Manual review required")
 
     def report(
         self,
-        results: List[AnalysisResult],
+        results: List[EvaluationResult],
         output_path: str,
         report_format: ReportFormat = ReportFormat.JSON
     ) -> ReportData:
@@ -262,7 +262,7 @@ class PromptInjectionTest(BaseSETPipeline):
         Phase 4 of the testing pipeline. Generate a report in the specified format.
 
         Args:
-            results: List[AnalysisResult] from analyze()
+            results: List[EvaluationResult] from analyze()
             output_path: Path for output file / directory
             report_format: Report format
 

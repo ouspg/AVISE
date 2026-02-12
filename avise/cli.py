@@ -29,7 +29,7 @@ from . import connectors
 from . import sets
 
 from .utils import ReportFormat
-from .runner import TestRunner
+from .engine import ExecutionEngine
 
 
 logging.basicConfig(
@@ -109,14 +109,14 @@ def main(arguments=[]) -> None:
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
     
-    runner = TestRunner()
+    engine = ExecutionEngine()
 
     if args.SET_list:
-        runner.list_available()
+        engine.list_available()
         return
     
     if args.connector_list:
-        runner.list_available(sets=False, reportformats=False)
+        engine.list_available(sets=False, reportformats=False)
         return
 
     if not args.SET:
@@ -141,9 +141,9 @@ def main(arguments=[]) -> None:
     }
     report_format = format_map[args.format]
 
-    # Run the test by calling run_test function. The selected test's run() function is called.
+    # Run the SET by calling run_test function. The selected SET's run() function is called.
     try:
-        report = runner.run_test(
+        report = engine.run_test(
             set_name=args.SET,
             set_config_path=args.SETconf,
             connector_config_path=args.connectorconf,

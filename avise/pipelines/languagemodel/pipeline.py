@@ -2,7 +2,7 @@
 """
 Base class for all vulnerability framework SETs.
 
-All SETs inherit from BasePipeline and should implement all 5 phases:
+All SETs inherit from BaseSETPipeline and should implement all 5 phases:
 initialize() -> execute() -> analyze() -> report() -> run()
 
 """
@@ -12,7 +12,7 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 from math import sqrt
 
-from .schema import LanguageModelSETCase, OutputData, AnalysisResult, ReportData
+from .schema import LanguageModelSETCase, OutputData, EvaluationResult, ReportData
 from ...connectors.languagemodel.base import BaseLMConnector
 
 from scipy.special import erfinv
@@ -29,18 +29,18 @@ class BaseSETPipeline(ABC):
 
     Based on a 5-phase pipeline with defined data contracts:
 
-    Phase 1 - initialize(config_path) -> List[LanguageModelSETCase] (Get test configuration from a configuration file and return a list of test cases)
-    Phase 2 - execute(connector, tests) -> OutputData (Execute the tests cases against the defined model and return dataobjects for analysis)
-    Phase 3 - analyze(execution_data) -> List[AnalysisResult] (Analyze the test results and return analysis objects)
-    Phase 4 - report(results, output_path, format) -> ReportData (Take the analysis objects and form a final report in a desired format)
+    Phase 1 - initialize(config_path) -> List[LanguageModelSETCase] (Get SET configuration from a configuration file and return a list of SET cases)
+    Phase 2 - execute(connector, sets) -> OutputData (Execute the SET cases against the defined model and return dataobjects for evaluation)
+    Phase 3 - analyze(execution_data) -> List[EvaluationResult] (Analyze the test results and return evaluation objects)
+    Phase 4 - report(results, output_path, format) -> ReportData (Take the evaluation objects and form a final report in a desired format)
     Phase 5 - run() - Orchestrates all phases 
 
     Data flow:
 
-    initialize() ---> List[LanguageModelSETCase] ---> execute() ---> OutputData(List[ExecutionOutput, execution_time]) ---> analyze() ---> List[AnalysisObject] ---> report() ---> ReportData
+    initialize() ---> List[LanguageModelSETCase] ---> execute() ---> OutputData(List[ExecutionOutput, execution_time]) ---> analyze() ---> List[EvaluationResult] ---> report() ---> ReportData
 
     When new tests are designed, the users override these methods according to their needs
-    New analyzers, connectors, loaders, reporters, configurations, and tests can be written and used as long as they follow this pipeline structure.
+    New evaluators, connectors, loaders, reporters, configurations, and SETs can be written and used as long as they follow this pipeline structure.
     """
 
     name: str = ""
@@ -97,7 +97,7 @@ class BaseSETPipeline(ABC):
         pass
 
     @abstractmethod
-    def analyze(self, execution_data: OutputData) -> List[AnalysisResult]:
+    def analyze(self, execution_data: OutputData) -> List[EvaluationResult]:
         """
         Analyze the SET outputs with analyzers.
 
@@ -105,10 +105,10 @@ class BaseSETPipeline(ABC):
             execution_data: OutputData from execute()
 
         Returns:
-            List[AnalysisResult]: Analysis of each SET
+            List[EvaluationResult]: Evaluation of each SET
 
         Requirements:
-            - Must produce one AnalysisResult per ExecutionOutput
+            - Must produce one EvaluationResult per ExecutionOutput
             - Status must be "passed", "failed", or "error" TODO: Something else?
             - Reason should explain the test status. Why did the test pass, fail or cause an error?
         """
@@ -117,7 +117,7 @@ class BaseSETPipeline(ABC):
     @abstractmethod
     def report(
         self,
-        results: List[AnalysisResult],
+        results: List[EvaluationResult],
         output_path: str,
         report_format: ReportFormat = ReportFormat.JSON
     ) -> ReportData:
@@ -125,7 +125,7 @@ class BaseSETPipeline(ABC):
         Generate the final report in the desired format and save it to target location.
 
         Args:
-            results: List[AnalysisResult] from analyze()
+            results: List[EvaluationResult] from analyze()
             output_path: Path for output file (../user/reports/..)
             report_format: Report format (Json, Toml, Yaml...) Set to JSON as default.
 
@@ -147,7 +147,7 @@ class BaseSETPipeline(ABC):
     ) -> ReportData:
         """
         Orchestration method that executes the 5-phase pipeline.
-        This method gets called by the runner / execution engine.
+        This method gets called by the execution engine.
 
         Args:
             connector: A connector instance
@@ -180,7 +180,7 @@ class BaseSETPipeline(ABC):
         return report_data
 
     @staticmethod
-    def calculate_passrates(results: List[AnalysisResult]) -> Dict[str, Any]:
+    def calculate_passrates(results: List[EvaluationResult]) -> Dict[str, Any]:
         """
         Calculate summary statistics (pass%, fail%, error%) based on results.
 
@@ -208,7 +208,7 @@ class BaseSETPipeline(ABC):
             pass_rate = 0
             fail_rate = 0
         
-        confidence_interval = BasePipeline._calculate_confidence_interval(passed, failed)
+        confidence_interval = BaseSETPipeline._calculate_confidence_interval(passed, failed)
         
         return {
             "total_sets": total_sets,

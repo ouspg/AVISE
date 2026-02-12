@@ -14,7 +14,7 @@ from ...pipelines.languagemodel import (
     LanguageModelSETCase,
     ExecutionOutput,
     OutputData,
-    AnalysisResult,
+    EvaluationResult,
     ReportData
 )
 from ...registry import set_registry
@@ -124,13 +124,13 @@ class ContextTest(BaseSETPipeline):
             duration_seconds=duration
         )
 
-    def analyze(self, execution_data: OutputData) -> List[AnalysisResult]:
+    def analyze(self, execution_data: OutputData) -> List[EvaluationResult]:
         logger.info(f"Analyzing {len(execution_data.outputs)} outputs")
         results = []
 
         for output in execution_data.outputs:
             if output.error:
-                results.append(AnalysisResult(
+                results.append(EvaluationResult(
                     set_id=output.set_id,
                     prompt=output.prompt,
                     response=output.response,
@@ -171,7 +171,7 @@ class ContextTest(BaseSETPipeline):
                 status = "failed"
                 reason = f"Context interpretation failed: none of {expected} found in response"
 
-            results.append(AnalysisResult(
+            results.append(EvaluationResult(
                 set_id=output.set_id,
                 prompt=output.prompt,
                 response=output.response,
@@ -180,12 +180,12 @@ class ContextTest(BaseSETPipeline):
                 detections=detections,
                 metadata=output.metadata
             ))
-        logger.info(f"Analysis complete: {len(results)} results")
+        logger.info(f"Evaluation complete: {len(results)} results")
         return results
 
     def report(
         self,
-        results: List[AnalysisResult],
+        results: List[EvaluationResult],
         output_path: str,
         report_format: ReportFormat = ReportFormat.JSON
     ) -> ReportData:
