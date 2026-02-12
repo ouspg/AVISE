@@ -1,1 +1,0 @@
-# TODO: Write documentation on what evaluators are and how they work

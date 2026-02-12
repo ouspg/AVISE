@@ -77,7 +77,7 @@ instance/
 # Sphinx documentation
 docs/source/_build/
 docs/source/_static/
-docs/source/_template/
+docs/source/_templates/
 docs/source/modules.rst
 
 
