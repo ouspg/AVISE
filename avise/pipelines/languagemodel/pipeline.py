@@ -27,13 +27,13 @@ class BaseSETPipeline(ABC):
     """
     The base Pipeline class for Language Model Security Evaluation Tests.
 
-    Based on a 5-phase pipeline with defined data contracts:
+    Based on a 4-phase pipeline with defined data contracts:
 
     Phase 1 - initialize(config_path) -> List[LanguageModelSETCase] (Get SET configuration from a configuration file and return a list of SET cases)
     Phase 2 - execute(connector, sets) -> OutputData (Execute the SET cases against the defined model and return dataobjects for evaluation)
     Phase 3 - evaluate(execution_data) -> List[EvaluationResult] (Evaluate the test results and return evaluation objects)
-    Phase 4 - report(results, output_path, format) -> ReportData (Take the evaluation objects and form a final report in a desired format)
-    Phase 5 - run() - Orchestrates all phases 
+    Phase 4 - report(results, output_path, format) -> ReportData (Take the evaluation objects and form a final report in a desired format
+    run() - Runs all phases 
 
     Data flow:
 
@@ -110,7 +110,7 @@ class BaseSETPipeline(ABC):
         Requirements:
             - Must produce one EvaluationResult per ExecutionOutput
             - Status must be "passed", "failed", or "error" TODO: Something else?
-            - Reason should explain the test status. Why did the test pass, fail or cause an error?
+            - Reason should explain the SET status. Why did the SET pass, fail or cause an error?
         """
         pass
 
@@ -146,7 +146,7 @@ class BaseSETPipeline(ABC):
         connector_config_path: Optional[str] = None
     ) -> ReportData:
         """
-        Orchestration method that executes the 5-phase pipeline.
+        Orchestration method that executes the 4-phase pipeline.
         This method gets called by the execution engine.
 
         Args:

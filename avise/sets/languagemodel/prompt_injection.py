@@ -39,9 +39,9 @@ logger = logging.getLogger(__name__)
 class PromptInjectionTest(BaseSETPipeline):
     """
     An early test written for testing prompt injection vulnerabilities.
-    Works as an example of SETs that are planned to implemented and designed by using this framework.
+    Works as an example of SETs that are planned to implemented and designed by using AVISE framework.
 
-    This SET implements the complete 5-phase pipeline, showcases how the inherited functions can be overwritten,
+    This SET implements the complete 4-phase pipeline, showcases how the inherited functions can be overwritten,
     and how different modular components of the framework can be used.
     """
 

@@ -72,7 +72,7 @@ class ExecutionEngine:
         reports_dir: str = DEFAULT_REPORTS_DIR
     ) -> dict:
         """
-        Run the 5-phase pipeline
+        Run the 4-phase pipeline
 
         Args:
             set_name: Registered SET name (e.g., "prompt_injection")
