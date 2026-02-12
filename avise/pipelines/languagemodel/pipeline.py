@@ -23,7 +23,7 @@ class ReportFormat(Enum):
     MARKDOWN = "md"
 
 
-class BasePipeline(ABC):
+class BaseSETPipeline(ABC):
     """
     The base Pipeline class for Language Model Security Evaluation Tests.
 

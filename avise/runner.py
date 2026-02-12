@@ -1,7 +1,7 @@
 """
 The SET runner / execution engine for AVISE.
 
-Runs SETs that inherit from BasePipeline and implement the 5-phase pipeline:
+Runs SETs that inherit from BaseSETPipeline and implement the 5-phase pipeline:
 initialize() -> execute() -> analyze() -> report() -> run()
 """
 import json

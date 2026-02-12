@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import List, Optional
 
 from ...pipelines.languagemodel import (
-    BasePipeline,
+    BaseSETPipeline,
     LanguageModelSETCase,
     ExecutionOutput,
     OutputData,
@@ -25,7 +25,7 @@ from ...utils import ConfigLoader, ReportFormat
 logger = logging.getLogger(__name__)
 
 @set_registry.register("context_test")
-class ContextTest(BasePipeline):
+class ContextTest(BaseSETPipeline):
 
     name = "Context test"
     description = "A simple test fabstract methodor multi-turn conversations where the conversation history is passed to the target"

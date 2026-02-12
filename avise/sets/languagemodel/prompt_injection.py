@@ -14,7 +14,7 @@ from typing import List, Dict, Any, Optional, Tuple
 
 from ...utils import ConfigLoader, ReportFormat
 from ...pipelines.languagemodel import (
-    BasePipeline,
+    BaseSETPipeline,
     LanguageModelSETCase,
     ExecutionOutput,
     OutputData,
@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 
 @set_registry.register("prompt_injection")
-class PromptInjectionTest(BasePipeline):
+class PromptInjectionTest(BaseSETPipeline):
     """
     An early test written for testing prompt injection vulnerabilities.
     Works as an example of SETs that are planned to implemented and designed by using this framework.
