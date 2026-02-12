@@ -52,7 +52,7 @@ class ExecutionOutput:
 @dataclass
 class OutputData:
     """
-    Output of execute(), input to analyze().
+    Output of execute(), input to evaluate().
 
     Contains all execution outputs and execution duration in seconds.
     """
@@ -70,7 +70,7 @@ class EvaluationResult:
     """
     Evaluation result of a single test
 
-    Produced by analyze() function for each ExecutionOutput.
+    Produced by evaluate() function for each ExecutionOutput.
     """
     set_id: str # Unique identifier
     prompt: str # Original test prompt

@@ -124,8 +124,8 @@ class ContextTest(BaseSETPipeline):
             duration_seconds=duration
         )
 
-    def analyze(self, execution_data: OutputData) -> List[EvaluationResult]:
-        logger.info(f"Analyzing {len(execution_data.outputs)} outputs")
+    def evaluate(self, execution_data: OutputData) -> List[EvaluationResult]:
+        logger.info(f"Evaluating {len(execution_data.outputs)} outputs")
         results = []
 
         for output in execution_data.outputs:

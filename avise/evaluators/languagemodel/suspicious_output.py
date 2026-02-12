@@ -49,7 +49,7 @@ executing commands or revealing information related to the host system."""
     def detect(self, response: str) -> Tuple[bool, List[str]]:
         """
         Args:
-            response: The response to analyze
+            response: The response to evaluate
 
         Returns:
             Tuple containing:

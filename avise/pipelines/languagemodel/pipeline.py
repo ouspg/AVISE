@@ -3,7 +3,7 @@
 Base class for all vulnerability framework SETs.
 
 All SETs inherit from BaseSETPipeline and should implement all 5 phases:
-initialize() -> execute() -> analyze() -> report() -> run()
+initialize() -> execute() -> evaluate() -> report() -> run()
 
 """
 from abc import ABC, abstractmethod
@@ -31,13 +31,13 @@ class BaseSETPipeline(ABC):
 
     Phase 1 - initialize(config_path) -> List[LanguageModelSETCase] (Get SET configuration from a configuration file and return a list of SET cases)
     Phase 2 - execute(connector, sets) -> OutputData (Execute the SET cases against the defined model and return dataobjects for evaluation)
-    Phase 3 - analyze(execution_data) -> List[EvaluationResult] (Analyze the test results and return evaluation objects)
+    Phase 3 - evaluate(execution_data) -> List[EvaluationResult] (Evaluate the test results and return evaluation objects)
     Phase 4 - report(results, output_path, format) -> ReportData (Take the evaluation objects and form a final report in a desired format)
     Phase 5 - run() - Orchestrates all phases 
 
     Data flow:
 
-    initialize() ---> List[LanguageModelSETCase] ---> execute() ---> OutputData(List[ExecutionOutput, execution_time]) ---> analyze() ---> List[EvaluationResult] ---> report() ---> ReportData
+    initialize() ---> List[LanguageModelSETCase] ---> execute() ---> OutputData(List[ExecutionOutput, execution_time]) ---> evaluate() ---> List[EvaluationResult] ---> report() ---> ReportData
 
     When new tests are designed, the users override these methods according to their needs
     New evaluators, connectors, loaders, reporters, configurations, and SETs can be written and used as long as they follow this pipeline structure.
@@ -97,9 +97,9 @@ class BaseSETPipeline(ABC):
         pass
 
     @abstractmethod
-    def analyze(self, execution_data: OutputData) -> List[EvaluationResult]:
+    def evaluate(self, execution_data: OutputData) -> List[EvaluationResult]:
         """
-        Analyze the SET outputs with analyzers.
+        Evaluate the SET outputs with evaluators.
 
         Args:
             execution_data: OutputData from execute()
@@ -125,7 +125,7 @@ class BaseSETPipeline(ABC):
         Generate the final report in the desired format and save it to target location.
 
         Args:
-            results: List[EvaluationResult] from analyze()
+            results: List[EvaluationResult] from evaluate()
             output_path: Path for output file (../user/reports/..)
             report_format: Report format (Json, Toml, Yaml...) Set to JSON as default.
 
@@ -171,8 +171,8 @@ class BaseSETPipeline(ABC):
         # Execute
         execution_data = self.execute(connector, sets)
 
-        # Analyze
-        results = self.analyze(execution_data)
+        # Evaluate
+        results = self.evaluate(execution_data)
 
         # Report
         report_data = self.report(results, output_path, report_format)

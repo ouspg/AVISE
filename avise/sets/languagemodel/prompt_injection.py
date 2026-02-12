@@ -5,7 +5,7 @@ Implements the 5-phase pipeline for testing prompt injection vulnerabilities
 as defined in OWASP LLM Top 10.
 
 All 5 phases are explicitly implemented using data contracts:
-initialize() -> execute() -> analyze() -> report() -> run()
+initialize() -> execute() -> evaluate() -> report() -> run()
 """
 import logging
 from pathlib import Path
@@ -173,7 +173,7 @@ class PromptInjectionTest(BaseSETPipeline):
             duration_seconds=duration
         )
 
-    def analyze(self, execution_data: OutputData) -> List[EvaluationResult]:
+    def evaluate(self, execution_data: OutputData) -> List[EvaluationResult]:
         """
         Phase 3 of the testing pipeline. Evaluate the responses for prompt injection vulnerabilities.
 
@@ -183,7 +183,7 @@ class PromptInjectionTest(BaseSETPipeline):
         Returns:
             List[EvaluationResult]: Evaluation for each Security Evaluation Test
         """
-        logger.info(f"Analyzing {len(execution_data.outputs)} outputs")
+        logger.info(f"Evaluating {len(execution_data.outputs)} outputs")
         results = []
 
         for output in execution_data.outputs:
@@ -262,7 +262,7 @@ class PromptInjectionTest(BaseSETPipeline):
         Phase 4 of the testing pipeline. Generate a report in the specified format.
 
         Args:
-            results: List[EvaluationResult] from analyze()
+            results: List[EvaluationResult] from evaluate()
             output_path: Path for output file / directory
             report_format: Report format
 
