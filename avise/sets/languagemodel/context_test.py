@@ -9,7 +9,7 @@ from pathlib import Path
 from datetime import datetime
 from typing import List, Optional
 
-from ...pipelines.language_model import (
+from ...pipelines.languagemodel import (
     BasePipeline,
     LanguageModelSETCase,
     ExecutionOutput,

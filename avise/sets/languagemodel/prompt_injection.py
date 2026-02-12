@@ -13,7 +13,7 @@ from datetime import datetime
 from typing import List, Dict, Any, Optional, Tuple
 
 from ...utils import ConfigLoader, ReportFormat
-from ...pipelines.language_model import (
+from ...pipelines.languagemodel import (
     BasePipeline,
     LanguageModelSETCase,
     ExecutionOutput,
