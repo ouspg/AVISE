@@ -3,11 +3,9 @@ Language Model Connector for Custom/Generic REST APIs.
 """
 import logging
 import requests
-#from typing import List, Optional
 
 from .base import BaseLMConnector
 from ...registry import connector_registry
-#from ...utils import ConfigLoader
 
 logger = logging.getLogger(__name__)
 

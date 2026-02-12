@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 class ContextTest(BaseSETPipeline):
 
     name = "Context test"
-    description = "A simple test fabstract methodor multi-turn conversations where the conversation history is passed to the target"
+    description = "A simple test for multi-turn conversations where the conversation history is passed to the target"
 
     def __init__(self):
         super().__init__()
