@@ -39,7 +39,7 @@ class BaseSETPipeline(ABC):
 
     initialize() ---> List[LanguageModelSETCase] ---> execute() ---> OutputData(List[ExecutionOutput, execution_time]) ---> evaluate() ---> List[EvaluationResult] ---> report() ---> ReportData
 
-    When new tests are designed, the users override these methods according to their needs
+    When new language model SETs are designed, override these methods according to your needs.
     New evaluators, connectors, loaders, reporters, configurations, and SETs can be written and used as long as they follow this pipeline structure.
     """
 
