@@ -91,18 +91,24 @@ class ExecutionEngine:
         # Create a connector for the target model
         connector = self._build_connector(connector_config, evaluation=False)
 
-
-        target_model = connector_config["target_model"].get("name")
-        evaluation_model = connector_config["eval_model"].get("name")
+        try:
+            target_model = connector_config["target_model"].get("name")
+        except AttributeError as e:
+            raise RuntimeError('Provided connector configuration file is missing a "target_model" field.') from e
+        
+        try:
+            evaluation_model = connector_config["eval_model"].get("name")
+        except AttributeError:
+            logger.info('Could not find "eval_model" field in the provided connector configuration field. Continuing without an evaluation language model...')
 
         logger.info(f"Running status check for the target model and API '{target_model}'...")
         try:
             connector.status_check()
             logger.info("Target model status check successful.")
         except ConnectionError as e:
-            raise RuntimeError(f"API connection failed with error: {e}")
+            raise RuntimeError(f"API connection failed with error: {e}") from e
         except ValueError as e:
-            raise RuntimeError(f"Model not found: {e}")
+            raise RuntimeError(f"Model not found: {e}") from e
 
             
         if evaluation_model is None:
