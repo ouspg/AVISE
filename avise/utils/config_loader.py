@@ -7,7 +7,7 @@ import yaml
 from pathlib import Path
 from typing import Dict, Any, List
 
-from ..pipelines.language_model import LanguageModelSETCase
+from ..pipelines.languagemodel import LanguageModelSETCase
 
 
 class ConfigLoader:
