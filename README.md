@@ -15,17 +15,17 @@ A framework for identifying vulnerabilities in and evaluating the security of AI
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
-cd AI-Testing-Platform
+git clone https://github.com/ouspg/AVISE.git
+cd AVISE
 ```
 
 ### 2. Set Up Python Environment
 
 ```bash
 # Create virtual environment
-python -m venv myenv
+python -m venv venv
 
-source venv/bin/activate
+source venv/bin/activate # Or venv/Scripts/Activate on Windows
 
 # Install dependencies
 pip install -r requirements.txt
@@ -68,7 +68,7 @@ Edit `avise/configs/connector/ollama.json`:
     "eval_model": {
         "connector": "ollama-lm",
         "type": "language_model",
-        "name": "NAME_OF_EVALUATION_MODEL", #Optional
+        "name": "<NAME_OF_EVALUATION_MODEL>", #Optional
         "api_url": "http://localhost:11434", #Ollama default
         "api_key": null
     }
