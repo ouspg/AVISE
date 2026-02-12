@@ -1,11 +1,11 @@
 """
 LLM01: Prompt Injection vulnerability Security Evaluation Test.
 
-Implements the 5-phase pipeline for testing prompt injection vulnerabilities
+Implements the 4-phase pipeline for testing prompt injection vulnerabilities
 as defined in OWASP LLM Top 10.
 
-All 5 phases are explicitly implemented using data contracts:
-initialize() -> execute() -> evaluate() -> report() -> run()
+All 4 phases are explicitly implemented using data contracts:
+initialize() -> execute() -> evaluate() -> report()
 """
 import logging
 from pathlib import Path

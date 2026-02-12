@@ -2,8 +2,8 @@
 """
 Base class for all vulnerability framework SETs.
 
-All SETs inherit from BaseSETPipeline and should implement all 5 phases:
-initialize() -> execute() -> evaluate() -> report() -> run()
+All SETs inherit from BaseSETPipeline and should implement all 4 phases:
+initialize() -> execute() -> evaluate() -> report()
 
 """
 from abc import ABC, abstractmethod
