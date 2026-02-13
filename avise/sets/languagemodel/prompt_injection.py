@@ -289,8 +289,8 @@ class PromptInjectionTest(BasePipeline):
             summary=self.calculate_passrates(results),
             configuration={
                 "connector_config": Path(self.connector_config_path).name if self.connector_config_path else "",
-                "test_config": Path(self.set_config_path).name if self.set_config_path else "",
-                "testable_model": self.target_model_name,
+                "set_config": Path(self.set_config_path).name if self.set_config_path else "",
+                "target_model": self.target_model_name,
                 "evaluation_model": self.evaluation_model_name or "",
                 "elm_evaluation_used": self.evaluation_connector is not None
             }
@@ -318,7 +318,7 @@ class PromptInjectionTest(BasePipeline):
         [
             {
                 "vulnerability_subcategory": "Direct Injection",
-                "tests": [ ...AnalysisResult dicts... ]
+                "SETs": [ ...AnalysisResult dicts... ]
             },
             ...
         ]
@@ -334,7 +334,7 @@ class PromptInjectionTest(BasePipeline):
         return [
             {
                 "vulnerability_subcategory": subcategory,
-                "tests": tests
+                "SETs": SETs
             }
-            for subcategory, tests in grouped_results.items()
+            for subcategory, SETs in grouped_results.items()
         ]
