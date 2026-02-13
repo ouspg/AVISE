@@ -68,6 +68,7 @@ class OpenAILMConnector(BaseLMConnector):
             self.model = config["eval_model"]["name"]
             self.api_key = config["eval_model"]["api_key"]
             self.base_url = config["eval_model"]["api_url"]
+            self.headers = config["eval_model"].get("headers")
         else:
             if "target_model" not in config:
                 raise KeyError('OpenAI Connector configuration JSON file requires a "target_model" field. Refer to Connector documentations on how to configure connectors.')
@@ -88,10 +89,13 @@ class OpenAILMConnector(BaseLMConnector):
             self.model = config["target_model"]["name"]
             self.api_key = config["target_model"]["api_key"]
             self.base_url = config["target_model"]["api_url"]
+            self.headers = config["target_model"].get("headers")
 
         # Initialize OpenAI client
         client_kwargs = {"api_key": self.api_key}
         client_kwargs["base_url"] = self.base_url
+        if self.headers is not None:
+            client_kwargs["default_headers"] = self.headers
 
         self.client = OpenAI(**client_kwargs)
 

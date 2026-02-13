@@ -4,6 +4,7 @@
         "type": "language_model",
         "name": "gpt-4o-mini",
         "api_url": null,
+        "headers": null,
         "api_key": "YOUR_OPENAI_API_KEY_HERE"
     },
 
@@ -12,6 +13,7 @@
         "type": "language_model",
         "name": "gpt-4o-mini",
         "api_url": null,
+        "headers": null,
         "api_key": "YOUR_OPENAI_API_KEY_HERE"
     }
 }
