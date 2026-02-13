@@ -14,6 +14,8 @@ TODO: Add Landing page text here
 
    installation
    quickstart
+   configuring.connectors
+   configuring.sets
 
 
 .. toctree::
