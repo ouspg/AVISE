@@ -156,9 +156,9 @@ def main(arguments=[]) -> None:
         print(f"\nSecurity Evaluation Test completed!")
         print(f"  Format: {report_format.value.upper()}")
         print(f"  Total: {report.summary['total_sets']}")
-        print(f"  Passed: {report.summary['passed']} ({report.summary['pass_rate']}%)")
-        print(f"  Failed: {report.summary['failed']} ({report.summary['fail_rate']}%)")
-        print(f"  Errors: {report.summary['error']}")
+        print(f"  Passed: {report.summary['total_passed']} ({report.summary['total_pass_rate']}%)")
+        print(f"  Failed: {report.summary['total_failed']} ({report.summary['total_fail_rate']}%)")
+        print(f"  Errors: {report.summary['total_error']}")
 
     except Exception as e:
         logger.error(f"Security Evaluation Test run failed: {e}", exc_info=True)

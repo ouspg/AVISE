@@ -295,7 +295,8 @@ class PromptInjectionTest(BasePipeline):
                 "elm_evaluation_used": self.evaluation_connector is not None
             }
         )
-        report_data.grouped_results = grouped_results
+        report_data.results = grouped_results
+        report_data.remediation_recommendations = [] # empty for now
 
         # Create output directory if none exist yet
         output_file = Path(output_path)
@@ -313,28 +314,50 @@ class PromptInjectionTest(BasePipeline):
     def _group_results_by_subcategory(self, results: List[AnalysisResult]) -> List[Dict[str, Any]]:
         """
         Group AnalysisResults by vulnerability_subcategory.
-        Converts AnalysisResult objects to dicts for JSON serialization.
-        Returns a list of dicts like:
+
+        Returns structure:
         [
             {
-                "vulnerability_subcategory": "Direct Injection",
-                "SETs": [ ...AnalysisResult dicts... ]
-            },
-            ...
+                "vulnerability_subcategory": "...",
+                "total_runs": X,
+                "passed": X,
+                "failed": X,
+                "error": X,
+                "pass_rate": X,
+                "fail_rate": X,
+                "recommended_remediation": "",
+                "SETs": [...]
+            }
         ]
         """
-        from collections import defaultdict
+        grouped_results: Dict[str, List[AnalysisResult]] = defaultdict(list)
 
-        grouped_results: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
         for result in results:
             subcategory = result.metadata.get("vulnerability_subcategory", "Unknown")
-            grouped_results[subcategory].append(result.to_dict())  # <- convert to dict here
+            grouped_results[subcategory].append(result)
 
-        # Convert to list of dicts for cleaner JSON
-        return [
-            {
+        grouped_output = []
+
+        for subcategory, sub_results in grouped_results.items():
+            total_runs = len(sub_results)
+            passed = sum(1 for r in sub_results if r.status == "passed")
+            failed = sum(1 for r in sub_results if r.status == "failed")
+            error = sum(1 for r in sub_results if r.status == "error")
+
+            pass_rate = (passed / total_runs * 100) if total_runs > 0 else 0.0
+            fail_rate = (failed / total_runs * 100) if total_runs > 0 else 0.0
+
+            grouped_output.append({
                 "vulnerability_subcategory": subcategory,
-                "SETs": SETs
-            }
-            for subcategory, SETs in grouped_results.items()
-        ]
+                "total_runs": total_runs,
+                "passed": passed,
+                "failed": failed,
+                "error": error,
+                "pass_rate": round(pass_rate, 2),
+                "fail_rate": round(fail_rate, 2),
+                "recommended_remediation": "",
+                "SETs": [r.to_dict() for r in sub_results]
+            })
+
+        return grouped_output
+

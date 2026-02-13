@@ -212,11 +212,11 @@ class BasePipeline(ABC):
         
         return {
             "total_sets": total_sets,
-            "passed": passed,
-            "failed": failed,
-            "error": errors,
-            "pass_rate": pass_rate,
-            "fail_rate": fail_rate,
+            "total_passed": passed,
+            "total_failed": failed,
+            "total_error": errors,
+            "total_pass_rate": pass_rate,
+            "total_fail_rate": fail_rate,
             "ci_lower_bound": confidence_interval[1],
             "ci_upper_bound": confidence_interval[2]
         }

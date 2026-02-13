@@ -118,5 +118,5 @@ class ReportData:
             "execution_time_seconds": self.execution_time_seconds,
             "configuration": self.configuration,
             "summary": self.summary,
-            "results": [result.to_dict() for result in self.results] if self.results else []
+            "results": [r if isinstance(r, dict) else r.to_dict() for r in self.results] if self.results else []
         }
