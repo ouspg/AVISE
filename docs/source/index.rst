@@ -2,7 +2,7 @@ AVISE Documentations
 =====================
 
 AVISE (AI Vulnerability Identification & Security Evaluation) is a modular framework for developing automated **S**\ ecurity 
-**E**\ valuation **T**\ ests (SETs) for AI systems for vulnerability identification and security assessment. AVISE provides a scalable, 
+**E**\ valuation **T**\ ests (SETs) to identify vulnerabilities in and assessing the security of AI systems. AVISE provides a scalable, 
 automated approach to red teaming AI systems. It allows developers and researchers to deploy consistent, rigorous security 
 evaluation tests across a wide range of different types of AI systems from Large Language Models to specialized 
 Continual Learning systems.
