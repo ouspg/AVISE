@@ -1,0 +1,36 @@
+[build-system]
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
+
+
+[project]
+name = "avise"
+version = "0.2.0"
+authors = [
+    { name = "Mikko Lempinen", email="mikko.lempinen@oulu.fi" },
+    { name = "Joni Kemppainen" },
+    { name = "Niklas Raesalmi" }
+]
+
+license = "MIT"
+license-files = ["LICENSE"]
+description = "AI Vulnerability Identification & Security Evaluation framework"
+readme = "README.md"
+
+requires-python = ">=3.10"
+
+dependencies = [
+    "ollama>=0.3.0",
+    "openai>=1.0.0",
+    "pyyaml>=6.0",
+    "scipy>=1.17.0",
+    "numpy>=2.4.2",
+    "requests>=2.32.5",
+]
+[project.optional-dependencies]
+unit-tests = [
+    "pytest>=9.0.2"
+]
+
+[project.scripts]
+avise = "avise.__main__:main"

@@ -1,3 +1,11 @@
+
+![AVISE logo](/docs/assets/avise_logo.png)  
+
+# AVISE - AI Vulnerability Identification & Security Evaluation
+
+A framework for identifying vulnerabilities in and evaluating the security of AI systems.
+
+
 ### Prerequisites
 
 - Python 3.10+
@@ -7,17 +15,17 @@
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
-cd AI-Testing-Platform
+git clone https://github.com/ouspg/AVISE.git
+cd AVISE
 ```
 
 ### 2. Set Up Python Environment
 
 ```bash
 # Create virtual environment
-python -m venv myenv
+python -m venv venv
 
-source myenv/bin/activate    # On Windows, run: myenv\Scripts\activate
+source venv/bin/activate # Or venv/Scripts/Activate on Windows
 
 # Install dependencies
 pip install -r requirements.txt
@@ -44,39 +52,50 @@ After Ollama is running, pull the models you want to test:
 docker exec -it avise-ollama ollama pull <model_name>
 ```
 
-### 5. Configure Models
+### 5. Configure Connectors
 
-Edit `src/configs/model.json`:
+Edit `avise/configs/connector/ollama.json`:
 
 ```json
 {
-  "testable_model": "X",
-  "evaluation_model": "Y",
-  "api_url": "http://localhost:11434" #Ollama default
+    "target_model": {
+        "connector": "ollama-lm",
+        "type": "language_model",
+        "name": "<NAME_OF_TARGET_MODEL>",
+        "api_url": "http://localhost:11434", #Ollama default
+        "api_key": null
+    },
+    "eval_model": {
+        "connector": "ollama-lm",
+        "type": "language_model",
+        "name": "<NAME_OF_EVALUATION_MODEL>", #Optional
+        "api_url": "http://localhost:11434", #Ollama default
+        "api_key": null
+    }
 }
 ```
 
 ## Usage
 
 ```bash
-python -m src.runner -test <test_name> -modelconf <path> -testconf <path> [options]
+python -m avise --SET <SET_name> --connectorconf <path> --SETconf <path> [options]
 ```
 
 ### Required Arguments
 
 | Argument | Description |
 |----------|-------------|
-| `-test` | Test to run (e.g., `prompt_injection`, `context_test`) |
-| `-modelconf` | Path to model configuration JSON |
-| `-testconf` | Path to test configuration JSON |
+| `--SET` | Security Evaluation Test to run (e.g., `prompt_injection`, `context_test`) |
+| `--connectorconf` | Path to Connector configuration JSON |
+| `--SETconf` | Path to test configuration JSON |
 
 ### Optional Arguments
 
 | Argument | Description |
 |----------|-------------|
-| `-format` | Report format: `json`, `html`, `md` |
-| `-output` | Custom output file path |
-| `-reports-dir` | Base directory for reports (default: `reports/`) |
-| `-apikey` | API key for authenticated APIs |
-| `-list` | List available tests and formats |
-| `-v` | Enable verbose logging |
+| `--format`, `-f` | Report format: `json`, `html`, `md` |
+| `--output` | Custom output file path |
+| `--reports-dir` | Base directory for reports (default: `reports/`) |
+| `--list` | List available tests and formats |
+| `-verbose` | Enable verbose logging |
+| `-version` | Print version  |
