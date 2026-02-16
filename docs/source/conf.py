@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.abspath('..'))
 project = 'AVISE'
 copyright = f'{datetime.datetime.now().year}, Oulu University Secure Programming Group (OUSPG)'
 author = 'Joni Kemppainen, Mikko Lempinen'
-release = '0.1.1'
+release = '0.2.0'
 
 # -- General configuration ---------------------------------------------------
 
