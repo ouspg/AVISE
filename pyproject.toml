@@ -31,6 +31,11 @@ dependencies = [
 unit-tests = [
     "pytest>=9.0.2"
 ]
+docs = [
+    "sphinx"
+    "sphinx_rtd_theme"
+    "sphinx_github_style"
+]
 
 [project.scripts]
 avise = "avise.__main__:main"
