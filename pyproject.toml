@@ -33,8 +33,8 @@ unit-tests = [
 ]
 docs = [
     "sphinx",
-    "sphinx_rtd_theme",
-    "sphinx_github_style"
+    "sphinx-rtd-theme",
+    "sphinx-github-style"
 ]
 
 [project.scripts]
