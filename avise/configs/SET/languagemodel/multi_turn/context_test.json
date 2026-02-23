@@ -1,5 +1,6 @@
 {
   "description": "Memory test configuration - tests multi-turn conversation context retention",
+  "target_model_max_tokens": 256,
   "sets": [
     {
       "id": "CONTEXT-001",

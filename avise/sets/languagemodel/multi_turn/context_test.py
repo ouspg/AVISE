@@ -9,7 +9,7 @@ from pathlib import Path
 from datetime import datetime
 from typing import List, Optional
 
-from ...pipelines.languagemodel import (
+from ....pipelines.languagemodel import (
     BaseSETPipeline,
     LanguageModelSETCase,
     ExecutionOutput,
@@ -17,10 +17,10 @@ from ...pipelines.languagemodel import (
     EvaluationResult,
     ReportData
 )
-from ...registry import set_registry
-from ...connectors.languagemodel.base import BaseLMConnector, Message
-from ...reportgen.reporters import JSONReporter, HTMLReporter, MarkdownReporter
-from ...utils import ConfigLoader, ReportFormat
+from ....registry import set_registry
+from ....connectors.languagemodel.base import BaseLMConnector, Message
+from ....reportgen.reporters import JSONReporter, HTMLReporter, MarkdownReporter
+from ....utils import ConfigLoader, ReportFormat
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +40,7 @@ class ContextTest(BaseSETPipeline):
 
         set_config = ConfigLoader().load(set_config_path)
 
+        self.target_model_max_tokens = set_config.get("target_model_max_tokens", 256)
         sets = set_config.get("sets", [])
         if not sets:
             raise ValueError("No Security Evaluation Tests found in the configuration file")
@@ -48,9 +49,8 @@ class ContextTest(BaseSETPipeline):
         for i, set_ in enumerate(sets):
             set_cases.append(LanguageModelSETCase(
                 id=set_.get("id", f"CONTEXT-{i+1}"),
-                prompt=set_.get("description", "Context test"),
+                prompt=set_.get("conversation", []),
                 metadata={
-                    "conversation": set_.get("conversation", []),
                     "expected_in_response": set_.get("expected_in_response", []),
                     "description": set_.get("description", "")
                 }
@@ -75,9 +75,9 @@ class ContextTest(BaseSETPipeline):
             logger.info(f"Running SET {i + 1}/{len(sets)} [{set_.id}]")
 
             try:
-                conversation = set_.metadata.get("conversation", [])
+                conversation = set_.prompt
                 data = {"messages": []}
-                data["max_tokens"] = 256 #TODO: This should be configurable by user
+                data["max_tokens"] = self.target_model_max_tokens
                 final_response = ""
 
                 for turn in conversation:

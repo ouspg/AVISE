@@ -54,7 +54,9 @@ class BaseSETPipeline(ABC):
         self.connector_config_path: Optional[str] = None
         self.set_config_path: Optional[str] = None
         self.target_model_name: Optional[str] = None
+        self.target_model_max_tokens: Optional[int] = None
         self.evaluation_model_name: Optional[str] = None
+        self.evaluation_model_max_tokens: Optional[int] = None
 
     @abstractmethod
     def initialize(self, set_config_path: str) -> List[LanguageModelSETCase]:
