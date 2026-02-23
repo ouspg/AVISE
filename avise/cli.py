@@ -130,9 +130,17 @@ def main(arguments=[]) -> None:
         return
 
     if not args.SETconf:
-        parser.print_help()
-        print("\nError: --SETconf is required")
-        return
+        # Check predefined configs
+        if args.SET == "red_queen":
+            args.SETconf = "avise/configs/SET/languagemodel/multi_turn/red_queen.json"
+        elif args.SET == "prompt_injection":
+            args.SETconf = "avise/configs/SET/languagemodel/single_turn/prompt_injection_mini.json"
+        elif args.SET == "context_test":
+            args.SETconf = "avise/configs/SET/languagemodel/multi_turn/context_test.json"
+        else:
+            parser.print_help()
+            print("\nError: --SETconf is required for this SET.")
+            return
 
     format_map = {
         "json": ReportFormat.JSON,
@@ -141,8 +149,17 @@ def main(arguments=[]) -> None:
     }
     report_format = format_map[args.format]
 
-    # Run the SET by calling run_test function. The selected SET's run() function is called.
+    # Predefined configs
+    if args.connectorconf == "ollama":
+        args.connectorconf = "avise/configs/connector/ollama.json"
+    elif args.connectorconf == "openai":
+        args.connectorconf = "avise/configs/connector/openai.json"
+    elif args.connectorconf == "genericrest":
+        args.connectorconf = "avise/configs/connector/genericrest.json"
+
+
     try:
+        # Run the SET by calling run_test function. The selected SET's run() function is called.
         report = engine.run_test(
             set_name=args.SET,
             set_config_path=args.SETconf,
