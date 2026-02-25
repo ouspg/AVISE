@@ -183,15 +183,15 @@ class ExecutionEngine:
             reportformats: Boolean flag indicating is available Report Formats will be printed. Default True.
         """
         if sets:
-            print("\nAvailable SETs:")
+            print("\nAvailable SETs:\n")
             for set_name in set_registry.list():
                 set_type = set_registry.get(set_name)
-                print(f"  - {set_name}: {set_type.description}")
+                print(f"   \033[1m{set_name}:\033[0m {set_type.description}\n")
         if reportformats:
             print("\nAvailable Report Formats:")
             for format in ReportFormat:
-                print(f"  - {format.value}")
+                print(f"   {format.value}")
         if connectors:
             print("\n Available Connectors:")
             for connector_name in connector_registry.list():
-                print(f"  - {connector_name}")
+                print(f"   \033[1m{connector_name}\033[0m")

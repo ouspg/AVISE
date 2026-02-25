@@ -54,12 +54,12 @@ def main(arguments=[]) -> None:
     parser.add_argument(
         "--SET_list",
         action="store_true",
-        help="List available Security Evaluation Tests and formats"
+        help="List available Security Evaluation Tests"
     )
     parser.add_argument(
         "--connector_list",
         action="store_true",
-        help="List available connectors"
+        help="List available connectors and formats"
     )
 
     parser.add_argument(
@@ -76,7 +76,6 @@ def main(arguments=[]) -> None:
         "--SETconf",
         help="Path to Security Evaluation Test configuration JSON"
     )
-    
 
     parser.add_argument(
         "--format", "-f",
@@ -112,11 +111,11 @@ def main(arguments=[]) -> None:
     engine = ExecutionEngine()
 
     if args.SET_list:
-        engine.list_available()
+        engine.list_available(reportformats=False, connectors=False)
         return
     
     if args.connector_list:
-        engine.list_available(sets=False, reportformats=False)
+        engine.list_available(sets=False)
         return
 
     if not args.SET:
