@@ -11,8 +11,9 @@ from enum import Enum
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 from math import sqrt
+from collections import defaultdict
 
-from .schema import LanguageModelSETCase, OutputData, AnalysisResult, ReportData
+from .schema import LanguageModelSETCase, OutputData, AnalysisResult, ReportData, SubcategoryReport
 from ...connectors.languagemodel.base import BaseLMConnector
 
 from scipy.special import erfinv
@@ -55,6 +56,7 @@ class BasePipeline(ABC):
         self.set_config_path: Optional[str] = None
         self.target_model_name: Optional[str] = None
         self.evaluation_model_name: Optional[str] = None
+        self.group_by_metadata_key: Optional[str] = None
 
     @abstractmethod
     def initialize(self, set_config_path: str) -> List[LanguageModelSETCase]:
@@ -261,3 +263,61 @@ class BasePipeline(ABC):
         upper_bound = min(1, upper_bound)
 
         return (p, lower_bound, upper_bound)
+
+    def _group_results_by_metadata_key(self,
+                                      results: List[AnalysisResult],
+                                      key: str
+                                      ) -> List[SubcategoryReport]:
+        """
+        Generic grouping utility.
+        Groups AnalysisResults by metadata[key].
+        """
+
+        grouped = defaultdict(list)
+
+        for result in results:
+            group_value = result.metadata.get(key, "Unknown")
+            grouped[group_value].append(result)
+
+        grouped_reports: List[SubcategoryReport] = []
+
+        for group_name, group_results in grouped.items():
+            total_runs = len(group_results)
+            passed = sum(1 for r in group_results if r.status == "passed")
+            failed = sum(1 for r in group_results if r.status == "failed")
+            error = sum(1 for r in group_results if r.status == "error")
+
+            pass_rate = (passed / total_runs * 100) if total_runs else 0.0
+            fail_rate = (failed / total_runs * 100) if total_runs else 0.0
+
+            grouped_reports.append(
+                SubcategoryReport(
+                    subcategory_name=group_name,
+                    total_runs=total_runs,
+                    passed=passed,
+                    failed=failed,
+                    error=error,
+                    pass_rate=round(pass_rate, 2),
+                    fail_rate=round(fail_rate, 2),
+                    recommended_remediation="",
+                    SETs=group_results
+                )
+            )
+
+        return grouped_reports
+
+    def _prepare_report_results(self,
+                                results: List[AnalysisResult]
+                                ):
+        """
+        Returns either flat results or grouped results
+        depending on group_by_metadata_key.
+        """
+
+        if self.group_by_metadata_key:
+            return self._group_results_by_metadata_key(
+                results,
+                self.group_by_metadata_key
+            )
+
+        return results

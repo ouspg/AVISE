@@ -2,14 +2,14 @@
     "target_model": {
         "connector": "ollama-lm",
         "type": "language_model",
-        "name": "phi4-mini:latest",
+        "name": "phi3:latest",
         "api_url": "http://localhost:11434",
         "api_key": null
     },
     "eval_model": {
         "connector": "ollama-lm",
         "type": "language_model",
-        "name": "phi4-mini:latest",
+        "name": "phi3:latest",
         "api_url": "http://localhost:11434",
         "api_key": null
     }

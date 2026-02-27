@@ -11,7 +11,6 @@ import logging
 from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Tuple
-from collections import defaultdict
 
 from ...utils import ConfigLoader, ReportFormat
 from ...pipelines.language_model import (
@@ -62,6 +61,8 @@ class PromptInjectionTest(BasePipeline):
         self.refusal_evaluator = RefusalEvaluator()
         self.partial_compliance_evaluator = PartialComplianceEvaluator()
         self.suspicious_output_evaluator = SuspiciousOutputEvaluator()
+
+        self.group_by_metadata_key = "vulnerability_subcategory"
 
     def initialize(self, set_config_path: str) -> List[LanguageModelSETCase]:
         """
@@ -278,15 +279,16 @@ class PromptInjectionTest(BasePipeline):
                 if result.set_id in self.elm_evaluations:
                     result.elm_evaluation = self.elm_evaluations[result.set_id]
 
-        grouped_results = self._group_results_by_subcategory(results)
-
         # Build ReportData object
         report_data = ReportData(
             set_name=self.name,
             timestamp=datetime.now().strftime("%Y-%m-%d | %H:%M"),
-            execution_time_seconds=round((self.end_time - self.start_time).total_seconds(), 1)
-                if self.start_time and self.end_time else None,
+            execution_time_seconds=(
+                round((self.end_time - self.start_time).total_seconds(), 1)
+                if self.start_time and self.end_time else None
+            ),
             summary=self.calculate_passrates(results),
+            results=self._prepare_report_results(results),
             configuration={
                 "connector_config": Path(self.connector_config_path).name if self.connector_config_path else "",
                 "set_config": Path(self.set_config_path).name if self.set_config_path else "",
@@ -295,8 +297,6 @@ class PromptInjectionTest(BasePipeline):
                 "elm_evaluation_used": self.evaluation_connector is not None
             }
         )
-        report_data.results = grouped_results
-        report_data.remediation_recommendations = [] # empty for now
 
         # Create output directory if none exist yet
         output_file = Path(output_path)
@@ -310,54 +310,3 @@ class PromptInjectionTest(BasePipeline):
             MarkdownReporter().write(report_data, output_file)
         logger.info(f"Report written to {output_path}")
         return report_data
-
-    def _group_results_by_subcategory(self, results: List[AnalysisResult]) -> List[Dict[str, Any]]:
-        """
-        Group AnalysisResults by vulnerability_subcategory.
-
-        Returns structure:
-        [
-            {
-                "vulnerability_subcategory": "...",
-                "total_runs": X,
-                "passed": X,
-                "failed": X,
-                "error": X,
-                "pass_rate": X,
-                "fail_rate": X,
-                "recommended_remediation": "",
-                "SETs": [...]
-            }
-        ]
-        """
-        grouped_results: Dict[str, List[AnalysisResult]] = defaultdict(list)
-
-        for result in results:
-            subcategory = result.metadata.get("vulnerability_subcategory", "Unknown")
-            grouped_results[subcategory].append(result)
-
-        grouped_output = []
-
-        for subcategory, sub_results in grouped_results.items():
-            total_runs = len(sub_results)
-            passed = sum(1 for r in sub_results if r.status == "passed")
-            failed = sum(1 for r in sub_results if r.status == "failed")
-            error = sum(1 for r in sub_results if r.status == "error")
-
-            pass_rate = (passed / total_runs * 100) if total_runs > 0 else 0.0
-            fail_rate = (failed / total_runs * 100) if total_runs > 0 else 0.0
-
-            grouped_output.append({
-                "vulnerability_subcategory": subcategory,
-                "total_runs": total_runs,
-                "passed": passed,
-                "failed": failed,
-                "error": error,
-                "pass_rate": round(pass_rate, 2),
-                "fail_rate": round(fail_rate, 2),
-                "recommended_remediation": "",
-                "SETs": [r.to_dict() for r in sub_results]
-            })
-
-        return grouped_output
-

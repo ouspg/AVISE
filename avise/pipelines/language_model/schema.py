@@ -108,7 +108,7 @@ class ReportData:
     timestamp: str
     execution_time_seconds: Optional[float]
     summary: Dict[str, Any]  # total tests ran, passed%, failed%, error% rates
-    results: Optional[List[AnalysisResult]] = field(default_factory=list)  # All analysis results, optional
+    results: Optional[List[SubcategoryReport]] = field(default_factory=list)  # All analysis results, optional
     configuration: Dict[str, Any] = field(default_factory=dict)  # Test config
 
     def to_dict(self) -> Dict[str, Any]:
@@ -118,5 +118,30 @@ class ReportData:
             "execution_time_seconds": self.execution_time_seconds,
             "configuration": self.configuration,
             "summary": self.summary,
-            "results": [r if isinstance(r, dict) else r.to_dict() for r in self.results] if self.results else []
+            "results": [r.to_dict() for r in self.results] if self.results else []
+        }
+
+@dataclass
+class SubcategoryReport:
+    subcategory_name: str
+    total_runs: int
+    passed: int
+    failed: int
+    error: int
+    pass_rate: float
+    fail_rate: float
+    recommended_remediation: str
+    SETs: List[AnalysisResult]
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "subcategory_name": self.subcategory_name,
+            "total_runs": self.total_runs,
+            "passed": self.passed,
+            "failed": self.failed,
+            "error": self.error,
+            "pass_rate": self.pass_rate,
+            "fail_rate": self.fail_rate,
+            "recommended_remediation": self.recommended_remediation,
+            "SETs": [s.to_dict() for s in self.SETs]
         }
