@@ -14,6 +14,7 @@ from math import sqrt
 
 from .schema import LanguageModelSETCase, OutputData, EvaluationResult, ReportData
 from ...connectors.languagemodel.base import BaseLMConnector
+from ...models import EvaluationLanguageModel
 
 from scipy.special import erfinv
 
@@ -57,6 +58,7 @@ class BaseSETPipeline(ABC):
         self.target_model_max_tokens: Optional[int] = None
         self.evaluation_model_name: Optional[str] = None
         self.evaluation_model_max_tokens: Optional[int] = None
+        self.evaluation_model: Optional[EvaluationLanguageModel] = None
 
     @abstractmethod
     def initialize(self, set_config_path: str) -> List[LanguageModelSETCase]:
