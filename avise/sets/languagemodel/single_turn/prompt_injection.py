@@ -31,6 +31,8 @@ from ....evaluators.languagemodel import (
 )
 from ....reportgen.reporters import JSONReporter, HTMLReporter, MarkdownReporter
 
+from ....models import EvaluationLanguageModel
+
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +55,7 @@ class PromptInjectionTest(BaseSETPipeline):
         Prepare the SET object instance, it's dependencies and the tools to be used during the implementation.
         """
         super().__init__()
-        self.evaluation_connector: Optional[BaseLMConnector] = None
+        #self.evaluation_connector: Optional[BaseLMConnector] = None
         self.evaluation_system_prompt: Optional[str] = None
         self.elm_evaluations: Dict[str, str] = {}
 
@@ -78,6 +80,10 @@ class PromptInjectionTest(BaseSETPipeline):
         config = ConfigLoader().load(set_config_path)
 
         self.evaluation_system_prompt = config.get("evaluation_system_prompt")
+        if self.evaluation_model_name:
+            self.evaluation_model = EvaluationLanguageModel(model_name=self.evaluation_model_name,
+                                                            conversation_history=False,
+                                                            system_prompt=self.evaluation_system_prompt)
 
         sets = config.get("sets", [])
         
@@ -126,7 +132,6 @@ class PromptInjectionTest(BaseSETPipeline):
         Returns:
             OutputData: All SET outputs along with the execution time.
         """
-        #TODO: Add a way to include optional system prompt to generate()
         logger.info(f"Executing {len(sets)} SETs")
         self.start_time = datetime.now()
 
@@ -147,12 +152,12 @@ class PromptInjectionTest(BaseSETPipeline):
                 ))
 
                 # Check if evaluation language model is used
-                if self.evaluation_connector and self.evaluation_system_prompt:
+                if self.evaluation_model:
                     eval_prompt = f"Original Prompt: {set_.prompt}\n\nModel Response: {response}"
-                    eval_data = {"prompt": eval_prompt,
-                                 "system_prompt": self.evaluation_system_prompt}
-                    eval_response = self.evaluation_connector.generate(eval_data)
-                    self.elm_evaluations[set_.id] = eval_response["response"]
+                    # eval_data = {"prompt": eval_prompt,
+                    #              "system_prompt": self.evaluation_system_prompt}
+                    eval_response = self.evaluation_model.generate(eval_prompt)
+                    self.elm_evaluations[set_.id] = eval_response[0]["content"]
 
             except Exception as e:
                 logger.error(f"SET {set_.id} failed with error: {e}")
@@ -272,7 +277,7 @@ class PromptInjectionTest(BaseSETPipeline):
         logger.info(f"Generating {report_format.value.upper()} report")
 
         # Attach ELM evaluations to results if ELM was used
-        if self.evaluation_connector:
+        if self.evaluation_model:
             for result in results:
                 if result.set_id in self.elm_evaluations:
                     result.elm_evaluation = self.elm_evaluations[result.set_id]
@@ -292,7 +297,6 @@ class PromptInjectionTest(BaseSETPipeline):
                 "set_config": Path(self.set_config_path).name if self.set_config_path else "",
                 "target_model": self.target_model_name,
                 "evaluation_model": self.evaluation_model_name or "",
-                "elm_evaluation_used": self.evaluation_connector is not None
             }
         )
 

@@ -40,7 +40,6 @@ class ContextTest(BaseSETPipeline):
 
         set_config = ConfigLoader().load(set_config_path)
 
-        self.target_model_max_tokens = set_config.get("target_model_max_tokens", 256)
         sets = set_config.get("sets", [])
         if not sets:
             raise ValueError("No Security Evaluation Tests found in the configuration file")
@@ -77,7 +76,6 @@ class ContextTest(BaseSETPipeline):
             try:
                 conversation = set_.prompt
                 data = {"messages": []}
-                data["max_tokens"] = self.target_model_max_tokens
                 final_response = ""
 
                 for turn in conversation:
