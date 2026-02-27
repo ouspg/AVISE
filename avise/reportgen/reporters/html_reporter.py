@@ -181,47 +181,57 @@ class HTMLReporter(BaseReporter):
             <div class="label">Total Security Evaluation Tests</div>
         </div>
         <div class="card passed">
-            <div class="number">{summary['passed']}</div>
-            <div class="label">Passed ({summary['pass_rate']}%)</div>
+            <div class="number">{summary['total_passed']}</div>
+            <div class="label">Passed ({summary['total_pass_rate']}%)</div>
         </div>
-        <div class="card failed">
-            <div class="number">{summary['failed']}</div>
-            <div class="label">Failed ({summary['fail_rate']}%)</div>
+        <div class="card failed">  
+            <div class="number">{summary['total_failed']}</div>
+            <div class="label">Failed ({summary['total_fail_rate']}%)</div>
         </div>
         <div class="card error">
-            <div class="number">{summary['error']}</div>
+            <div class="number">{summary['total_error']}</div>
             <div class="label">Inconclusive</div>
         </div>
     </div>
 """
 
     def _get_results(self, results: list) -> str:
-        """Generate list of results."""
-        html = """
-    <div class="category">
-        <div class="category-header">
-            <h2>Security Evaluation Test Results</h2>
-        </div>
-"""
-        for result in results:
-            if isinstance(result, AnalysisResult):
-                set_ = {
-                    "set_id": result.set_id,
-                    "prompt": result.prompt,
-                    "response": result.response,
-                    "status": result.status,
-                    "reason": result.reason,
-                    "attack_type": result.metadata.get("attack_type", ""),
-                    "detections": result.detections,
-                    "full_conversation": result.metadata.get("full_conversation", []),
-                    "description": result.metadata.get("description", "")
+        """Generate HTML for grouped subcategory results."""
+        html = ""
+        for group in results:
+            # Access attributes instead of dictionary keys
+            subcategory_name = getattr(group, "subcategory_name", "")
+            total_passed = getattr(group, "passed", 0)
+            total_failed = getattr(group, "failed", 0)
+            total_error = getattr(group, "error", 0)
+
+            html += f"""
+        <div class="category">
+            <div class="category-header">
+                <h2>{self.escape_html(subcategory_name)}</h2>
+                <div>Passed: {total_passed}, Failed: {total_failed}, Inconclusive: {total_error}</div>
+            </div>
+    """
+
+            # Loop through the SETs in this subcategory
+            for set_ in getattr(group, "SETs", []):
+                # Build a dict to pass to _get_set_item
+                set_dict = {
+                    "set_id": getattr(set_, "set_id", ""),
+                    "prompt": getattr(set_, "prompt", ""),
+                    "response": getattr(set_, "response", ""),
+                    "status": getattr(set_, "status", ""),
+                    "reason": getattr(set_, "reason", ""),
+                    "detections": getattr(set_, "detections", {}),
+                    "metadata": getattr(set_, "metadata", {}),
+                    "full_conversation": getattr(set_, "full_conversation", []),
+                    "elm_evaluation": getattr(set_, "elm_evaluation", "")
                 }
-                if result.elm_evaluation:
-                    set_["elm_evaluation"] = result.elm_evaluation
-            else:
-                set_ = result
-            html += self._get_set_item(set_)
-        html += "    </div>\n"
+                # Add attack_type for _get_set_item
+                set_dict["attack_type"] = set_dict["metadata"].get("attack_type", "")
+                html += self._get_set_item(set_dict)
+
+            html += "    </div>\n"
         return html
 
     def _get_set_item(self, set_: Dict[str, Any]) -> str:
@@ -231,11 +241,12 @@ class HTMLReporter(BaseReporter):
             set_label = f" - {set_label}"
 
         elm_html = ""
-        if "elm_evaluation" in set_:
+        elm_eval = set_.get('elm_evaluation') or ""
+        if elm_eval:
             elm_html = f"""
                 <div class="elm-eval">
                     <div class="label-sm">ELM Evaluation</div>
-                    {self.escape_html(set_['elm_evaluation'])}
+                    {self.escape_html(elm_eval)}
                 </div>"""
 
         # Check for conversation format (memory test)
