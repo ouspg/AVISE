@@ -4,13 +4,15 @@
         "type": "language_model",
         "name": "phi3:latest",
         "api_url": "http://localhost:11434",
-        "api_key": null
+        "api_key": null,
+        "max_tokens": 768
     },
     "eval_model": {
         "connector": "ollama-lm",
         "type": "language_model",
         "name": "phi3:latest",
         "api_url": "http://localhost:11434",
-        "api_key": null
+        "api_key": null,
+        "max_tokens": 256
     }
 }
