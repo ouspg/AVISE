@@ -69,6 +69,10 @@ class OpenAILMConnector(BaseLMConnector):
             self.api_key = config["eval_model"]["api_key"]
             self.base_url = config["eval_model"]["api_url"]
             self.headers = config["eval_model"].get("headers")
+            if "max_tokens" in config["eval_model"] and config["eval_model"]["max_tokens"] is not None:
+                self.max_tokens = config["eval_model"]["max_tokens"]
+            else:
+                self.max_tokens = 512
         else:
             if "target_model" not in config:
                 raise KeyError('OpenAI Connector configuration JSON file requires a "target_model" field. Refer to Connector documentations on how to configure connectors.')
@@ -90,6 +94,10 @@ class OpenAILMConnector(BaseLMConnector):
             self.api_key = config["target_model"]["api_key"]
             self.base_url = config["target_model"]["api_url"]
             self.headers = config["target_model"].get("headers")
+            if "max_tokens" in config["target_model"] and config["target_model"]["max_tokens"] is not None:
+                self.max_tokens = config["target_model"]["max_tokens"]
+            else:
+                self.max_tokens = 512
 
         # Initialize OpenAI client
         client_kwargs = {"api_key": self.api_key}
@@ -137,8 +145,7 @@ class OpenAILMConnector(BaseLMConnector):
         """
         if "temperature" not in data:
             data["temperature"] = 0.5
-        if "max_tokens" not in data:
-            data["max_tokens"] = 512
+        data["max_tokens"] = self.max_tokens
 
         if "system_prompt" in data:
             if not isinstance(data["system_prompt"], str):

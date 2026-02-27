@@ -54,6 +54,10 @@ class BaseLMConnector(ABC):
             data: Dictionary containing data required for the generation API request.
             multi_turn: Boolean flag to indicate if engaging in a multi turn conversation\
                 with the target model. Default False.
+        
+        Returns:
+            Model response as a dictionary. The dict contains "response" field with the model response as a str.
+                
         Raises:
             RuntimeError: If the API call fails.
         """

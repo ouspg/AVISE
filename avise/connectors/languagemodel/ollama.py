@@ -38,6 +38,10 @@ class OllamaLMConnector(BaseLMConnector):
         if evaluation:
             self.model = config["eval_model"]["name"]
             self.base_url = config["eval_model"]["api_url"]
+            if "max_tokens" in config["eval_model"] and config["eval_model"]["max_tokens"] is not None:
+                self.max_tokens = config["eval_model"]["max_tokens"]
+            else:
+                self.max_tokens = 512
             if "api_key" in config["eval_model"] and config["target_model"]["api_key"] is not None:
                 self.api_key = config["eval_model"]["api_key"]
                 self.client = ollama.Client(
@@ -49,6 +53,10 @@ class OllamaLMConnector(BaseLMConnector):
         else:
             self.model = config["target_model"]["name"]
             self.base_url = config["target_model"]["api_url"]
+            if "max_tokens" in config["target_model"] and config["target_model"]["max_tokens"] is not None:
+                self.max_tokens = config["target_model"]["max_tokens"]
+            else:
+                self.max_tokens = 512
             if "api_key" in config["target_model"] and config["target_model"]["api_key"] is not None:
                 self.api_key = config["target_model"]["api_key"]
                 # Configure client with optional authentication headers
@@ -98,8 +106,7 @@ class OllamaLMConnector(BaseLMConnector):
         """
         if "temperature" not in data:
             data["temperature"] = 0.5
-        if "max_tokens" not in data:
-            data["max_tokens"] = 512
+        data["max_tokens"] = self.max_tokens
 
         if "system_prompt" in data:
             if not isinstance(data["system_prompt"], str):

@@ -51,6 +51,10 @@ class GenericRESTLMConnector(BaseLMConnector):
                     self.time_out = config["eval_model"]["time_out"]
                 else:
                     self.time_out = 30
+                if "max_tokens" in config["eval_model"] and config["eval_model"]["max_tokens"] is not None:
+                    self.max_tokens = config["eval_model"]["max_tokens"]
+                else:
+                    self.max_tokens = 512
 
             else:
                 self.url = config["target_model"]["api_url"]
@@ -69,6 +73,11 @@ class GenericRESTLMConnector(BaseLMConnector):
                     self.time_out = config["target_model"]["time_out"]
                 else:
                     self.time_out = 30
+                if "max_tokens" in config["target_model"] and config["target_model"]["max_tokens"] is not None:
+                    self.max_tokens = config["target_model"]["max_tokens"]
+                else:
+                    self.max_tokens = 512
+
         except (KeyError, ValueError) as e:
             logger.error(f"ERROR while generating initializing GenericRESTLMConnector: {e}")
 
