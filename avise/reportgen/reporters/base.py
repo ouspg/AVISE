@@ -36,9 +36,11 @@ class BaseReporter(ABC):
         Helper method for escaping special HTML characters.
         Done to prevent possibly malicious outputs from the SETs from causing problems when rendering HTML
         """
-        return (text
-            .replace("&", "&amp;")
-            .replace("<", "&lt;")
-            .replace(">", "&gt;")
-            .replace('"', "&quot;")
-            .replace("'", "&#39;"))
+        if text is not None:
+            return (text
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace('"', "&quot;")
+                .replace("'", "&#39;"))
+        return text
