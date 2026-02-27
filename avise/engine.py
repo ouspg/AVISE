@@ -67,6 +67,7 @@ class ExecutionEngine:
         set_name: str,
         set_config_path: str,
         connector_config_path: str,
+        evaluation_model_name: str,
         output_path: Optional[str] = None,
         report_format: ReportFormat = ReportFormat.JSON,
         reports_dir: str = DEFAULT_REPORTS_DIR
@@ -95,11 +96,6 @@ class ExecutionEngine:
             target_model = connector_config["target_model"].get("name")
         except AttributeError as e:
             raise RuntimeError('Provided connector configuration file is missing a "target_model" field.') from e
-        
-        try:
-            evaluation_model = connector_config["eval_model"].get("name")
-        except AttributeError:
-            logger.info('Could not find "eval_model" field in the provided connector configuration field. Continuing without an evaluation language model...')
 
         logger.info(f"Running status check for the target model and API '{target_model}'...")
         try:
@@ -110,27 +106,11 @@ class ExecutionEngine:
         except ValueError as e:
             raise RuntimeError(f"Model not found: {e}") from e
 
-            
-        if evaluation_model is None:
-            eval_connector = None
-
-        else:
-            eval_connector = self._build_connector(connector_config, evaluation=True)
-            logger.info(f"Running status check for evaluation model's API endpoint '{evaluation_model}'...")
-            try:
-                eval_connector.status_check()
-                logger.info("Evaluation model status check successful")
-            except ConnectionError as e:
-                raise RuntimeError(f"API connection failed with error: {e}")
-            except ValueError as e:
-                raise RuntimeError(f"Evaluation model not found: {e}")
-
         set_type = set_registry.get(set_name)
         set_instance = set_type()
 
-        if eval_connector:
-            set_instance.evaluation_connector = eval_connector
-            set_instance.evaluation_model_name = evaluation_model
+        if evaluation_model_name:
+            set_instance.evaluation_model_name = evaluation_model_name
 
         if not output_path:
             output_path = build_output_path(

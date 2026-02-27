@@ -78,6 +78,12 @@ def main(arguments=[]) -> None:
     )
 
     parser.add_argument(
+        "--elm",
+        help="Boolean indicator whether to use an Evaluation Language Model to evaluate SET results or not. True or False. Default: True"
+    )
+
+
+    parser.add_argument(
         "--format", "-f",
         choices=["json", "html", "md"],
         default="json",
@@ -140,6 +146,18 @@ def main(arguments=[]) -> None:
             parser.print_help()
             print("\nError: --SETconf is required for this SET.")
             return
+        
+    if args.elm:
+        if args.elm == "True":
+            args.elm = "mistralai/Ministral-3-3B-Instruct-2512"
+        elif args.elm == "False":
+            args.elm = ""
+        else:
+            parser.print_help()
+            print("\nError: --elm takes only boolean values: True or False")
+            return
+    else:
+        args.elm = "mistralai/Ministral-3-3B-Instruct-2512"
 
     format_map = {
         "json": ReportFormat.JSON,
@@ -163,6 +181,7 @@ def main(arguments=[]) -> None:
             set_name=args.SET,
             set_config_path=args.SETconf,
             connector_config_path=args.connectorconf,
+            evaluation_model_name=args.elm,
             output_path=args.output,
             report_format=report_format,
             reports_dir=args.reports_dir,
