@@ -25,20 +25,11 @@ configuration file:
            "name": "phi3:latest", //ADD NAME OF THE OLLAMA MODEL TO TEST HERE
            "api_url": "http://localhost:11434", //Ollama default
            "api_key": null
-       },
-       "eval_model": {
-           "connector": "ollama-lm",
-           "type": "language_model",
-           "name": "phi3:latest", //Optional
-           "api_url": "http://localhost:11434", //Ollama default
-           "api_key": null
        }
    }
 
 In the Connector configuraiton files, ``target_model`` defines the configurations for the 
-model you wish to test and evaluate. ``eval_model`` on the other hand defines the configurations 
-for an optional evaluation language model, that will be used to generate a summary and helpful tips
-for the final report produced when running SETs. Both fields require the same subfields:
+model you wish to test and evaluate. ``target_model`` requires the following subfields:
 
 * ``"connector"``: Name of the connector to use (See available connectors by running CLI command ``avise --connector_list``)
 * ``"type"``: Type of the AI model *(e.g. language_model, continual_learning, multi_modal)*
@@ -65,22 +56,11 @@ configuration file:
             "api_url": null,
             "headers": null,
             "api_key": "YOUR_OPENAI_API_KEY_HERE"
-        },
-
-        "eval_model": {
-            "connector": "openai-lm",
-            "type": "language_model",
-            "name": "gpt-4o-mini",
-            "api_url": null,
-            "headers": null,
-            "api_key": "YOUR_OPENAI_API_KEY_HERE"
         }
     }
 
 In the Connector configuraiton files, ``target_model`` defines the configurations for the 
-model you wish to test and evaluate. ``eval_model`` on the other hand defines the configurations 
-for an optional evaluation language model, that will be used to generate a summary and helpful tips
-for the final report produced when running SETs. Both fields require the same subfields:
+model you wish to test and evaluate. ``target_model`` requires the following subfields:
 
 * ``"connector"``: Name of the connector to use (See available connectors by running CLI command ``avise --connector_list``)
 * ``"type"``: Type of the AI model *(e.g. language_model, continual_learning, multi_modal)*
@@ -112,23 +92,11 @@ modify the existing ``avise/configs/connector/genericrest.json`` configuration f
             "api_key": null,
             "response_field": "KEY_OF_GENERATED_RESPONSE",
             "method": "POST"
-        },
-        "eval_model": {
-            "connector": "generic-rest-lm",
-            "type": "language_model",
-            "name": "PLACEHOLDER_NAME",
-            "api_url": "PLACEHOLDER_URL",
-            "headers": null,
-            "api_key": null,
-            "response_field": "KEY_OF_GENERATED_RESPONSE",
-            "method": "POST"
         }
     }
 
 In the Connector configuraiton files, ``target_model`` defines the configurations for the 
-model you wish to test and evaluate. ``eval_model`` on the other hand defines the configurations 
-for an optional evaluation language model, that will be used to generate a summary and helpful tips
-for the final report produced when running SETs. Both fields require the same subfields:
+model you wish to test and evaluate. ``target_model`` accepts the following subfields:
 
 * ``"connector"``: Name of the connector to use (See available connectors by running CLI command ``avise --connector_list``)
 * ``"type"``: Type of the AI model *(e.g. language_model, continual_learning, multi_modal)*

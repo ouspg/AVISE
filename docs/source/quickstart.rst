@@ -1,7 +1,7 @@
 Quickstart
 =================================
 
-The guide below assumes using `Ollama <https://ollama.com/>`__ to run models. Connector configuration files can be modified to use OpenAI models,
+The guide below assumes using `Ollama <https://ollama.com/>`__ to run models. Connector configuration files can be modified to use Ollama or OpenAI models,
 or any model accessbile through a REST API.
 
 
@@ -90,18 +90,22 @@ Edit ``avise/configs/connector/ollama.json``:
            "name": "phi3:latest", //ADD NAME OF THE OLLAMA MODEL TO TEST HERE
            "api_url": "http://localhost:11434", //Ollama default
            "api_key": null
-       },
-       "eval_model": {
-           "connector": "ollama-lm",
-           "type": "language_model",
-           "name": "phi3:latest", //Optional
-           "api_url": "http://localhost:11434", //Ollama default
-           "api_key": null
        }
    }
 
-Usage example
----------------
+Basic usage example
+---------------------
+
+AVISE uses preconfigured paths for SET and Connector configuration JSON files, if the paths are not given as CLI arguments:
+
+.. code:: bash
+
+   python -m avise --SET  prompt_injection --connectorconf ollama
+
+Advanced usage example
+-----------------------
+
+If you wish to use custom SET and Connector configuration files, you can give them with the `--connectorconf` and `SETconf` CLI arguments:
 
 .. code:: bash
 
@@ -118,9 +122,11 @@ Required Arguments
 |                              | ``context_test``)                     |
 +------------------------------+---------------------------------------+
 | ``--connectorconf``          | Path to Connector configuration JSON  |
+|                              | (Accepts preconfigured connector      |
+|                              | configuration paths: ``ollama``,      |  
+|                              | ``openai``, ``genericrest``)          |
 +------------------------------+---------------------------------------+
-| ``--SETconf``                | Path to test configuration JSON       |
-+------------------------------+---------------------------------------+
+
 
 Optional Arguments
 ~~~~~~~~~~~~~~~~~~
@@ -128,6 +134,7 @@ Optional Arguments
 ==================== ==================================================
 Argument             Description
 ==================== ==================================================
+``--SETconf``        Path to SET configuration JSON file
 ``--format``, ``-f`` Report format: ``json``, ``html``, ``md``
 ``--output``         Custom output file path
 ``--reports-dir``    Base directory for reports (default: ``reports/``)
