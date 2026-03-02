@@ -1,5 +1,4 @@
-"""
-Base class for evaluators.
+"""Base class for evaluators.
 Evaluators look for predetermined patterns in responses.
 """
 import re
@@ -11,8 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class BaseLMEvaluator(ABC):
-    """
-    Abstract base class for language model evaluators.
+    """Abstract base class for language model evaluators.
 
     Attributes:
         name: Unique identifier for the evaluator
@@ -26,8 +24,7 @@ class BaseLMEvaluator(ABC):
 
     @abstractmethod
     def detect(self, response: str) -> Tuple[bool, List[str]]:
-        """
-        Detect patterns in response.
+        """Detect patterns in response.
 
         Args:
             response: The response to evaluate
@@ -40,8 +37,7 @@ class BaseLMEvaluator(ABC):
         pass
 
     def _find_pattern_matches(self, text: str) -> List[str]:
-        """
-        Find all matching patterns in the given response
+        """Find all matching patterns in the given response
 
         Method that iterates through the patterns definined in the evaluator
         and returns a list of all patterns that match.

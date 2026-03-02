@@ -1,6 +1,4 @@
-"""
-Output path builder.
-"""
+"""Output path builder."""
 
 from pathlib import Path
 from datetime import datetime
@@ -14,8 +12,7 @@ def build_output_path(
         model_name: str,
         report_format: ReportFormat
     ) -> str:
-        """
-        Function for crafting an output path with date-based subdirectory when an output directory is not provided.
+        """Function for crafting an output path with date-based subdirectory when an output directory is not provided.
 
         Creates: base_dir/YYYY-MM-DD/set_name_model_timestamp.ext
         """

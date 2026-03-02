@@ -1,5 +1,4 @@
-"""
-LLM01: Prompt Injection vulnerability Security Evaluation Test.
+"""LLM01: Prompt Injection vulnerability Security Evaluation Test.
 
 Implements the 4-phase pipeline for testing prompt injection vulnerabilities
 as defined in OWASP LLM Top 10.
@@ -39,8 +38,7 @@ logger = logging.getLogger(__name__)
 
 @set_registry.register("prompt_injection")
 class PromptInjectionTest(BaseSETPipeline):
-    """
-    An early test written for testing prompt injection vulnerabilities.
+    """An early test written for testing prompt injection vulnerabilities.
     Works as an example of SETs that are planned to implemented and designed by using AVISE framework.
 
     This SET implements the complete 4-phase pipeline, showcases how the inherited functions can be overwritten,
@@ -51,9 +49,7 @@ class PromptInjectionTest(BaseSETPipeline):
     description = "SET implementation for testing prompt injection vulnerabilities (OWASP LLM01)"
 
     def __init__(self):
-        """
-        Prepare the SET object instance, it's dependencies and the tools to be used during the implementation.
-        """
+        """Prepare the SET object instance, it's dependencies and the tools to be used during the implementation."""
         super().__init__()
         #self.evaluation_connector: Optional[BaseLMConnector] = None
         self.evaluation_system_prompt: Optional[str] = None
@@ -65,8 +61,7 @@ class PromptInjectionTest(BaseSETPipeline):
         self.suspicious_output_evaluator = SuspiciousOutputEvaluator()
 
     def initialize(self, set_config_path: str) -> List[LanguageModelSETCase]:
-        """
-        Phase 1 of the test pipeline. Load prompt injection SET cases from configuration files.
+        """Phase 1 of the test pipeline. Load prompt injection SET cases from configuration files.
 
         Args:
             set_config_path: Path to SET configuration file
@@ -74,7 +69,6 @@ class PromptInjectionTest(BaseSETPipeline):
         Returns:
             List[LanguageModelSETCase]: List of SET cases to be used
         """
-
         logger.info(f"Initializing SET: {self.name}")
 
         config = ConfigLoader().load(set_config_path)
@@ -86,7 +80,7 @@ class PromptInjectionTest(BaseSETPipeline):
                                                             system_prompt=self.evaluation_system_prompt)
 
         sets = config.get("sets", [])
-        
+
         if not sets:
             raise ValueError("No SETs found in configuration file.")
 
@@ -122,8 +116,7 @@ class PromptInjectionTest(BaseSETPipeline):
         connector: BaseLMConnector,
         sets: List[LanguageModelSETCase]
     ) -> OutputData:
-        """
-        Phase 2 of the testing pipeline. Execute SETs against the target model.
+        """Phase 2 of the testing pipeline. Execute SETs against the target model.
 
         Args:
             connector: Target connector instance
@@ -179,8 +172,7 @@ class PromptInjectionTest(BaseSETPipeline):
         )
 
     def evaluate(self, execution_data: OutputData) -> List[EvaluationResult]:
-        """
-        Phase 3 of the testing pipeline. Evaluate the responses for prompt injection vulnerabilities.
+        """Phase 3 of the testing pipeline. Evaluate the responses for prompt injection vulnerabilities.
 
         Args:
             execution_data: OutputData from execute()
@@ -233,8 +225,7 @@ class PromptInjectionTest(BaseSETPipeline):
         return results
 
     def determine_test_status(self, detections: Dict[str, Any]) -> Tuple[str, str]:
-        """
-        Determine test status based on detection results.
+        """Determine test status based on detection results.
 
         Priority: vulnerability > suspicious > partial > refusal > inconclusive
         """
@@ -263,8 +254,7 @@ class PromptInjectionTest(BaseSETPipeline):
         output_path: str,
         report_format: ReportFormat = ReportFormat.JSON
     ) -> ReportData:
-        """
-        Phase 4 of the testing pipeline. Generate a report in the specified format.
+        """Phase 4 of the testing pipeline. Generate a report in the specified format.
 
         Args:
             results: List[EvaluationResult] from evaluate()

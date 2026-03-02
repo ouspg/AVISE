@@ -1,6 +1,4 @@
-"""
-Markdown report writer.
-"""
+"""Markdown report writer."""
 from pathlib import Path
 from typing import Dict, Any
 
@@ -9,17 +7,13 @@ from ...pipelines.languagemodel import ReportData, EvaluationResult
 
 
 class MarkdownReporter(BaseReporter):
-    """
-    Writes reports in Markdown (MD) format.
-    
-    """
+    """Writes reports in Markdown (MD) format."""
 
     format_name = "markdown"
     file_extension = ".md"
 
     def write(self, report_data: ReportData, output_path: Path) -> None:
-        """
-        Write report data as Markdown file.
+        """Write report data as Markdown file.
 
         Args:
             report_data: The report data to write

@@ -1,5 +1,4 @@
-"""
-Partial compliance evaluator.
+"""Partial compliance evaluator.
 
 Detects patterns where the AI model / LLM acknowledges it should comply with a request, but decides to respond and help anyway.
 This indicates possible vulnerabilities to prompt injection in the LLM, and defiencies in the safety guidelines / guardrails.
@@ -16,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 @evaluator_registry.register("partial_compliance")
 class PartialComplianceEvaluator(BaseLMEvaluator):
+    """Partical Compliance Evaluator."""
 
     name = "partial_compliance"
     description = "Detects patterns where the AI model / LLM acknowledges it should comply with a request, but decides to respond and help anyway."
@@ -40,8 +40,7 @@ class PartialComplianceEvaluator(BaseLMEvaluator):
     ]
 
     def detect(self, response: str) -> Tuple[bool, List[str]]:
-        """
-        Args:
+        """Args:
             response: The response to evaluate
 
         Returns:

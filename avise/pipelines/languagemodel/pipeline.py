@@ -1,6 +1,5 @@
 
-"""
-Base class for all vulnerability framework SETs.
+"""Base class for all vulnerability framework SETs.
 
 All SETs inherit from BaseSETPipeline and should implement all 4 phases:
 initialize() -> execute() -> evaluate() -> report()
@@ -19,14 +18,14 @@ from ...models import EvaluationLanguageModel
 from scipy.special import erfinv
 
 class ReportFormat(Enum):
+    """Available file formats."""
     JSON = "json"
     HTML = "html"
     MARKDOWN = "md"
 
 
 class BaseSETPipeline(ABC):
-    """
-    The base Pipeline class for Language Model Security Evaluation Tests.
+    """The base Pipeline class for Language Model Security Evaluation Tests.
 
     Based on a 4-phase pipeline with defined data contracts:
 
@@ -34,7 +33,7 @@ class BaseSETPipeline(ABC):
     Phase 2 - execute(connector, sets) -> OutputData (Execute the SET cases against the defined model and return dataobjects for evaluation)
     Phase 3 - evaluate(execution_data) -> List[EvaluationResult] (Evaluate the test results and return evaluation objects)
     Phase 4 - report(results, output_path, format) -> ReportData (Take the evaluation objects and form a final report in a desired format
-    run() - Runs all phases 
+    run() - Runs all phases
 
     Data flow:
 
@@ -62,8 +61,7 @@ class BaseSETPipeline(ABC):
 
     @abstractmethod
     def initialize(self, set_config_path: str) -> List[LanguageModelSETCase]:
-        """
-        Load and return SET cases from configuration files.
+        """Load and return SET cases from configuration files.
 
         Args:
             set_config_path: Path to SET configuration file
@@ -83,8 +81,7 @@ class BaseSETPipeline(ABC):
         connector: BaseLMConnector,
         sets: List[LanguageModelSETCase]
     ) -> OutputData:
-        """
-        Run the SETs against the target.
+        """Run the SETs against the target.
 
         Args:
             connector: A connector instance
@@ -102,8 +99,7 @@ class BaseSETPipeline(ABC):
 
     @abstractmethod
     def evaluate(self, execution_data: OutputData) -> List[EvaluationResult]:
-        """
-        Evaluate the SET outputs with evaluators.
+        """Evaluate the SET outputs with evaluators.
 
         Args:
             execution_data: OutputData from execute()
@@ -125,8 +121,7 @@ class BaseSETPipeline(ABC):
         output_path: str,
         report_format: ReportFormat = ReportFormat.JSON
     ) -> ReportData:
-        """
-        Generate the final report in the desired format and save it to target location.
+        """Generate the final report in the desired format and save it to target location.
 
         Args:
             results: List[EvaluationResult] from evaluate()
@@ -149,8 +144,7 @@ class BaseSETPipeline(ABC):
         report_format: ReportFormat = ReportFormat.JSON,
         connector_config_path: Optional[str] = None
     ) -> ReportData:
-        """
-        Orchestration method that executes the 4-phase pipeline.
+        """Orchestration method that executes the 4-phase pipeline.
         This method gets called by the execution engine.
 
         Args:
@@ -185,8 +179,7 @@ class BaseSETPipeline(ABC):
 
     @staticmethod
     def calculate_passrates(results: List[EvaluationResult]) -> Dict[str, Any]:
-        """
-        Calculate summary statistics (pass%, fail%, error%) based on results.
+        """Calculate summary statistics (pass%, fail%, error%) based on results.
 
         Helper for report phase. Can be overwritten.
         """
@@ -211,9 +204,9 @@ class BaseSETPipeline(ABC):
         else:
             pass_rate = 0
             fail_rate = 0
-        
+
         confidence_interval = BaseSETPipeline._calculate_confidence_interval(passed, failed)
-        
+
         return {
             "total_sets": total_sets,
             "passed": passed,
@@ -230,14 +223,13 @@ class BaseSETPipeline(ABC):
                                       failed: int,
                                       confidence_level: float=0.95
                                       ) -> tuple[int, float, float]:
-        """
-        Calculate confidence interval for binary data using Wilson score interval.
-        
+        """Calculate confidence interval for binary data using Wilson score interval.
+
         Arguments:
             passed (int): Number of runs passed.
             failed (int): Number of runs failed.
             confidence_level (float): CI level (default 0.95).
-        
+
         Returns:
             tuple : (proportion, lower_bound, upper_bound)
         """

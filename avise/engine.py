@@ -1,5 +1,4 @@
-"""
-The SET execution engine for AVISE.
+"""The SET execution engine for AVISE.
 
 Runs SETs that inherit from BaseSETPipeline and implement the 5-phase pipeline:
 initialize() -> execute() -> evaluate() -> report() -> run()
@@ -27,10 +26,10 @@ logger = logging.getLogger(__name__)
 DEFAULT_REPORTS_DIR = "reports"
 
 class ExecutionEngine:
+    """Execution Engine."""
 
     def load_connector_config(self, config_path: str) -> Dict[dict, Any]:
-        """
-        Load Connector configuration from JSON file.
+        """Load Connector configuration from JSON file.
 
         Args:
             config_path: Path to Connector configuration JSON
@@ -72,8 +71,7 @@ class ExecutionEngine:
         report_format: ReportFormat = ReportFormat.JSON,
         reports_dir: str = DEFAULT_REPORTS_DIR
     ) -> dict:
-        """
-        Run the 4-phase pipeline
+        """Run the 4-phase pipeline
 
         Args:
             set_name: Registered SET name (e.g., "prompt_injection")
@@ -131,13 +129,12 @@ class ExecutionEngine:
                          connector_config:dict,
                          evaluation:bool = False
                          ) -> Any:
-        """
-        Helper fundtion to handle building a connector.
-        
+        """Helper fundtion to handle building a connector.
+
         Arguments:
             connector_config: Connector configuration file contents.
             evaluation: if True, build a connector for the evaluation model. If False, build a connector
-                  for target model. 
+                  for target model.
 
         Returns:
             connector: Built connector.
@@ -149,14 +146,13 @@ class ExecutionEngine:
             connector_type = connector_config["target_model"].get("connector", "ollama_lm")
         connector_kwargs = {"config": connector_config, "evaluation": evaluation}
         connector = connector_registry.create(connector_type, **connector_kwargs)
-        
+
         return connector
 
     @staticmethod
     def list_available(sets:bool=True, connectors:bool=True, reportformats:bool=True):
-        """
-        Print available Security Evaluation Tests, Report Formats, and Connectors.
-        
+        """Print available Security Evaluation Tests, Report Formats, and Connectors.
+
         Args:
             sets: Boolean flag indicating is available SETs will be printed. Default True.
             connectors: Boolean flag indicating is available Connectors will be printed. Default True.

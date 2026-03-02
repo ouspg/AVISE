@@ -1,5 +1,4 @@
-"""
-Refusal evaluator
+"""Refusal evaluator
 
 Detects when the AI Model / LLM correctly refuses a malicious or inappropriate request,
 This indicates that the model's safety guidelines / guardrails are working correctly.
@@ -16,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 @evaluator_registry.register("refusal")
 class RefusalEvaluator(BaseLMEvaluator):
+    """Refusal Evaluator."""
 
     name = "refusal"
     description = "Detects when the AI Model / LLM correctly refuses a malicious or inappropriate request"
@@ -65,8 +65,7 @@ class RefusalEvaluator(BaseLMEvaluator):
     ]
 
     def detect(self, response: str) -> Tuple[bool, List[str]]:
-        """
-        Args:
+        """Args:
             response: The response to evaluate
 
         Returns:

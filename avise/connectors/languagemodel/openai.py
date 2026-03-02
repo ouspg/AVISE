@@ -1,5 +1,4 @@
-"""
-Connector for OpenAI API communication.
+"""Connector for OpenAI API communication.
 
 Supports GPT-4, GPT-3.5-turbo, and other OpenAI chat completion models.
 """
@@ -16,8 +15,7 @@ logger = logging.getLogger(__name__)
 
 @connector_registry.register("openai-lm")
 class OpenAILMConnector(BaseLMConnector):
-    """
-    Connector for communicating with the OpenAI API.
+    """Connector for communicating with the OpenAI API.
 
     Used by SETs for sending prompts to OpenAI models and collecting their responses.
     Supports both simple generation and generation with system prompts.
@@ -38,8 +36,7 @@ class OpenAILMConnector(BaseLMConnector):
         config: dict,
         evaluation: bool = False
     ):
-        """
-        Initialize the OpenAI connector.
+        """Initialize the OpenAI connector.
 
         Args:
             config: Connector configuration data.
@@ -63,8 +60,8 @@ class OpenAILMConnector(BaseLMConnector):
                 raise KeyError('OpenAI Connector requires an API URL. Add "api_key" to connector configuration file as a string or null.')
             if not (isinstance(config["eval_model"]["api_url"], str) or isinstance(config["eval_model"]["api_url"], None)):
                 raise TypeError('OpenAI connector requires an API URL for the eval_model as a STRING or null.')
-            
-            
+
+
             self.model = config["eval_model"]["name"]
             self.api_key = config["eval_model"]["api_key"]
             self.base_url = config["eval_model"]["api_url"]
@@ -88,8 +85,8 @@ class OpenAILMConnector(BaseLMConnector):
                 raise KeyError('OpenAI Connector requires an API URL. Add "target_model": {"api_key"} to connector configuration file as a string or null.')
             if not (isinstance(config["target_model"]["api_url"], str) or isinstance(config["target_model"]["api_url"], None)):
                 raise TypeError('OpenAI Connector requires an API URL for the target_model as a STRING or null.')
-            
-            
+
+
             self.model = config["target_model"]["name"]
             self.api_key = config["target_model"]["api_key"]
             self.base_url = config["target_model"]["api_url"]
@@ -111,13 +108,12 @@ class OpenAILMConnector(BaseLMConnector):
         logger.info(f"  Model: {self.model}")
         logger.info(f"  Base URL: {self.base_url}")
         logger.info(f"  API Key: {'*' * 8}...{self.api_key[-4:] if len(self.api_key) > 4 else '****'}")
-    
+
     def generate(self,
                  data: dict,
                  multi_turn: bool = False
     ) -> dict:
-        """
-        Generate a response from the target model via the OpenAI API.
+        """Generate a response from the target model via the OpenAI API.
 
         Arguments:
             data: Dictionary containing data required for the generation API request.
@@ -136,8 +132,10 @@ class OpenAILMConnector(BaseLMConnector):
                         Optional setting for maximum generated tokens. Defaults to 512 if not set.
             multi_turn: Boolean flag to indicate if engaging in a multi turn conversation\
                 with the target model. Default False.
+
         Returns:
             Generated response in format: {"response": str}
+
         Raises:
             KeyError: If a required key is missing from data.
             ValueError: If a value in data is of a wrong type.
@@ -178,10 +176,11 @@ class OpenAILMConnector(BaseLMConnector):
     def _single_turn(self,
                      data: dict
                      ) -> dict:
-        """
-        Make a single-turn generation.
+        """Make a single-turn generation.
+
         Arguments:
             data: Dictionary with required data for API request.
+
         Returns:
             {"response": str}
         """
@@ -212,10 +211,11 @@ class OpenAILMConnector(BaseLMConnector):
     def _multi_turn(self,
                     data: dict,
                     ) -> dict:
-        """
-        Make a multi-turn generation.
+        """Make a multi-turn generation.
+
         Arguments:
             data: Dictionary with required data for API request.
+
         Returns:
             {"response": str}
         """
@@ -243,8 +243,7 @@ class OpenAILMConnector(BaseLMConnector):
 
 
     def status_check(self) -> bool:
-        """
-        Check if the connector can reach the OpenAI API endpoint and the target model is available.
+        """Check if the connector can reach the OpenAI API endpoint and the target model is available.
 
         Returns:
             True if API is reachable and the target model exists.
@@ -275,8 +274,7 @@ class OpenAILMConnector(BaseLMConnector):
         return True
 
     def _list_models(self) -> List[str]:
-        """
-        Helper function, used by health_check() to verify model availability.
+        """Helper function, used by health_check() to verify model availability.
 
         Returns:
             List of model names.

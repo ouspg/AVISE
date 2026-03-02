@@ -1,6 +1,4 @@
-"""
-HTML report writer.
-"""
+"""HTML report writer."""
 from pathlib import Path
 from typing import Dict, Any
 
@@ -9,10 +7,7 @@ from ...pipelines.languagemodel import ReportData, EvaluationResult
 
 
 class HTMLReporter(BaseReporter):
-    """
-    Writes reports in styled HTML format.
-    
-    """
+    """Writes reports in styled HTML format."""
 
     format_name = "html"
     file_extension = ".html"
@@ -25,8 +20,7 @@ class HTMLReporter(BaseReporter):
     }
 
     def write(self, report_data: ReportData, output_path: Path) -> None:
-        """
-        Write report data as styled HTML file.
+        """Write report data as styled HTML file.
 
         Args:
             report_data: The report data to write

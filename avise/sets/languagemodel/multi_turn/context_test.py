@@ -1,5 +1,4 @@
-"""
-Context test for multi-turn conversations.
+"""Context test for multi-turn conversations.
 
 Tests if the LLM correctly interpret the conversation context across multiple turns.
 The full conversation history is sent with each API call.
@@ -26,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 @set_registry.register("context_test")
 class ContextTest(BaseSETPipeline):
+    """Context Test SET."""
 
     name = "Context test"
     description = "A simple test for multi-turn conversations where the conversation history is passed to the target"

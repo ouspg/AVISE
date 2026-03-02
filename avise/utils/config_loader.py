@@ -1,6 +1,4 @@
-"""
-Configuration loader for JSON, YAML, and TOML file formats.
-"""
+"""Configuration loader for JSON, YAML, and TOML file formats."""
 import json
 import tomllib
 import yaml
@@ -11,8 +9,7 @@ from ..pipelines.languagemodel import LanguageModelSETCase
 
 
 class ConfigLoader:
-    """
-    Loader for configuration files.
+    """Loader for configuration files.
 
     Supports JSON, YAML, and TOML file formats for now.
     Auto-detects format based on file extension.
@@ -26,8 +23,7 @@ class ConfigLoader:
     }
 
     def load(self, config_path: str) -> Dict[str, Any]:
-        """
-        Load test and model configurations from configuration files.
+        """Load test and model configurations from configuration files.
 
         Auto-detects format based on file extension.
 
@@ -63,8 +59,7 @@ class ConfigLoader:
         config: Dict[str, Any],
         id_prefix: str = "TC"
     ) -> List[LanguageModelSETCase]:
-        """
-        Parse configuration into LanguageModelSETCase objects.
+        """Parse configuration into LanguageModelSETCase objects.
 
         Args:
             config: Raw configuration dictionary
@@ -104,8 +99,7 @@ class ConfigLoader:
         config_path: str,
         id_prefix: str = "LM-SETCase"
     ) -> tuple[List[LanguageModelSETCase], Dict[str, Any]]:
-        """
-        Load config and parse into test cases.
+        """Load config and parse into test cases.
 
         Args:
             config_path: Path to the configuration file

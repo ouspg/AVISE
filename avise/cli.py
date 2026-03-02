@@ -1,5 +1,4 @@
-"""
-AVISE Command Line Interface.
+"""AVISE Command Line Interface.
 
 Usage:
     Basic:
@@ -10,10 +9,10 @@ Usage:
     python -m avise --SET <SET_name> --connectorconf </path/to/connectorconfig/> --SETconf </path/to/setconfig/> --format json/html/md
 
     Add custom output directory (optional):
-    
+
     python -m avise --SET <SET_name> --connectorconf </path/to/connectorconfig/> --SETconf </path/to/setconfig/> --format json/html/md --output <path/to/outputdir>
 
-    Example:
+Example:
     python -m avise --SET prompt_injection --connectorconf avise/configs/connector//ollama.json --SETconf avise/configs/SET/prompt_injection_mini.json
 
 """
@@ -41,6 +40,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_REPORTS_DIR = "reports"
 
 def main(arguments=[]) -> None:
+    """Main function."""
     if not isinstance(arguments, list):
         raise TypeError("CLI parser expects a list of strings as arguments.")
     if len(arguments) > 200:
@@ -110,16 +110,16 @@ def main(arguments=[]) -> None:
         version=__version__
     )
     args = parser.parse_args(arguments)
-    
+
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
-    
+
     engine = ExecutionEngine()
 
     if args.SET_list:
         engine.list_available(reportformats=False, connectors=False)
         return
-    
+
     if args.connector_list:
         engine.list_available(sets=False)
         return
@@ -146,7 +146,7 @@ def main(arguments=[]) -> None:
             parser.print_help()
             print("\nError: --SETconf is required for this SET.")
             return
-        
+
     if args.elm:
         if args.elm == "True":
             args.elm = "mistralai/Ministral-3-3B-Instruct-2512"

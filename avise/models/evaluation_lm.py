@@ -1,6 +1,4 @@
-"""
-Class for Evaluation Language Model.
-"""
+"""Class for Evaluation Language Model."""
 from pathlib import Path
 import logging
 import os
@@ -12,13 +10,12 @@ from huggingface_hub import snapshot_download
 logger = logging.getLogger(__name__)
 
 class EvaluationLanguageModel:
-    """
-    A language model to be used in modifying adversarial inputs. Can remember conversation history.
+    """A language model to be used in modifying adversarial inputs. Can remember conversation history.
 
     Args:
         model_name: Hugging Face model name to use.
         max_new_tokens: Maximum number of token to generate for response.
-        conversation_history: Boolean flag determining whether to save conversation history 
+        conversation_history: Boolean flag determining whether to save conversation history
                             and pass it to model on response generation.
         system_prompt: System prompt for the model. If None, uses default system prompt.
     """
@@ -61,15 +58,14 @@ class EvaluationLanguageModel:
         self.history = [self.system_prompt]
 
     def generate(self, prompt) -> list:
-        """
-        Generate a response to a given prompt.
+        """Generate a response to a given prompt.
 
         Args:
             prompt: A prompt to generate a response to.
             reasoning: To use reasoning or not. Default True
 
         Returns:
-            Conversation history as a list with latest response as the last item. If conversation_history 
+            Conversation history as a list with latest response as the last item. If conversation_history
             is disabled, returns a list containing only the latest response.
         """
         if self.conversation_history:
@@ -86,12 +82,11 @@ class EvaluationLanguageModel:
 
             return self.history
         return [{"role": "assistant", "content": response}]
-    
+
     def _mistral_text_generation(self, messages:list) -> str:
-        """
-        Helper method for generating responses with Mistral models from pure
+        """Helper method for generating responses with Mistral models from pure
         text inputs. Returns generated response as a string.
-        
+
         Args:
             messages: Messages used for response generation. Format: [{"role": "user", "content": "this is content"}]
         """
@@ -115,12 +110,11 @@ class EvaluationLanguageModel:
     def _model_download(self,
                         model_path:str="avise/models/mistralai/Ministral-3-3B-Instruct-2512",
                         model_name:str="mistralai/Ministral-3-3B-Instruct-2512"):
-        """
-        Downloads a HF model and saves it to chosen path.
-        
+        """Downloads a HF model and saves it to chosen path.
+
         Kwargs:
             model_path (str): Path where to save the model.
-            model_name (str): Name of the Hugging Face model. 
+            model_name (str): Name of the Hugging Face model.
         """
         model_path = Path(model_path)
         # Check if path exists
@@ -136,4 +130,3 @@ class EvaluationLanguageModel:
 
         except Exception as e:
             logger.error(f"Downloading model {model_name} from Hugging Face failed: {e}")
-    

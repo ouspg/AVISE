@@ -1,6 +1,4 @@
-"""
-Language Model Connector for Custom/Generic REST APIs.
-"""
+"""Language Model Connector for Custom/Generic REST APIs."""
 import logging
 import requests
 
@@ -11,8 +9,7 @@ logger = logging.getLogger(__name__)
 
 @connector_registry.register("generic-rest-lm")
 class GenericRESTLMConnector(BaseLMConnector):
-    """
-    Connector for communicating with custom REST APIs.
+    """Connector for communicating with custom REST APIs.
 
     Used by tests for sending prompts to testable models and collecting their responses.
     Supports both simple generation and generation with system prompts.
@@ -25,8 +22,7 @@ class GenericRESTLMConnector(BaseLMConnector):
         config: dict,
         evaluation: bool = False
     ):
-        """
-        Initialize the Generic REST API connector.
+        """Initialize the Generic REST API connector.
 
         Args:
             config: Dictionary containing data from Connector configuration JSON.
@@ -86,19 +82,18 @@ class GenericRESTLMConnector(BaseLMConnector):
         logger.info(f"  Base URL: {self.url}")
         if self.api_key is not None:
             logger.info(f"  API Key: {'*' * 8}...{self.api_key[-4:] if len(self.api_key) > 4 else '****'}")
-    
+
     def generate(self,
                  data: dict,
                  ) -> dict:
-        """
-        Function for making generation requests to the REST API.
+        """Function for making generation requests to the REST API.
 
         Arguments:
             data: Dictionary containing the required data for the API request.
+
         Returns:
             API response as a dict. The dict includes a "response" key with the model response.
         """
-
         try:
             if self.method == "POST":
                 if self.headers is None:
@@ -122,15 +117,13 @@ class GenericRESTLMConnector(BaseLMConnector):
         except Exception as e:
             logger.error(f"ERROR while generating response from model: {e}")
             raise RuntimeError("Failed to generate a response from model due to an error.") from e
-        
+
         response_data = response.json()
         response_data[self.response_field] = response_data.get(self.response_field)
         return response_data
 
     def status_check(self) -> bool:
-        """
-        Check if the configured API endpoint is available with a GET request.
-        """
+        """Check if the configured API endpoint is available with a GET request."""
         try:
             response = requests.get(self.url, timeout=self.time_out) if self.headers is None else requests.get(self.url, headers=self.headers, timeout=self.time_out)
         except Exception as e:

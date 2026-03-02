@@ -1,6 +1,4 @@
-"""
-Connector for Ollama API communication using the ollama library.
-"""
+"""Connector for Ollama API communication using the ollama library."""
 import logging
 from typing import List
 
@@ -14,8 +12,7 @@ logger = logging.getLogger(__name__)
 
 @connector_registry.register("ollama-lm")
 class OllamaLMConnector(BaseLMConnector):
-    """
-    Connector for communicating with the Ollama API.
+    """Connector for communicating with the Ollama API.
 
     Used by Security Evaluation Tests for sending prompts to target Ollama models and collecting their responses.
     """
@@ -27,8 +24,7 @@ class OllamaLMConnector(BaseLMConnector):
         config: dict,
         evaluation: bool = False,
     ):
-        """
-        Initialize the Ollama connector.
+        """Initialize the Ollama connector.
 
         Args:
             config: Dictionary containing data from Connector configuration JSON.
@@ -77,8 +73,7 @@ class OllamaLMConnector(BaseLMConnector):
                  data: dict,
                  multi_turn: bool = False
                  ) -> dict:
-        """
-        Generate a response from the target model via the Ollama API.
+        """Generate a response from the target model via the Ollama API.
 
         Arguments:
             data: Dictionary containing data required for the generation API request.
@@ -97,8 +92,10 @@ class OllamaLMConnector(BaseLMConnector):
                         Optional setting for maximum generated tokens. Defaults to 512 if not set.
             multi_turn: Boolean flag to indicate if engaging in a multi turn conversation\
                 with the target model. Default False.
+
         Returns:
             API response.
+
         Raises:
             KeyError: If a required key is missing from data.
             ValueError: If a value in data is of a wrong type.
@@ -140,10 +137,11 @@ class OllamaLMConnector(BaseLMConnector):
     def _multi_turn(self,
                     data: dict
                     ) -> dict:
-        """
-        Make a multi-turn generation.
+        """Make a multi-turn generation.
+
         Arguments:
             data: Dictionary with required data for API request.
+
         Returns:
             {"response": str}
         """
@@ -172,10 +170,11 @@ class OllamaLMConnector(BaseLMConnector):
     def _single_turn(self,
                      data: dict
                      ) -> dict:
-        """
-        Make a single-turn generation.
+        """Make a single-turn generation.
+
         Arguments:
             data: Dictionary with required data for API request.
+
         Returns:
             {"response": str}
         """
@@ -211,11 +210,11 @@ class OllamaLMConnector(BaseLMConnector):
 
 
     def _match_model(self, model_name: str, available_models: List[str]) -> bool:
-        """
-        Check if a model name exists in the list of available models.
+        """Check if a model name exists in the list of available models.
         Arguents:
             model_name: Name of the target model.
             available_models: List of available models to scan for target model.
+
         Returns:
             True if model_name found in available models, False if model_name not found in available models.
         """
@@ -225,8 +224,7 @@ class OllamaLMConnector(BaseLMConnector):
         return False
 
     def status_check(self) -> bool:
-        """
-        Check if the connector can reach the Ollama API and the target model is available.
+        """Check if the connector can reach the Ollama API and the target model is available.
 
         Returns:
             True if API is reachable and the target model exists.
@@ -254,8 +252,7 @@ class OllamaLMConnector(BaseLMConnector):
         )
 
     def _list_models(self) -> List[str]:
-        """
-        Helper function, used by status_check() to verify model availability.
+        """Helper function, used by status_check() to verify model availability.
 
         Returns:
             List of model names.

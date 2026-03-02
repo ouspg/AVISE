@@ -1,6 +1,4 @@
-"""
-JSON report writer.
-"""
+"""JSON report writer."""
 import json
 from pathlib import Path
 
@@ -9,17 +7,13 @@ from ...pipelines.languagemodel import ReportData
 
 
 class JSONReporter(BaseReporter):
-    """
-    Writes reports in JSON format.
-    
-    """
+    """Writes reports in JSON format."""
 
     format_name = "json"
     file_extension = ".json"
 
     def write(self, report_data: ReportData, output_path: Path) -> None:
-        """
-        Write report data as JSON file.
+        """Write report data as JSON file.
 
         Args:
             report_data: The report data to write

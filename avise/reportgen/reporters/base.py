@@ -1,5 +1,4 @@
-"""
-Base class for report writers.
+"""Base class for report writers.
 
 Reporters handle writing the final report from ReportData to different file formats (JSON, HTML, MD)
 """
@@ -10,8 +9,7 @@ from ...pipelines.languagemodel import ReportData
 
 
 class BaseReporter(ABC):
-    """
-    Base class for report writers.
+    """Base class for report writers.
 
     Each reporter handles a specific output format (JSON, HTML, MD).
     """
@@ -21,8 +19,7 @@ class BaseReporter(ABC):
 
     @abstractmethod
     def write(self, report_data: ReportData, output_path: Path) -> None:
-        """
-        Write report data to a file.
+        """Write report data to a file.
 
         Args:
             report_data: The report data to write
@@ -32,8 +29,7 @@ class BaseReporter(ABC):
 
     @staticmethod
     def escape_html(text: str) -> str:
-        """
-        Helper method for escaping special HTML characters.
+        """Helper method for escaping special HTML characters.
         Done to prevent possibly malicious outputs from the SETs from causing problems when rendering HTML
         """
         if text is not None:

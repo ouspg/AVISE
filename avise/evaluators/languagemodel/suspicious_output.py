@@ -1,5 +1,4 @@
-"""
-Suspicious output evaluator
+"""Suspicious output evaluator
 
 Detects responses that look like system output rather than
 natural language, which may indicate the model could be manipulated into
@@ -20,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 @evaluator_registry.register("suspicious_output")
 class SuspiciousOutputEvaluator(BaseLMEvaluator):
+    """Suspicious Output Evaluator."""
 
     name = "suspicious_output"
     description = """Detects responses that look like system output rather than
@@ -47,8 +47,7 @@ executing commands or revealing information related to the host system."""
     ]
 
     def detect(self, response: str) -> Tuple[bool, List[str]]:
-        """
-        Args:
+        """Args:
             response: The response to evaluate
 
         Returns:

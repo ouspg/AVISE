@@ -1,13 +1,10 @@
-"""
-Dataclasses for avise/pipelines/language_model/pipeline.py
-"""
+"""Dataclasses for avise/pipelines/language_model/pipeline.py"""
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
 
 @dataclass
 class LanguageModelSETCase:
-    """
-    Contract: Output of initialize(), input to execute().
+    """Contract: Output of initialize(), input to execute().
 
     ID and prompt are required fields that every SET case must contain.
     Additional fields can be added to 'metadata'.
@@ -26,8 +23,7 @@ class LanguageModelSETCase:
 
 @dataclass
 class ExecutionOutput:
-    """
-    Single test execution / output result.
+    """Single test execution / output result.
 
     Produced by execute() for each test case.
     """
@@ -51,8 +47,7 @@ class ExecutionOutput:
 
 @dataclass
 class OutputData:
-    """
-    Output of execute(), input to evaluate().
+    """Output of execute(), input to evaluate().
 
     Contains all execution outputs and execution duration in seconds.
     """
@@ -67,8 +62,7 @@ class OutputData:
 
 @dataclass
 class EvaluationResult:
-    """
-    Evaluation result of a single test
+    """Evaluation result of a single test
 
     Produced by evaluate() function for each ExecutionOutput.
     """
@@ -99,8 +93,7 @@ class EvaluationResult:
 
 @dataclass
 class ReportData:
-    """
-    Output of the report phase / function.
+    """Output of the report phase / function.
 
     The final report structure that is serialized to the desired format based on the given command line argument.
     """
