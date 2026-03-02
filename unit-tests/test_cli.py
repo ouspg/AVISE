@@ -1,8 +1,9 @@
 """
 Unit tests for AVISE CLI
 """
-from avise import cli, __version__
 import pytest
+from avise import cli, __version__
+
 
 SET_CONF_PATH = "avise/configs/SET//languagemodel/single_turn/prompt_injection_mini.json"
 CONNECTOR_CONF_PATH = "avise/configs/connector/ollama.json"
