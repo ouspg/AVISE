@@ -79,6 +79,7 @@ exclude = [
 # Enable all `pydocstyle` rules, limiting to those that adhere to the
 # Google convention via `convention = "google"`, below.
 select = ["D"]
+ignore = ["D102", "D107", "D415", "D417", "D205"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
