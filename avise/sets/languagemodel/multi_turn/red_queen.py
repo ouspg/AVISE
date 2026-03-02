@@ -1,7 +1,7 @@
-"""Context test for multi-turn conversations.
+"""Red Queen Security Evaluation Test.
 
-Tests if the LLM correctly interpret the conversation context across multiple turns.
-The full conversation history is sent with each API call.
+Implements the Red Queen attack (https://arxiv.org/abs/2409.17458) with some modifications. See configuration
+JSON for available modifications.
 """
 import logging
 from pathlib import Path
