@@ -1,12 +1,12 @@
 Configuring Security Evaluation Tests
 =========================================
 
-Security Evaluation Tests, or SETs, contain the detailed logic for identifying a specific vulnerability 
+Security Evaluation Tests, or SETs, contain the detailed logic for identifying a specific vulnerability
 or assessing the security of a target system or component within a specified scope. SETs inherit the base
 logic for the execution flow of a certain type of a SET from BaseSETPipelines. For example, all language model
 SETs inherit the execution flow logic from ``pipelines.languagemodel.BaseSETPipeline``.
 
-SET configuration files are located in the ``avise/configs/SET/`` directory. Each SET has its own configuration file that 
+SET configuration files are located in the ``avise/configs/SET/`` directory. Each SET has its own configuration file that
 can be modified to suit your needs. For example, the ``avise/configs/SET/prompt_injection_mini.json`` configuration file
 configures a prompt injection SET with specific single-turn prompt injection attacks to run against the target model. These
 prompt injection attacks can be freely modified:

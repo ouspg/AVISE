@@ -4,7 +4,7 @@ Installation
 Currently, AVISE can be installed by cloning the repository and installing required dependencies. After installation,
 Connector configuration files found in `avise/configs/connector/` need to be configured with details of the target model API endpoint.
 
-The guide below assumes using `Ollama <https://ollama.com/>`__ to run models.  
+The guide below assumes using `Ollama <https://ollama.com/>`__ to run models.
 
 Prerequisites
 ~~~~~~~~~~~~~
@@ -34,11 +34,11 @@ Prerequisites
    python -m venv venv
 
 * Activate Virtual Environment
-  
+
   * On Linux & Mac:
 
     .. code:: bash
-    
+
        source venv/bin/activate
 
   * On Windows:

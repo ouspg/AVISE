@@ -33,7 +33,7 @@ avise.evaluators.languagemodel.suspicious\_output
    :show-inheritance:
    :undoc-members:
 
-avise.evaluators.languagemodel.vulnerability 
+avise.evaluators.languagemodel.vulnerability
 ---------------------------------------------------
 
 .. automodule:: avise.evaluators.languagemodel.vulnerability
