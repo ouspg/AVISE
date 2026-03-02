@@ -5,14 +5,14 @@ Connectors are a component in the AVISE framework that contain the logic
 for making requests and receiving responses from AI models. When using AVISE,
 you need to pass a Connector configuration JSON file via the CLI argument ``--connectorconf``.
 
-AVISE comes with multiple prebuilt configuration files for commonly used AI model 
+AVISE comes with multiple prebuilt configuration files for commonly used AI model
 hosting services:
 
 Ollama Connector
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-`Ollama <https://ollama.com/>`__ is a widely used software for running language models. 
-To use AVISE with Ollama models, you can modify the existing ``avise/configs/connector/ollama.json`` 
+`Ollama <https://ollama.com/>`__ is a widely used software for running language models.
+To use AVISE with Ollama models, you can modify the existing ``avise/configs/connector/ollama.json``
 configuration file:
 
 .. code-block:: json
@@ -28,21 +28,21 @@ configuration file:
        }
    }
 
-In the Connector configuraiton files, ``target_model`` defines the configurations for the 
+In the Connector configuraiton files, ``target_model`` defines the configurations for the
 model you wish to test and evaluate. ``target_model`` requires the following subfields:
 
 * ``"connector"``: Name of the connector to use (See available connectors by running CLI command ``avise --connector_list``)
 * ``"type"``: Type of the AI model *(e.g. language_model, continual_learning, multi_modal)*
 * ``"name"``: Name of the model *(For Ollama connector, use the ollama model name)*
 * ``"api_url"``: URL for the API endpoint (``http://localhost:11434`` is the default when running Ollama models locally)
-* ``"api_key"``: Optional API authorization key if required by the API Endpoint. **Leave as ``null`` if not needed** 
+* ``"api_key"``: Optional API authorization key if required by the API Endpoint. **Leave as ``null`` if not needed**
 
 
 
 OpenAI Connector
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- 
-To use AVISE with `OpenAI <https://openai.com/>`__ models, you can modify the existing ``avise/configs/connector/openai.json`` 
+
+To use AVISE with `OpenAI <https://openai.com/>`__ models, you can modify the existing ``avise/configs/connector/openai.json``
 configuration file:
 
 .. code-block:: json
@@ -59,7 +59,7 @@ configuration file:
         }
     }
 
-In the Connector configuraiton files, ``target_model`` defines the configurations for the 
+In the Connector configuraiton files, ``target_model`` defines the configurations for the
 model you wish to test and evaluate. ``target_model`` requires the following subfields:
 
 * ``"connector"``: Name of the connector to use (See available connectors by running CLI command ``avise --connector_list``)
@@ -95,7 +95,7 @@ modify the existing ``avise/configs/connector/genericrest.json`` configuration f
         }
     }
 
-In the Connector configuraiton files, ``target_model`` defines the configurations for the 
+In the Connector configuraiton files, ``target_model`` defines the configurations for the
 model you wish to test and evaluate. ``target_model`` accepts the following subfields:
 
 * ``"connector"``: Name of the connector to use (See available connectors by running CLI command ``avise --connector_list``)

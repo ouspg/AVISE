@@ -13,11 +13,11 @@ release = '0.2.0'
 
 # -- General configuration ---------------------------------------------------
 
-extensions = ['sphinx_github_style', 
-              'sphinx.ext.autodoc', 
-              'sphinx.ext.napoleon', 
+extensions = ['sphinx_github_style',
+              'sphinx.ext.autodoc',
+              'sphinx.ext.napoleon',
               'sphinx.ext.autosummary',
-              'sphinx.ext.viewcode'] 
+              'sphinx.ext.viewcode']
 
 todo_include_todos = False #Remove TODOs from docs
 templates_path = ['_templates']

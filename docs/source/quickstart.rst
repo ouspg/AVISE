@@ -33,11 +33,11 @@ Prerequisites
    python -m venv venv
 
 * Activate Virtual Environment
-  
+
   * On Linux & Mac:
 
     .. code:: bash
-    
+
        source venv/bin/activate
 
   * On Windows:
@@ -123,7 +123,7 @@ Required Arguments
 +------------------------------+---------------------------------------+
 | ``--connectorconf``          | Path to Connector configuration JSON  |
 |                              | (Accepts preconfigured connector      |
-|                              | configuration paths: ``ollama``,      |  
+|                              | configuration paths: ``ollama``,      |
 |                              | ``openai``, ``genericrest``)          |
 +------------------------------+---------------------------------------+
 
