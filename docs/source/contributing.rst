@@ -1,4 +1,4 @@
-Contributing to the Repository
+Contributing a Security Evaluation Test
 =================================
 
-TODO: How to contribute code to the repository.
+TODO: How to add a SET to repository.

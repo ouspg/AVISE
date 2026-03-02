@@ -1,4 +1,4 @@
-Contributing a Pipeline
+Contributing to the Repository
 =================================
 
-TOOD: How to add a new pipeline to avise.
+TODO: How to contribute code to the repository.

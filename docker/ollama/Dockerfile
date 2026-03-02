@@ -1,20 +1,19 @@
-FROM ollama/ollama:latest
+version: '3.9'
 
-# Install curl for health checks
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+services:
+  ollama:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: avise-ollama
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+      - MODELS=llama3.2:3b, phi4-mini
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
 
-# Create directory for models
-RUN mkdir -p /root/.ollama
-
-# Copy entrypoint script
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-# Expose Ollama API port
-EXPOSE 11434
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:11434/api/tags || exit 1
-
-ENTRYPOINT ["/entrypoint.sh"]
+volumes:
+  ollama_data:
