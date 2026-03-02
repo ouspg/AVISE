@@ -38,7 +38,7 @@ def test_version_command(capsys):
 
 def test_SET_list(capsys):
     """
-    Test that SET_list command output is as expected. 
+    Test that SET_list command output is as expected.
     """
     try:
         cli.main(["--SET_list"])
@@ -52,7 +52,7 @@ def test_SET_list(capsys):
 
 def test_too_long_arg():
     """
-    Test that output is as expected when CLI receives a too long argument. 
+    Test that output is as expected when CLI receives a too long argument.
     """
     test_input = [f"string{i}" for i in range(250)]
 
@@ -71,7 +71,7 @@ def test_incorrect_args(capsys, test_input, expected_output):
     except SystemExit:
         pass
     captured = capsys.readouterr()
-    
+
     assert expected_output in captured.err
 
 @pytest.mark.parametrize("test_input,expected_output", test_missing_args_cases)

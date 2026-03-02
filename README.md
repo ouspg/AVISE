@@ -1,5 +1,5 @@
 
-![AVISE logo](/docs/assets/avise_logo.png)  
+![AVISE logo](/docs/assets/avise_logo.png)
 
 # AVISE - AI Vulnerability Identification & Security Evaluation
 
