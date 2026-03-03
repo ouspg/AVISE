@@ -106,7 +106,7 @@ AVISE uses preconfigured paths for SET and Connector configuration JSON files, i
 Advanced usage example
 -----------------------
 
-If you wish to use custom SET and Connector configuration files, you can give them with the `--connectorconf` and `SETconf` CLI arguments:
+If you wish to use custom SET and Connector configuration files, you can give them with the ``--connectorconf`` and ``--SETconf`` CLI arguments:
 
 .. code:: bash
 
