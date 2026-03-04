@@ -1,14 +1,22 @@
 """Class for Adversarial Language Model."""
+
 from pathlib import Path
 import logging
 import os
 import re
 
-from transformers import Mistral3ForConditionalGeneration, MistralCommonBackend, AutoModelForCausalLM, AutoTokenizer, pipeline
+from transformers import (
+    Mistral3ForConditionalGeneration,
+    MistralCommonBackend,
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    pipeline,
+)
 from torch import cuda, device
 from huggingface_hub import snapshot_download
 
 logger = logging.getLogger(__name__)
+
 
 class AdversarialLanguageModel:
     """A language model to be used in modifying adversarial inputs. Can remember conversation history.
@@ -20,15 +28,17 @@ class AdversarialLanguageModel:
                             and pass it to model on response generation.
         system_prompt: System prompt for the model. If None, uses default system prompt.
     """
-    def __init__(self,
-                 model_name:str = "Qwen/Qwen3-0.6B",
-                 max_new_tokens:int = 200,
-                 conversation_history:bool = True,
-                 system_prompt:str = None,
-                 ):
-        logger.info("Loading adversarial model...")
 
-        #Check for CUDA
+    def __init__(
+        self,
+        model_name: str = "Qwen/Qwen3-0.6B",
+        max_new_tokens: int = 200,
+        conversation_history: bool = True,
+        system_prompt: str = None,
+    ):
+        logger.info("Loading Adversarial Language Model...")
+
+        # Check for CUDA
         if cuda.is_available():
             print("CUDA is available, loading model to GPU.")
             self.device = "cuda"
@@ -43,18 +53,30 @@ class AdversarialLanguageModel:
         try:
             if "mistralai" in self.model_name:
                 self.tokenizer = MistralCommonBackend.from_pretrained(self.model_path)
-                self.model = Mistral3ForConditionalGeneration.from_pretrained(self.model_path, device_map="auto")
+                self.model = Mistral3ForConditionalGeneration.from_pretrained(
+                    self.model_path, device_map="auto"
+                )
             else:
-                self.model = AutoModelForCausalLM.from_pretrained(self.model_path, device_map="auto") #attn_implementation="eager"
-                self.tokenizer = AutoTokenizer.from_pretrained(self.model_path) #, attn_implementation="eager"
+                self.model = AutoModelForCausalLM.from_pretrained(
+                    self.model_path, device_map="auto"
+                )  # attn_implementation="eager"
+                self.tokenizer = AutoTokenizer.from_pretrained(
+                    self.model_path
+                )  # , attn_implementation="eager"
         except (FileNotFoundError, IOError, ValueError):
-            logger.error("Adversarial model not found locally. Downloading it from Hugging Face...")
+            logger.error(
+                "Adversarial model not found locally. Downloading it from Hugging Face..."
+            )
             self._model_download(self.model_path, model_name)
             if "mistral" in self.model_name:
                 self.tokenizer = MistralCommonBackend.from_pretrained(self.model_path)
-                self.model = Mistral3ForConditionalGeneration.from_pretrained(self.model_path, device_map="auto")
+                self.model = Mistral3ForConditionalGeneration.from_pretrained(
+                    self.model_path, device_map="auto"
+                )
             else:
-                self.model = AutoModelForCausalLM.from_pretrained(self.model_path, device_map="auto")
+                self.model = AutoModelForCausalLM.from_pretrained(
+                    self.model_path, device_map="auto"
+                )
                 self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
 
         self.conversation_history = conversation_history
@@ -62,10 +84,14 @@ class AdversarialLanguageModel:
         if system_prompt is not None:
             self.system_prompt = {"role": "system", "content": system_prompt}
         else:
-            self.system_prompt = {"role": "system", "content": "You only modify the prompt given by the user according to user's request. Return NOTHING except the modified prompt."}
+            self.system_prompt = {
+                "role": "system",
+                "content": "You only modify the prompt given by the user according to user's request. Return NOTHING except the modified prompt.",
+            }
         self.history = [self.system_prompt]
+        logger.info("Succesfully loaded Adversarial Language Model!")
 
-    def generate_response(self, prompt, reasoning:bool = True) -> list:
+    def generate_response(self, prompt, reasoning: bool = True) -> list:
         """Generate a response to a given prompt.
 
         Args:
@@ -86,16 +112,20 @@ class AdversarialLanguageModel:
             response = self._mistral_text_generation(messages)
         else:
             model_pipeline = pipeline(
-                    task="text-generation",
-                    model=self.model,
-                    tokenizer=self.tokenizer,
-                    torch_dtype="auto",
-                    device_map="auto"
-                )
+                task="text-generation",
+                model=self.model,
+                tokenizer=self.tokenizer,
+                torch_dtype="auto",
+                device_map="auto",
+            )
             # Prepare generation kwargs
             input_kwargs = {}
             if self.model_name == "Qwen/Qwen3-0.6B":
-                input_kwargs = {"enable_thinking": False, "add_generation_prompt": True, "max_new_tokens": self.max_new_tokens}
+                input_kwargs = {
+                    "enable_thinking": False,
+                    "add_generation_prompt": True,
+                    "max_new_tokens": self.max_new_tokens,
+                }
                 if reasoning:
                     input_kwargs["enable_thinking"] = True
 
@@ -113,33 +143,41 @@ class AdversarialLanguageModel:
             return self.history
         return [{"role": "assistant", "content": response}]
 
-    def _mistral_text_generation(self, messages:list):
+    def _mistral_text_generation(self, messages: list):
         """Helper method for generating responses with Mistral models from pure
         text inputs.
 
         Args:
             messages: Messages used for response generation. Format: [{"role": "user", "content": "this is content"}]
         """
-        messages = [{**m, "content": [{"type": "text", "text": m["content"]}]} for m in messages]
+        messages = [
+            {**m, "content": [{"type": "text", "text": m["content"]}]} for m in messages
+        ]
 
-        tokenized = self.tokenizer.apply_chat_template(messages, return_tensors="pt", return_dict=True)
+        tokenized = self.tokenizer.apply_chat_template(
+            messages, return_tensors="pt", return_dict=True
+        )
 
         tokenized["input_ids"] = tokenized["input_ids"].to(device=self.device)
-        #tokenized["pixel_values"] = tokenized["pixel_values"].to(dtype=bfloat16, device=self.device)
-        #image_sizes = [tokenized["pixel_values"].shape[-2:]]
+        # tokenized["pixel_values"] = tokenized["pixel_values"].to(dtype=bfloat16, device=self.device)
+        # image_sizes = [tokenized["pixel_values"].shape[-2:]]
 
         output = self.model.generate(
             **tokenized,
-            #image_sizes=image_sizes,
-            max_new_tokens=self.max_new_tokens
+            # image_sizes=image_sizes,
+            max_new_tokens=self.max_new_tokens,
         )[0]
 
-        decoded_output = self.tokenizer.decode(output[len(tokenized["input_ids"][0]):]).replace("</s>", "")
+        decoded_output = self.tokenizer.decode(
+            output[len(tokenized["input_ids"][0]) :]
+        ).replace("</s>", "")
         return decoded_output
 
-    def _model_download(self,
-                        model_path:str="avise/models/Qwen/Qwen3-0.6B",
-                        model_name:str="Qwen/Qwen3-0.6B"):
+    def _model_download(
+        self,
+        model_path: str = "avise/models/Qwen/Qwen3-0.6B",
+        model_name: str = "Qwen/Qwen3-0.6B",
+    ):
         """Downloads a HF model and saves it to chosen path.
 
         Kwargs:
@@ -165,21 +203,23 @@ class AdversarialLanguageModel:
                     model_name,
                     device_map="auto",
                     torch_dtype="auto",
-                    trust_remote_code=True)
+                    trust_remote_code=True,
+                )
 
                 # Save the model and tokenizer to the specified directory
                 model.save_pretrained(model_path)
                 tokenizer.save_pretrained(model_path)
 
         except Exception as e:
-            logger.error(f"Downloading model {model_name} from Hugging Face failed: {e}")
+            logger.error(
+                f"Downloading model {model_name} from Hugging Face failed: {e}"
+            )
 
-
-    def _parse_reasoning_content_qwen(self, text:str):
+    def _parse_reasoning_content_qwen(self, text: str):
         """Parse reasoning content from a body of text generated by a Qwen model."""
         reasoning = ""
-        if (m := re.match(r"<think>\n(.+)</think>\n\n", text, flags=re.DOTALL)):
-            text = text[len(m.group(0)):]
+        if m := re.match(r"<think>\n(.+)</think>\n\n", text, flags=re.DOTALL):
+            text = text[len(m.group(0)) :]
             if reasoning_content := m.group(1).strip():
                 reasoning = reasoning_content
         return (text, reasoning)

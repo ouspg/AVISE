@@ -1,4 +1,5 @@
 """Connector for Ollama API communication using the ollama library."""
+
 import logging
 from typing import List
 
@@ -6,6 +7,7 @@ import ollama
 
 from .base import BaseLMConnector, Message
 from ...registry import connector_registry
+from ...utils import ansi_colors
 
 logger = logging.getLogger(__name__)
 
@@ -34,31 +36,43 @@ class OllamaLMConnector(BaseLMConnector):
         if evaluation:
             self.model = config["eval_model"]["name"]
             self.base_url = config["eval_model"]["api_url"]
-            if "max_tokens" in config["eval_model"] and config["eval_model"]["max_tokens"] is not None:
+            if (
+                "max_tokens" in config["eval_model"]
+                and config["eval_model"]["max_tokens"] is not None
+            ):
                 self.max_tokens = config["eval_model"]["max_tokens"]
             else:
                 self.max_tokens = 512
-            if "api_key" in config["eval_model"] and config["target_model"]["api_key"] is not None:
+            if (
+                "api_key" in config["eval_model"]
+                and config["target_model"]["api_key"] is not None
+            ):
                 self.api_key = config["eval_model"]["api_key"]
                 self.client = ollama.Client(
-                host=self.base_url,
-                headers={"Authorization": f"Bearer {self.api_key}"}
+                    host=self.base_url,
+                    headers={"Authorization": f"Bearer {self.api_key}"},
                 )
             else:
                 self.client = ollama.Client(host=self.base_url)
         else:
             self.model = config["target_model"]["name"]
             self.base_url = config["target_model"]["api_url"]
-            if "max_tokens" in config["target_model"] and config["target_model"]["max_tokens"] is not None:
+            if (
+                "max_tokens" in config["target_model"]
+                and config["target_model"]["max_tokens"] is not None
+            ):
                 self.max_tokens = config["target_model"]["max_tokens"]
             else:
                 self.max_tokens = 512
-            if "api_key" in config["target_model"] and config["target_model"]["api_key"] is not None:
+            if (
+                "api_key" in config["target_model"]
+                and config["target_model"]["api_key"] is not None
+            ):
                 self.api_key = config["target_model"]["api_key"]
                 # Configure client with optional authentication headers
                 self.client = ollama.Client(
-                host=self.base_url,
-                headers={"Authorization": f"Bearer {self.api_key}"}
+                    host=self.base_url,
+                    headers={"Authorization": f"Bearer {self.api_key}"},
                 )
             else:
                 self.client = ollama.Client(host=self.base_url)
@@ -67,12 +81,11 @@ class OllamaLMConnector(BaseLMConnector):
         logger.info(f"  Base URL: {self.base_url}")
         logger.info(f"  Model: {self.model}")
         if self.api_key:
-            logger.info(f"  API Key: {'*' * 8}...{self.api_key[-4:] if len(self.api_key) > 4 else '****'}")
+            logger.info(
+                f"  API Key: {'*' * 8}...{self.api_key[-4:] if len(self.api_key) > 4 else '****'}"
+            )
 
-    def generate(self,
-                 data: dict,
-                 multi_turn: bool = False
-                 ) -> dict:
+    def generate(self, data: dict, multi_turn: bool = False) -> dict:
         """Generate a response from the target model via the Ollama API.
 
         Arguments:
@@ -107,36 +120,45 @@ class OllamaLMConnector(BaseLMConnector):
 
         if "system_prompt" in data:
             if not isinstance(data["system_prompt"], str):
-                raise ValueError('If using "system_prompt" in data, it needs to be a string.')
+                raise ValueError(
+                    'If using "system_prompt" in data, it needs to be a string.'
+                )
 
         if multi_turn:
             if "messages" not in data:
-                raise KeyError('Multi-turn conversation requires a "messages" key in \
+                raise KeyError(
+                    'Multi-turn conversation requires a "messages" key in \
                                data variable, which contains a List of Message objects \
-                               representing the conversation history.')
+                               representing the conversation history.'
+                )
             if not isinstance(data["messages"], list):
-                raise ValueError('Multi-turn conversation requires a "messages" key in \
+                raise ValueError(
+                    'Multi-turn conversation requires a "messages" key in \
                                data variable, which contains a List of Message objects \
-                               representing the conversation history.')
+                               representing the conversation history.'
+                )
             for message in data["messages"]:
                 if not isinstance(message, Message):
-                    raise ValueError('Multi-turn conversation requires a "messages" key in \
+                    raise ValueError(
+                        'Multi-turn conversation requires a "messages" key in \
                                data variable, which contains a List of Message objects \
-                               representing the conversation history.')
+                               representing the conversation history.'
+                    )
             return self._multi_turn(data=data)
         else:
             if "prompt" not in data:
-                raise KeyError('Single-turn conversation requires a "prompt" key in \
-                               data variable, which contains a prompt as a string.')
+                raise KeyError(
+                    'Single-turn conversation requires a "prompt" key in \
+                               data variable, which contains a prompt as a string.'
+                )
             if not isinstance(data["prompt"], str):
-                raise ValueError('Single-turn conversation requires a "prompt" key in \
-                               data variable, which contains a prompt as a string.')
+                raise ValueError(
+                    'Single-turn conversation requires a "prompt" key in \
+                               data variable, which contains a prompt as a string.'
+                )
             return self._single_turn(data=data)
 
-
-    def _multi_turn(self,
-                    data: dict
-                    ) -> dict:
+    def _multi_turn(self, data: dict) -> dict:
         """Make a multi-turn generation.
 
         Arguments:
@@ -147,29 +169,30 @@ class OllamaLMConnector(BaseLMConnector):
         """
         # Convert Message objects to Ollama's expected format
         ollama_messages = [
-            {"role": msg.role, "content": msg.content}
-            for msg in data["messages"]
+            {"role": msg.role, "content": msg.content} for msg in data["messages"]
         ]
         if "system_prompt" in data:
             # If system prompt is given in the data dict, insert it into ollama_messages
-            ollama_messages.insert(0, {"role": "system", "content": data["system_prompt"]})
+            ollama_messages.insert(
+                0, {"role": "system", "content": data["system_prompt"]}
+            )
         try:
             response = self.client.chat(
                 model=self.model,
                 messages=ollama_messages,
                 options={
                     "temperature": data["temperature"],
-                    "num_predict": data["max_tokens"]
-                }
+                    "num_predict": data["max_tokens"],
+                },
             )
             return {"response": response["message"]["content"]}
         except Exception as e:
-            logger.error(f"ERROR during chat with model: {e}")
-            raise RuntimeError(f"Failed to chat with model: {e}")
+            logger.error(
+                f"{ansi_colors['red']}ERROR during chat with model: {e}{ansi_colors['reset']}"
+            )
+            raise RuntimeError(f"Failed to chat with model.") from e
 
-    def _single_turn(self,
-                     data: dict
-                     ) -> dict:
+    def _single_turn(self, data: dict) -> dict:
         """Make a single-turn generation.
 
         Arguments:
@@ -179,35 +202,42 @@ class OllamaLMConnector(BaseLMConnector):
             {"response": str}
         """
         if "system_prompt" in data:
-            #Generate single-turn response with system prompt.
+            # Generate single-turn response with system prompt.
             try:
                 response = self.client.generate(
-                model=self.model,
-                system=data["system_prompt"],
-                prompt=data["prompt"],
-                options={
-                    "temperature": data["temperature"],
-                    "num_predict": data["max_tokens"]
-                    }
+                    model=self.model,
+                    system=data["system_prompt"],
+                    prompt=data["prompt"],
+                    options={
+                        "temperature": data["temperature"],
+                        "num_predict": data["max_tokens"],
+                    },
                 )
             except Exception as e:
-                logger.error(f"ERROR while generating response from model: {e}")
-                raise RuntimeError(f"Failed to generate a response from model due to an error: {e}")
+                logger.error(
+                    f"{ansi_colors['red']}ERROR while generating response from model: {e}{ansi_colors['reset']}"
+                )
+                raise RuntimeError(
+                    "Failed to generate a response from model due to an error."
+                ) from e
             return {"response": response.response}
         try:
             response = self.client.generate(
-            model=self.model,
-            prompt=data["prompt"],
-            options={
-                "temperature": data["temperature"],
-                "num_predict": data["max_tokens"]
-                }
+                model=self.model,
+                prompt=data["prompt"],
+                options={
+                    "temperature": data["temperature"],
+                    "num_predict": data["max_tokens"],
+                },
             )
         except Exception as e:
-            logger.error(f"ERROR while generating response from model: {e}")
-            raise RuntimeError(f"Failed to generate a response from model due to an error: {e}")
+            logger.error(
+                f"{ansi_colors['red']}ERROR while generating response from model: {e}{ansi_colors['reset']}"
+            )
+            raise RuntimeError(
+                "Failed to generate a response from model due to an error."
+            ) from e
         return {"response": response.response}
-
 
     def _match_model(self, model_name: str, available_models: List[str]) -> bool:
         """Check if a model name exists in the list of available models.
@@ -237,7 +267,9 @@ class OllamaLMConnector(BaseLMConnector):
         try:
             model_names = self._list_models()
         except Exception as e:
-            raise ConnectionError(f"Cannot connect to Ollama backend at {self.base_url}: {e}")
+            raise ConnectionError(
+                f"Cannot connect to Ollama backend at {self.base_url}: {e}"
+            )
 
         # Step 2: Check if model exists
         logger.info(f"Available models found: {model_names}")
@@ -261,7 +293,7 @@ class OllamaLMConnector(BaseLMConnector):
             Exception: If the API is not reachable.
         """
         response = self.client.list()
-        models_list = response.get('models', [])
+        models_list = response.get("models", [])
 
         model_names = []
         for model in models_list:

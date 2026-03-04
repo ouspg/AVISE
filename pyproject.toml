@@ -26,6 +26,10 @@ dependencies = [
     "scipy>=1.17.0",
     "numpy>=2.4.2",
     "requests>=2.32.5",
+    "torch>=2.10.0",
+    "transformers>=5.2.0",
+    "accelerate>=1.12.0",
+    "mistral_common>=1.9.1"
 ]
 [project.optional-dependencies]
 unit-tests = [
@@ -40,11 +44,23 @@ docs = [
 [project.scripts]
 avise = "avise.__main__:main"
 
+[tool.hatch.build]
+exclude = [
+  "/docs",
+  "/unit-tests",
+  "/reports",
+  "/docker"
+]
+
+[tool.pytest.ini_options]
+testpaths = ["unit-tests"]
+
 [tool.ruff]
 
 exclude = [
-    "unit-tests/*",
-    "docs/*",
+    "unit-tests",
+    "docs",
+    "docker",
     ".bzr",
     ".direnv",
     ".eggs",

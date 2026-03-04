@@ -1,6 +1,7 @@
 """Base class for evaluators.
 Evaluators look for predetermined patterns in responses.
 """
+
 import re
 import logging
 from abc import ABC, abstractmethod

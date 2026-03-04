@@ -6,6 +6,7 @@ sending original test prompts along with the output to an evaluative language mo
 By abstracting the communication with different APIs to different connectors users can focus more on developing test cases and just pick a suitable API client
 for their use case.
 """
+
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -21,6 +22,7 @@ class Message:
         role: The role of the message sender. "system", "user", or "assistant": https://platform.openai.com/docs/guides/text
         content: The text content of the message
     """
+
     role: str
     content: str
 
@@ -37,6 +39,7 @@ class BaseLMConnector(ABC):
     Class Attributes:
         config: Connector configuration data.
     """
+
     config: dict = {}
 
     @abstractmethod

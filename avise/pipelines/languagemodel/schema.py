@@ -1,6 +1,8 @@
 """Dataclasses for avise/pipelines/language_model/pipeline.py"""
+
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
+
 
 @dataclass
 class LanguageModelSETCase:
@@ -9,15 +11,18 @@ class LanguageModelSETCase:
     ID and prompt are required fields that every SET case must contain.
     Additional fields can be added to 'metadata'.
     """
+
     id: str
     prompt: str
-    metadata: Dict[str, Any] = field(default_factory=dict) # New dict created for each instance of LanguageModelSETCase.
+    metadata: Dict[str, Any] = field(
+        default_factory=dict
+    )  # New dict created for each instance of LanguageModelSETCase.
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             "id": self.id,
             "prompt": self.prompt,
-            **self.metadata #Unpacks the metadata dictionary
+            **self.metadata,  # Unpacks the metadata dictionary
         }
 
 
@@ -27,18 +32,19 @@ class ExecutionOutput:
 
     Produced by execute() for each test case.
     """
-    set_id: str # Unique identifier
+
+    set_id: str  # Unique identifier
     prompt: str  # Original test prompt
-    response: str # Model response
+    response: str  # Model response
     metadata: Dict[str, Any] = field(default_factory=dict)
-    error: Optional[str] = None # Error message if execution failed
+    error: Optional[str] = None  # Error message if execution failed
 
     def to_dict(self) -> Dict[str, Any]:
         result = {
             "set_id": self.set_id,
             "prompt": self.prompt,
             "response": self.response,
-            "metadata": self.metadata
+            "metadata": self.metadata,
         }
         if self.error:
             result["error"] = self.error
@@ -51,14 +57,16 @@ class OutputData:
 
     Contains all execution outputs and execution duration in seconds.
     """
+
     outputs: List[ExecutionOutput]
     duration_seconds: float
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             "outputs": [output.to_dict() for output in self.outputs],
-            "duration": self.duration_seconds
+            "duration": self.duration_seconds,
         }
+
 
 @dataclass
 class EvaluationResult:
@@ -66,14 +74,19 @@ class EvaluationResult:
 
     Produced by evaluate() function for each ExecutionOutput.
     """
-    set_id: str # Unique identifier
-    prompt: str # Original test prompt
-    response: str # Model response
-    status: str # "passed", "failed", or "error". "pass" or "fail" based on what kind of patterns were found. "Error" if none were found.
-    reason: str # Explanation for status
-    detections: Dict[str, Any] = field(default_factory=dict) # Evaluator findings. Based on the selected evaluators
+
+    set_id: str  # Unique identifier
+    prompt: str  # Original test prompt
+    response: str  # Model response
+    status: str  # "passed", "failed", or "error". "pass" or "fail" based on what kind of patterns were found. "Error" if none were found.
+    reason: str  # Explanation for status
+    detections: Dict[str, Any] = field(
+        default_factory=dict
+    )  # Evaluator findings. Based on the selected evaluators
     metadata: Dict[str, Any] = field(default_factory=dict)
-    elm_evaluation: Optional[str] = None # ELM evaluation result (if evaluation model was used)
+    elm_evaluation: Optional[str] = (
+        None  # ELM evaluation result (if evaluation model was used)
+    )
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
@@ -84,7 +97,7 @@ class EvaluationResult:
             "status": self.status,
             "reason": self.reason,
             "detections": self.detections,
-            "metadata": self.metadata
+            "metadata": self.metadata,
         }
         if self.elm_evaluation:
             result["elm_evaluation"] = self.elm_evaluation
@@ -97,12 +110,13 @@ class ReportData:
 
     The final report structure that is serialized to the desired format based on the given command line argument.
     """
+
     set_name: str
     timestamp: str
     execution_time_seconds: Optional[float]
-    summary: Dict[str, Any] # total tests ran, passed%, failed%, error% rates
-    results: List[EvaluationResult] # All evaluation results
-    configuration: Dict[str, Any] = field(default_factory=dict) # Test config
+    summary: Dict[str, Any]  # total tests ran, passed%, failed%, error% rates
+    results: List[EvaluationResult]  # All evaluation results
+    configuration: Dict[str, Any] = field(default_factory=dict)  # Test config
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -111,5 +125,5 @@ class ReportData:
             "execution_time_seconds": self.execution_time_seconds,
             "configuration": self.configuration,
             "summary": self.summary,
-            "results": [result.to_dict() for result in self.results]
+            "results": [result.to_dict() for result in self.results],
         }

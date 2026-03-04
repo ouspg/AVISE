@@ -86,7 +86,7 @@ python -m avise --SET prompt_injection --connectorconf ollama
 
 ### Advanced usage
 
-If you want to use custom configuration files for SETs and/or Connectors, you can do so by giving the paths to the configuration files with `--SETconf` and `connectorconf` arguments:
+If you want to use custom configuration files for SETs and/or Connectors, you can do so by giving the paths to the configuration files with `--SETconf` and `--connectorconf` arguments:
 
 ```bash
 python -m avise --SET prompt_injection --SETconf avise/configs/SET/languagemodel/single_turn/prompt_injection_mini.json --connectorconf avise/configs/connector/ollama.json
