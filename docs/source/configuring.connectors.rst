@@ -59,7 +59,7 @@ configuration file:
         }
     }
 
-In the Connector configuraiton files, ``target_model`` defines the configurations for the
+In the Connector configuration files, ``target_model`` defines the configurations for the
 model you wish to test and evaluate. ``target_model`` requires the following subfields:
 
 * ``"connector"``: Name of the connector to use (See available connectors by running CLI command ``avise --connector_list``)
