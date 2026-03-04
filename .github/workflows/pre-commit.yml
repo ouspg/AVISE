@@ -22,6 +22,6 @@ jobs:
     - uses: pre-commit/action@v3.0.0
       with:
         # run pre-hooks on all commits
-        extra_args: pip-compile --files ${{ steps.changed-files.outputs.all_changed_files }}
+        extra_args: --files ${{ steps.changed-files.outputs.all_changed_files }}
     - uses: pre-commit-ci/lite-action@v1.1.0
       if: always()
