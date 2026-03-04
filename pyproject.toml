@@ -58,8 +58,9 @@ testpaths = ["unit-tests"]
 [tool.ruff]
 
 exclude = [
-    "unit-tests/*",
-    "docs/*",
+    "unit-tests",
+    "docs",
+    "docker",
     ".bzr",
     ".direnv",
     ".eggs",
