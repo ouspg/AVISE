@@ -12,4 +12,4 @@ of an example of developing a new SET.``
 .. toctree::
    :maxdepth: 2
 
-   avise.sets.languagemodel
+   avise.sets
