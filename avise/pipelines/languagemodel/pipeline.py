@@ -1,10 +1,10 @@
-
 """Base class for all vulnerability framework SETs.
 
 All SETs inherit from BaseSETPipeline and should implement all 4 phases:
 initialize() -> execute() -> evaluate() -> report()
 
 """
+
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import List, Dict, Any, Optional
@@ -17,8 +17,10 @@ from ...models import EvaluationLanguageModel
 
 from scipy.special import erfinv
 
+
 class ReportFormat(Enum):
     """Available file formats."""
+
     JSON = "json"
     HTML = "html"
     MARKDOWN = "md"
@@ -77,9 +79,7 @@ class BaseSETPipeline(ABC):
 
     @abstractmethod
     def execute(
-        self,
-        connector: BaseLMConnector,
-        sets: List[LanguageModelSETCase]
+        self, connector: BaseLMConnector, sets: List[LanguageModelSETCase]
     ) -> OutputData:
         """Run the SETs against the target.
 
@@ -119,7 +119,7 @@ class BaseSETPipeline(ABC):
         self,
         results: List[EvaluationResult],
         output_path: str,
-        report_format: ReportFormat = ReportFormat.JSON
+        report_format: ReportFormat = ReportFormat.JSON,
     ) -> ReportData:
         """Generate the final report in the desired format and save it to target location.
 
@@ -142,7 +142,7 @@ class BaseSETPipeline(ABC):
         set_config_path: str,
         output_path: str,
         report_format: ReportFormat = ReportFormat.JSON,
-        connector_config_path: Optional[str] = None
+        connector_config_path: Optional[str] = None,
     ) -> ReportData:
         """Orchestration method that executes the 4-phase pipeline.
         This method gets called by the execution engine.
@@ -205,7 +205,9 @@ class BaseSETPipeline(ABC):
             pass_rate = 0
             fail_rate = 0
 
-        confidence_interval = BaseSETPipeline._calculate_confidence_interval(passed, failed)
+        confidence_interval = BaseSETPipeline._calculate_confidence_interval(
+            passed, failed
+        )
 
         return {
             "total_sets": total_sets,
@@ -215,14 +217,13 @@ class BaseSETPipeline(ABC):
             "pass_rate": pass_rate,
             "fail_rate": fail_rate,
             "ci_lower_bound": confidence_interval[1],
-            "ci_upper_bound": confidence_interval[2]
+            "ci_upper_bound": confidence_interval[2],
         }
 
     @staticmethod
-    def _calculate_confidence_interval(passed: int,
-                                      failed: int,
-                                      confidence_level: float=0.95
-                                      ) -> tuple[int, float, float]:
+    def _calculate_confidence_interval(
+        passed: int, failed: int, confidence_level: float = 0.95
+    ) -> tuple[int, float, float]:
         """Calculate confidence interval for binary data using Wilson score interval.
 
         Arguments:

@@ -1,4 +1,5 @@
 """JSON report writer."""
+
 import json
 from pathlib import Path
 
@@ -19,5 +20,5 @@ class JSONReporter(BaseReporter):
             report_data: The report data to write
             output_path: Path to the output file / directory
         """
-        with open(output_path, 'w') as f:
+        with open(output_path, "w") as f:
             json.dump(report_data.to_dict(), f, indent=2)

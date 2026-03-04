@@ -3,6 +3,7 @@
 Components are registered via decorators, enabling automatic
 discovery and flexible use.
 """
+
 from typing import Dict, List, Type, Any
 
 
@@ -19,11 +20,13 @@ class Registry:
         Example usage:
             @SET_registry.register("prompt_injection")
         """
+
         def decorator(cls):
             if name in self._items:
                 raise ValueError(f"{self.name}: '{name}' is already registered")
             self._items[name] = cls
             return cls
+
         return decorator
 
     def get(self, name: str) -> Type:

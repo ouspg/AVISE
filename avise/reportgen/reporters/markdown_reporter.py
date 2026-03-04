@@ -1,4 +1,5 @@
 """Markdown report writer."""
+
 from pathlib import Path
 from typing import Dict, Any
 
@@ -20,7 +21,7 @@ class MarkdownReporter(BaseReporter):
             output_path: Path to the output file / directory
         """
         markdown = self._generate_markdown(report_data)
-        with open(output_path, 'w') as f:
+        with open(output_path, "w") as f:
             f.write(markdown)
 
     def _generate_markdown(self, report_data: ReportData) -> str:
@@ -37,16 +38,16 @@ class MarkdownReporter(BaseReporter):
 | SET Name | {report_data.set_name} |
 | Timestamp | {report_data.timestamp} |
 | Duration | {report_data.execution_time_seconds}s |
-| ELM Evaluation | {'Yes' if config.get('elm_evaluation_used') else 'No'} |
+| ELM Evaluation | {"Yes" if config.get("elm_evaluation_used") else "No"} |
 
 ## Summary
 
 | Metric | Count | Rate |
 |--------|-------|------|
-| Total SETs | {summary['total_sets']} | - |
-| Passed | {summary['passed']} | {summary['pass_rate']}% |
-| Failed | {summary['failed']} | {summary['fail_rate']}% |
-| Inconclusive | {summary['error']} | - |
+| Total SETs | {summary["total_sets"]} | - |
+| Passed | {summary["passed"]} | {summary["pass_rate"]}% |
+| Failed | {summary["failed"]} | {summary["fail_rate"]}% |
+| Inconclusive | {summary["error"]} | - |
 
 ---
 
@@ -70,7 +71,7 @@ class MarkdownReporter(BaseReporter):
                     "reason": result.reason,
                     "attack_type": result.metadata.get("attack_type", ""),
                     "description": result.metadata.get("description", ""),
-                    "full_conversation": result.metadata.get("full_conversation", [])
+                    "full_conversation": result.metadata.get("full_conversation", []),
                 }
                 if result.elm_evaluation:
                     set_["elm_evaluation"] = result.elm_evaluation
@@ -82,12 +83,12 @@ class MarkdownReporter(BaseReporter):
 
     def _get_set_item(self, set_: Dict[str, Any]) -> str:
         """Generate Markdown for a single SET item."""
-        status_indicator = set_['status'].upper()
+        status_indicator = set_["status"].upper()
         set_label = set_.get("attack_type") or set_.get("description") or ""
         if set_label:
             set_label = f" - {set_label}"
 
-        md = f"""#### [{status_indicator}] {set_['set_id']}{set_label}
+        md = f"""#### [{status_indicator}] {set_["set_id"]}{set_label}
 
 """
         # Check for conversation format (memory test)
@@ -102,12 +103,12 @@ class MarkdownReporter(BaseReporter):
             # Standard prompt/response format
             md += f"""**Prompt:**
 ```
-{set_.get('prompt', '')}
+{set_.get("prompt", "")}
 ```
 
 **Response:**
 ```
-{set_.get('response', '')}
+{set_.get("response", "")}
 ```
 
 """
@@ -116,7 +117,7 @@ class MarkdownReporter(BaseReporter):
 
         if "elm_evaluation" in set_:
             md += f"""**ELM Evaluation:**
-> {set_['elm_evaluation']}
+> {set_["elm_evaluation"]}
 
 """
         return md

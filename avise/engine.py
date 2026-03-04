@@ -3,6 +3,7 @@
 Runs SETs that inherit from BaseSETPipeline and implement the 5-phase pipeline:
 initialize() -> execute() -> evaluate() -> report() -> run()
 """
+
 import json
 import logging
 from pathlib import Path
@@ -18,12 +19,12 @@ from .registry import connector_registry, set_registry
 from .utils import ReportFormat, build_output_path
 
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
 DEFAULT_REPORTS_DIR = "reports"
+
 
 class ExecutionEngine:
     """Execution Engine."""
@@ -50,9 +51,11 @@ class ExecutionEngine:
         """
         path = Path(config_path)
         if not path.exists():
-            raise FileNotFoundError(f"Connector configuration file not found: {config_path}")
+            raise FileNotFoundError(
+                f"Connector configuration file not found: {config_path}"
+            )
 
-        with open(path, 'r') as f:
+        with open(path, "r") as f:
             config = json.load(f)
 
         # Validate required fields
@@ -69,7 +72,7 @@ class ExecutionEngine:
         evaluation_model_name: str,
         output_path: Optional[str] = None,
         report_format: ReportFormat = ReportFormat.JSON,
-        reports_dir: str = DEFAULT_REPORTS_DIR
+        reports_dir: str = DEFAULT_REPORTS_DIR,
     ) -> dict:
         """Run the 4-phase pipeline
 
@@ -93,9 +96,13 @@ class ExecutionEngine:
         try:
             target_model = connector_config["target_model"].get("name")
         except AttributeError as e:
-            raise RuntimeError('Provided connector configuration file is missing a "target_model" field.') from e
+            raise RuntimeError(
+                'Provided connector configuration file is missing a "target_model" field.'
+            ) from e
 
-        logger.info(f"Running status check for the target model and API '{target_model}'...")
+        logger.info(
+            f"Running status check for the target model and API '{target_model}'..."
+        )
         try:
             connector.status_check()
             logger.info("Target model status check successful.")
@@ -115,20 +122,12 @@ class ExecutionEngine:
                 base_dir=reports_dir,
                 set_name=set_name,
                 model_name=target_model,
-                report_format=report_format
+                report_format=report_format,
             )
 
-        return set_instance.run(
-            connector,
-            set_config_path,
-            output_path,
-            report_format
-        )
+        return set_instance.run(connector, set_config_path, output_path, report_format)
 
-    def _build_connector(self,
-                         connector_config:dict,
-                         evaluation:bool = False
-                         ) -> Any:
+    def _build_connector(self, connector_config: dict, evaluation: bool = False) -> Any:
         """Helper fundtion to handle building a connector.
 
         Arguments:
@@ -141,16 +140,22 @@ class ExecutionEngine:
         """
         # Load model configuration
         if evaluation:
-            connector_type = connector_config["eval_model"].get("connector", "ollama_lm")
+            connector_type = connector_config["eval_model"].get(
+                "connector", "ollama_lm"
+            )
         else:
-            connector_type = connector_config["target_model"].get("connector", "ollama_lm")
+            connector_type = connector_config["target_model"].get(
+                "connector", "ollama_lm"
+            )
         connector_kwargs = {"config": connector_config, "evaluation": evaluation}
         connector = connector_registry.create(connector_type, **connector_kwargs)
 
         return connector
 
     @staticmethod
-    def list_available(sets:bool=True, connectors:bool=True, reportformats:bool=True):
+    def list_available(
+        sets: bool = True, connectors: bool = True, reportformats: bool = True
+    ):
         """Print available Security Evaluation Tests, Report Formats, and Connectors.
 
         Args:

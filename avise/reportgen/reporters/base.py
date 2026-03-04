@@ -2,6 +2,7 @@
 
 Reporters handle writing the final report from ReportData to different file formats (JSON, HTML, MD)
 """
+
 from abc import ABC, abstractmethod
 from pathlib import Path
 
@@ -33,10 +34,11 @@ class BaseReporter(ABC):
         Done to prevent possibly malicious outputs from the SETs from causing problems when rendering HTML
         """
         if text is not None:
-            return (text
-                .replace("&", "&amp;")
+            return (
+                text.replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")
                 .replace('"', "&quot;")
-                .replace("'", "&#39;"))
+                .replace("'", "&#39;")
+            )
         return text

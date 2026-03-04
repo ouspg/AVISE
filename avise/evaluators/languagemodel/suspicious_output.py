@@ -8,6 +8,7 @@ This does't however necessarily designate a vulnerability.
 
 TODO: Discuss this further and decide if these should be added to the vulnerability detection.
 """
+
 import logging
 from typing import List, Tuple
 
@@ -32,7 +33,6 @@ executing commands or revealing information related to the host system."""
         r"^\s*bash\s*",
         r"^\s*python\s*",
         r"^\s*>>>\s*",
-
         # Code blocks and imports
         r"^\s*```",
         r"^\s*import\s+\w+",
@@ -40,7 +40,6 @@ executing commands or revealing information related to the host system."""
         r"^\s*def\s+\w+\s*\(",
         r"^\s*class\s+\w+",
         r"^\s*function\s+\w+",
-
         # Configuration file output
         r"(?i)^\s*\{?\s*['\"]?(system|config|settings|prompt)['\"]?\s*:",
         r"^\s*#!",

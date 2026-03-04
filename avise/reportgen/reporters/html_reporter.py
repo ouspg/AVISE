@@ -1,4 +1,5 @@
 """HTML report writer."""
+
 from pathlib import Path
 from typing import Dict, Any
 
@@ -13,11 +14,7 @@ class HTMLReporter(BaseReporter):
     file_extension = ".html"
 
     # Status colors for styling
-    STATUS_COLORS = {
-        "passed": "#28a745",
-        "failed": "#dc3545",
-        "error": "#ffc107"
-    }
+    STATUS_COLORS = {"passed": "#28a745", "failed": "#dc3545", "error": "#ffc107"}
 
     def write(self, report_data: ReportData, output_path: Path) -> None:
         """Write report data as styled HTML file.
@@ -27,7 +24,7 @@ class HTMLReporter(BaseReporter):
             output_path: Path to the output file / directory
         """
         html = self._generate_html(report_data)
-        with open(output_path, 'w') as f:
+        with open(output_path, "w") as f:
             f.write(html)
 
     def _generate_html(self, report_data: ReportData) -> str:
@@ -81,9 +78,9 @@ class HTMLReporter(BaseReporter):
         }}
         .card .number {{ font-size: 36px; font-weight: bold; }}
         .card .label {{ color: #666; font-size: 14px; }}
-        .card.passed .number {{ color: {self.STATUS_COLORS['passed']}; }}
-        .card.failed .number {{ color: {self.STATUS_COLORS['failed']}; }}
-        .card.error .number {{ color: {self.STATUS_COLORS['error']}; }}
+        .card.passed .number {{ color: {self.STATUS_COLORS["passed"]}; }}
+        .card.failed .number {{ color: {self.STATUS_COLORS["failed"]}; }}
+        .card.error .number {{ color: {self.STATUS_COLORS["error"]}; }}
         .category {{
             background: white;
             border-radius: 10px;
@@ -160,7 +157,7 @@ class HTMLReporter(BaseReporter):
             Security Evaluation Test: {report_data.set_name} |
             Generated: {report_data.timestamp} |
             Duration: {report_data.execution_time_seconds}s
-            {' | ELM Evaluation: Yes' if config.get('elm_evaluation_used') else ''}
+            {" | ELM Evaluation: Yes" if config.get("elm_evaluation_used") else ""}
         </div>
     </div>
 """
@@ -171,19 +168,19 @@ class HTMLReporter(BaseReporter):
         return f"""
     <div class="summary-cards">
         <div class="card">
-            <div class="number">{summary['total_sets']}</div>
+            <div class="number">{summary["total_sets"]}</div>
             <div class="label">Total Security Evaluation Tests</div>
         </div>
         <div class="card passed">
-            <div class="number">{summary['passed']}</div>
-            <div class="label">Passed ({summary['pass_rate']}%)</div>
+            <div class="number">{summary["passed"]}</div>
+            <div class="label">Passed ({summary["pass_rate"]}%)</div>
         </div>
         <div class="card failed">
-            <div class="number">{summary['failed']}</div>
-            <div class="label">Failed ({summary['fail_rate']}%)</div>
+            <div class="number">{summary["failed"]}</div>
+            <div class="label">Failed ({summary["fail_rate"]}%)</div>
         </div>
         <div class="card error">
-            <div class="number">{summary['error']}</div>
+            <div class="number">{summary["error"]}</div>
             <div class="label">Inconclusive</div>
         </div>
     </div>
@@ -208,7 +205,7 @@ class HTMLReporter(BaseReporter):
                     "attack_type": result.metadata.get("attack_type", ""),
                     "detections": result.detections,
                     "full_conversation": result.metadata.get("full_conversation", []),
-                    "description": result.metadata.get("description", "")
+                    "description": result.metadata.get("description", ""),
                 }
                 if result.elm_evaluation:
                     set_["elm_evaluation"] = result.elm_evaluation
@@ -229,7 +226,7 @@ class HTMLReporter(BaseReporter):
             elm_html = f"""
                 <div class="elm-eval">
                     <div class="label-sm">ELM Evaluation</div>
-                    {self.escape_html(set_['elm_evaluation'])}
+                    {self.escape_html(set_["elm_evaluation"])}
                 </div>"""
 
         # Check for conversation format (memory test)
@@ -251,19 +248,19 @@ class HTMLReporter(BaseReporter):
         if not conversation_html:
             prompt_response_html = f"""
             <div class="label-sm">Prompt</div>
-            <div class="prompt">{self.escape_html(set_.get('prompt', ''))}</div>
+            <div class="prompt">{self.escape_html(set_.get("prompt", ""))}</div>
             <div class="label-sm">Response</div>
-            <div class="response">{self.escape_html(set_.get('response', ''))}</div>"""
+            <div class="response">{self.escape_html(set_.get("response", ""))}</div>"""
 
         return f"""
         <div class="set-item">
             <div class="set-header">
-                <span class="set-id">{set_['set_id']}{set_label}</span>
-                <span class="status {set_['status']}">{set_['status']}</span>
+                <span class="set-id">{set_["set_id"]}{set_label}</span>
+                <span class="status {set_["status"]}">{set_["status"]}</span>
             </div>
             {prompt_response_html}
             {conversation_html}
-            <div class="reason">{self.escape_html(set_.get('reason', ''))}</div>
+            <div class="reason">{self.escape_html(set_.get("reason", ""))}</div>
             {elm_html}
         </div>
 """
