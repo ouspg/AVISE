@@ -2,6 +2,7 @@
 
 Supports GPT-4, GPT-3.5-turbo, and other OpenAI chat completion models.
 """
+
 import logging
 from typing import List
 
@@ -9,6 +10,7 @@ from openai import OpenAI
 
 from .base import BaseLMConnector, Message
 from ...registry import connector_registry
+from ...utils import ansi_colors
 
 logger = logging.getLogger(__name__)
 
@@ -31,11 +33,7 @@ class OpenAILMConnector(BaseLMConnector):
     # Default models
     DEFAULT_MODEL = "gpt-4o-mini"
 
-    def __init__(
-        self,
-        config: dict,
-        evaluation: bool = False
-    ):
+    def __init__(self, config: dict, evaluation: bool = False):
         """Initialize the OpenAI connector.
 
         Args:
@@ -47,51 +45,89 @@ class OpenAILMConnector(BaseLMConnector):
         """
         if evaluation:
             if "eval_model" not in config:
-                raise KeyError('OpenAI Connector configuration JSON file requires a "eval_model" field. Refer to Connector documentations on how to configure connectors.')
+                raise KeyError(
+                    'OpenAI Connector configuration JSON file requires a "eval_model" field. Refer to Connector documentations on how to configure connectors.'
+                )
             if "name" not in config["eval_model"]:
-                raise KeyError('OpenAI connector requires a model name. Add "eval_model": {"name"} to connector configuration file as a string.')
+                raise KeyError(
+                    'OpenAI connector requires a model name. Add "eval_model": {"name"} to connector configuration file as a string.'
+                )
             if not isinstance(config["eval_model"]["name"], str):
-                raise TypeError('OpenAI connector requires a model "name" for the eval_model as a STRING.')
+                raise TypeError(
+                    'OpenAI connector requires a model "name" for the eval_model as a STRING.'
+                )
             if "api_key" not in config["eval_model"]:
-                raise KeyError("OpenAI Connector requires an API key for the eval_model. Add 'api_key' to connector configuration file as a string.")
+                raise KeyError(
+                    "OpenAI Connector requires an API key for the eval_model. Add 'api_key' to connector configuration file as a string."
+                )
             if not isinstance(config["eval_model"]["api_key"], str):
-                raise TypeError('OpenAI connector requires an API key for the eval_model as a STRING.')
+                raise TypeError(
+                    "OpenAI connector requires an API key for the eval_model as a STRING."
+                )
             if "api_url" not in config["eval_model"]:
-                raise KeyError('OpenAI Connector requires an API URL. Add "api_key" to connector configuration file as a string or null.')
-            if not (isinstance(config["eval_model"]["api_url"], str) or isinstance(config["eval_model"]["api_url"], None)):
-                raise TypeError('OpenAI connector requires an API URL for the eval_model as a STRING or null.')
-
+                raise KeyError(
+                    'OpenAI Connector requires an API URL. Add "api_key" to connector configuration file as a string or null.'
+                )
+            if not (
+                isinstance(config["eval_model"]["api_url"], str)
+                or isinstance(config["eval_model"]["api_url"], None)
+            ):
+                raise TypeError(
+                    "OpenAI connector requires an API URL for the eval_model as a STRING or null."
+                )
 
             self.model = config["eval_model"]["name"]
             self.api_key = config["eval_model"]["api_key"]
             self.base_url = config["eval_model"]["api_url"]
             self.headers = config["eval_model"].get("headers")
-            if "max_tokens" in config["eval_model"] and config["eval_model"]["max_tokens"] is not None:
+            if (
+                "max_tokens" in config["eval_model"]
+                and config["eval_model"]["max_tokens"] is not None
+            ):
                 self.max_tokens = config["eval_model"]["max_tokens"]
             else:
                 self.max_tokens = 512
         else:
             if "target_model" not in config:
-                raise KeyError('OpenAI Connector configuration JSON file requires a "target_model" field. Refer to Connector documentations on how to configure connectors.')
+                raise KeyError(
+                    'OpenAI Connector configuration JSON file requires a "target_model" field. Refer to Connector documentations on how to configure connectors.'
+                )
             if "name" not in config["target_model"]:
-                raise KeyError('OpenAI connector requires a model name. Add "target_model" : {"name"} to connector configuration file as a string.')
+                raise KeyError(
+                    'OpenAI connector requires a model name. Add "target_model" : {"name"} to connector configuration file as a string.'
+                )
             if not isinstance(config["target_model"]["name"], str):
-                raise TypeError('OpenAI connector requires a model "name" for the target_model as a STRING.')
+                raise TypeError(
+                    'OpenAI connector requires a model "name" for the target_model as a STRING.'
+                )
             if "api_key" not in config["target_model"]:
-                raise KeyError("OpenAI Connector requires an API key for the target_model. Add 'api_key' to connector configuration file as a string.")
+                raise KeyError(
+                    "OpenAI Connector requires an API key for the target_model. Add 'api_key' to connector configuration file as a string."
+                )
             if not isinstance(config["target_model"]["api_key"], str):
-                raise TypeError('OpenAI connector requires an API key for the target_model as a STRING.')
+                raise TypeError(
+                    "OpenAI connector requires an API key for the target_model as a STRING."
+                )
             if "api_url" not in config["target_model"]:
-                raise KeyError('OpenAI Connector requires an API URL. Add "target_model": {"api_key"} to connector configuration file as a string or null.')
-            if not (isinstance(config["target_model"]["api_url"], str) or isinstance(config["target_model"]["api_url"], None)):
-                raise TypeError('OpenAI Connector requires an API URL for the target_model as a STRING or null.')
-
+                raise KeyError(
+                    'OpenAI Connector requires an API URL. Add "target_model": {"api_key"} to connector configuration file as a string or null.'
+                )
+            if not (
+                isinstance(config["target_model"]["api_url"], str)
+                or isinstance(config["target_model"]["api_url"], None)
+            ):
+                raise TypeError(
+                    "OpenAI Connector requires an API URL for the target_model as a STRING or null."
+                )
 
             self.model = config["target_model"]["name"]
             self.api_key = config["target_model"]["api_key"]
             self.base_url = config["target_model"]["api_url"]
             self.headers = config["target_model"].get("headers")
-            if "max_tokens" in config["target_model"] and config["target_model"]["max_tokens"] is not None:
+            if (
+                "max_tokens" in config["target_model"]
+                and config["target_model"]["max_tokens"] is not None
+            ):
                 self.max_tokens = config["target_model"]["max_tokens"]
             else:
                 self.max_tokens = 512
@@ -107,12 +143,11 @@ class OpenAILMConnector(BaseLMConnector):
         logger.info(f"  OpenAI Connector Initialized")
         logger.info(f"  Model: {self.model}")
         logger.info(f"  Base URL: {self.base_url}")
-        logger.info(f"  API Key: {'*' * 8}...{self.api_key[-4:] if len(self.api_key) > 4 else '****'}")
+        logger.info(
+            f"  API Key: {'*' * 8}...{self.api_key[-4:] if len(self.api_key) > 4 else '****'}"
+        )
 
-    def generate(self,
-                 data: dict,
-                 multi_turn: bool = False
-    ) -> dict:
+    def generate(self, data: dict, multi_turn: bool = False) -> dict:
         """Generate a response from the target model via the OpenAI API.
 
         Arguments:
@@ -147,35 +182,45 @@ class OpenAILMConnector(BaseLMConnector):
 
         if "system_prompt" in data:
             if not isinstance(data["system_prompt"], str):
-                raise ValueError('If using "system_prompt" in data, it needs to be a string.')
+                raise ValueError(
+                    'If using "system_prompt" in data, it needs to be a string.'
+                )
 
         if multi_turn:
             if "messages" not in data:
-                raise KeyError('Multi-turn conversation requires a "messages" key in \
+                raise KeyError(
+                    'Multi-turn conversation requires a "messages" key in \
                                data variable, which contains a List of Message objects \
-                               representing the conversation history.')
+                               representing the conversation history.'
+                )
             if not isinstance(data["messages"], list):
-                raise ValueError('Multi-turn conversation requires a "messages" key in \
+                raise ValueError(
+                    'Multi-turn conversation requires a "messages" key in \
                                data variable, which contains a List of Message objects \
-                               representing the conversation history.')
+                               representing the conversation history.'
+                )
             for message in data["messages"]:
                 if not isinstance(message, Message):
-                    raise ValueError('Multi-turn conversation requires a "messages" key in \
+                    raise ValueError(
+                        'Multi-turn conversation requires a "messages" key in \
                                data variable, which contains a List of Message objects \
-                               representing the conversation history.')
+                               representing the conversation history.'
+                    )
             return self._multi_turn(data=data)
         else:
             if "prompt" not in data:
-                raise KeyError('Single-turn conversation requires a "prompt" key in \
-                               data variable, which contains a prompt as a string.')
+                raise KeyError(
+                    'Single-turn conversation requires a "prompt" key in \
+                               data variable, which contains a prompt as a string.'
+                )
             if not isinstance(data["prompt"], str):
-                raise ValueError('Single-turn conversation requires a "prompt" key in \
-                               data variable, which contains a prompt as a string.')
+                raise ValueError(
+                    'Single-turn conversation requires a "prompt" key in \
+                               data variable, which contains a prompt as a string.'
+                )
             return self._single_turn(data=data)
 
-    def _single_turn(self,
-                     data: dict
-                     ) -> dict:
+    def _single_turn(self, data: dict) -> dict:
         """Make a single-turn generation.
 
         Arguments:
@@ -186,31 +231,32 @@ class OpenAILMConnector(BaseLMConnector):
         """
         if "system_prompt" in data:
             # Generate with system prompt
-            messages = [{"role": "system", "content": data["system_prompt"]},
-                        {"role": "user", "content": data["prompt"]}
+            messages = [
+                {"role": "system", "content": data["system_prompt"]},
+                {"role": "user", "content": data["prompt"]},
             ]
         else:
             # Generate without system prompt
-            messages = [
-                    {"role": "user", "content": data["prompt"]}
-            ]
+            messages = [{"role": "user", "content": data["prompt"]}]
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
                 temperature=data["temperature"],
-                max_tokens=data["max_tokens"]
+                max_tokens=data["max_tokens"],
             )
             return {"response": response.choices[0].message.content or ""}
 
         except Exception as e:
-            logger.error(f"ERROR while generating response from OpenAI: {e}")
-            raise RuntimeError(f"Failed to generate response from OpenAI: {e}")
+            logger.error(
+                f"{ansi_colors['red']}ERROR while generating response from OpenAI: {e}{ansi_colors['reset']}"
+            )
+            raise RuntimeError("Failed to generate response from OpenAI.") from e
 
-
-    def _multi_turn(self,
-                    data: dict,
-                    ) -> dict:
+    def _multi_turn(
+        self,
+        data: dict,
+    ) -> dict:
         """Make a multi-turn generation.
 
         Arguments:
@@ -222,25 +268,27 @@ class OpenAILMConnector(BaseLMConnector):
         try:
             # Convert Message objects to OpenAI's expected format
             openai_messages = [
-                {"role": msg.role, "content": msg.content}
-                for msg in data["messages"]
+                {"role": msg.role, "content": msg.content} for msg in data["messages"]
             ]
             if "system_prompt" in data:
                 # Add system prompt as the first message in conversation
-                openai_messages.insert(0, {"role": "system", "content": data["system_prompt"]})
+                openai_messages.insert(
+                    0, {"role": "system", "content": data["system_prompt"]}
+                )
 
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=openai_messages,
                 temperature=data["temperature"],
-                max_tokens=data["max_tokens"]
+                max_tokens=data["max_tokens"],
             )
             return {"response": response.choices[0].message.content or ""}
 
         except Exception as e:
-            logger.error(f"ERROR during chat with OpenAI: {e}")
-            raise RuntimeError(f"Failed to chat with OpenAI: {e}")
-
+            logger.error(
+                f"{ansi_colors['red']}ERROR during chat with OpenAI: {e}{ansi_colors['reset']}"
+            )
+            raise RuntimeError("Failed to chat with OpenAI.") from e
 
     def status_check(self) -> bool:
         """Check if the connector can reach the OpenAI API endpoint and the target model is available.

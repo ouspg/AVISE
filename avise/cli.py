@@ -16,6 +16,7 @@ Example:
     python -m avise --SET prompt_injection --connectorconf avise/configs/connector//ollama.json --SETconf avise/configs/SET/prompt_injection_mini.json
 
 """
+
 import sys
 import argparse
 import logging
@@ -27,17 +28,17 @@ from . import evaluators
 from . import connectors
 from . import sets
 
-from .utils import ReportFormat
+from .utils import ReportFormat, ansi_colors
 from .engine import ExecutionEngine
 
 
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
 DEFAULT_REPORTS_DIR = "reports"
+
 
 def main(arguments=[]) -> None:
     """Main function."""
@@ -54,61 +55,52 @@ def main(arguments=[]) -> None:
     parser.add_argument(
         "--SET_list",
         action="store_true",
-        help="List available Security Evaluation Tests"
+        help="List available Security Evaluation Tests",
     )
     parser.add_argument(
         "--connector_list",
         action="store_true",
-        help="List available connectors and formats"
+        help="List available connectors and formats",
     )
 
     parser.add_argument(
-        "--SET",
-        help="Security Evaluation Test to run (e.g., prompt_injection)"
+        "--SET", help="Security Evaluation Test to run (e.g., prompt_injection)"
     )
 
-    parser.add_argument(
-        "--connectorconf",
-        help="Path to connector configuration JSON"
-    )
+    parser.add_argument("--connectorconf", help="Path to connector configuration JSON")
 
     parser.add_argument(
-        "--SETconf",
-        help="Path to Security Evaluation Test configuration JSON"
+        "--SETconf", help="Path to Security Evaluation Test configuration JSON"
     )
 
     parser.add_argument(
         "--elm",
-        help="Boolean indicator whether to use an Evaluation Language Model to evaluate SET results or not. True or False. Default: True"
+        help="Boolean indicator whether to use an Evaluation Language Model to evaluate SET results or not. True or False. Default: True",
     )
 
-
     parser.add_argument(
-        "--format", "-f",
+        "--format",
+        "-f",
         choices=["json", "html", "md"],
         default="json",
-        help="Report format: json (default), html, or md (markdown)"
+        help="Report format: json (default), html, or md (markdown)",
     )
     parser.add_argument(
-        "--output", "-o",
-        help="Custom output path (Overrider default date based naming)"
+        "--output",
+        "-o",
+        help="Custom output path (Overrider default date based naming)",
     )
     parser.add_argument(
-        "--reports_dir", "-d",
+        "--reports_dir",
+        "-d",
         default=DEFAULT_REPORTS_DIR,
-        help=f"Base directory for reports (default: {DEFAULT_REPORTS_DIR})"
+        help=f"Base directory for reports (default: {DEFAULT_REPORTS_DIR})",
     )
 
     parser.add_argument(
-        "--verbose", "-v",
-        action="store_true",
-        help="Enable verbose logging"
+        "--verbose", "-v", action="store_true", help="Enable verbose logging"
     )
-    parser.add_argument(
-        "--version", "-V",
-        action="version",
-        version=__version__
-    )
+    parser.add_argument("--version", "-V", action="version", version=__version__)
     args = parser.parse_args(arguments)
 
     if args.verbose:
@@ -139,9 +131,13 @@ def main(arguments=[]) -> None:
         if args.SET == "red_queen":
             args.SETconf = "avise/configs/SET/languagemodel/multi_turn/red_queen.json"
         elif args.SET == "prompt_injection":
-            args.SETconf = "avise/configs/SET/languagemodel/single_turn/prompt_injection_mini.json"
+            args.SETconf = (
+                "avise/configs/SET/languagemodel/single_turn/prompt_injection_mini.json"
+            )
         elif args.SET == "context_test":
-            args.SETconf = "avise/configs/SET/languagemodel/multi_turn/context_test.json"
+            args.SETconf = (
+                "avise/configs/SET/languagemodel/multi_turn/context_test.json"
+            )
         else:
             parser.print_help()
             print("\nError: --SETconf is required for this SET.")
@@ -162,7 +158,7 @@ def main(arguments=[]) -> None:
     format_map = {
         "json": ReportFormat.JSON,
         "html": ReportFormat.HTML,
-        "md": ReportFormat.MARKDOWN
+        "md": ReportFormat.MARKDOWN,
     }
     report_format = format_map[args.format]
 
@@ -173,7 +169,6 @@ def main(arguments=[]) -> None:
         args.connectorconf = "avise/configs/connector/openai.json"
     elif args.connectorconf == "genericrest":
         args.connectorconf = "avise/configs/connector/genericrest.json"
-
 
     try:
         # Run the SET by calling run_test function. The selected SET's run() function is called.
@@ -187,7 +182,7 @@ def main(arguments=[]) -> None:
             reports_dir=args.reports_dir,
         )
 
-        #Print a small summary to the console
+        # Print a small summary to the console
         print(f"\nSecurity Evaluation Test completed!")
         print(f"  Format: {report_format.value.upper()}")
         print(f"  Total: {report.summary['total_sets']}")
@@ -196,10 +191,11 @@ def main(arguments=[]) -> None:
         print(f"  Errors: {report.summary['error']}")
 
     except Exception as e:
-        logger.error(f"Security Evaluation Test run failed: {e}", exc_info=True)
+        logger.error(
+            f"{ansi_colors['red']}Security Evaluation Test run failed: {e}{ansi_colors['reset']}",
+            exc_info=True,
+        )
         raise
-
-
 
 
 if __name__ == "__main__":
