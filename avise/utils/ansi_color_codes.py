@@ -10,5 +10,5 @@ ansi_colors = {
     "cyan": "\033[0;36m",
     "white": "\033[0;37m",
     "bold_red": "\033[1;31m",
-    "reset": "\033[0m"  # Reset to default terminal color
+    "reset": "\033[0m",  # Reset to default terminal color
 }
