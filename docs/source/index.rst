@@ -56,6 +56,7 @@ and we're happy to help you.
    building.set
    building.pipeline
    building.connector
+   building.evaluator
 
 .. toctree::
    :caption: Contributing:
