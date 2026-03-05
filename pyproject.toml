@@ -53,6 +53,10 @@ exclude = [
 ]
 
 [tool.pytest.ini_options]
+pythonpath = [
+  "."
+]
+
 testpaths = ["unit-tests"]
 
 [tool.ruff]

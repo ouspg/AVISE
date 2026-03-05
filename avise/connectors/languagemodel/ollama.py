@@ -284,7 +284,7 @@ class OllamaLMConnector(BaseLMConnector):
         )
 
     def _list_models(self) -> List[str]:
-        """Helper function, used by status_check() to verify model availability.
+        """Helper method, used by status_check() to verify model availability.
 
         Returns:
             List of model names.

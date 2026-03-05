@@ -50,6 +50,15 @@ and we're happy to help you.
    execution_engine
 
 .. toctree::
+   :caption: Extending:
+   :maxdepth: 1
+
+   building.set
+   building.pipeline
+   building.connector
+   building.evaluator
+
+.. toctree::
    :caption: Contributing:
    :maxdepth: 1
 

@@ -13,7 +13,7 @@ Usage:
     python -m avise --SET <SET_name> --connectorconf </path/to/connectorconfig/> --SETconf </path/to/setconfig/> --format json/html/md --output <path/to/outputdir>
 
 Example:
-    python -m avise --SET prompt_injection --connectorconf avise/configs/connector//ollama.json --SETconf avise/configs/SET/prompt_injection_mini.json
+    python -m avise --SET prompt_injection --connectorconf avise/configs/connector/languagemodel/ollama.json --SETconf avise/configs/SET/prompt_injection_mini.json
 
 """
 
@@ -164,11 +164,11 @@ def main(arguments=[]) -> None:
 
     # Predefined configs
     if args.connectorconf == "ollama":
-        args.connectorconf = "avise/configs/connector/ollama.json"
+        args.connectorconf = "avise/configs/connector/languagemodel/ollama.json"
     elif args.connectorconf == "openai":
-        args.connectorconf = "avise/configs/connector/openai.json"
+        args.connectorconf = "avise/configs/connector/languagemodel/openai.json"
     elif args.connectorconf == "genericrest":
-        args.connectorconf = "avise/configs/connector/genericrest.json"
+        args.connectorconf = "avise/configs/connector/languagemodel/genericrest.json"
 
     try:
         # Run the SET by calling run_test function. The selected SET's run() function is called.

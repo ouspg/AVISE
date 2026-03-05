@@ -66,6 +66,9 @@ class BaseLMConnector(ABC):
     def status_check(self) -> bool:
         """Perform a status check for the target API via a GET request.
 
+        Returns:
+            True if status check was successful.
+
         Raises:
             Exception: If the target API is not reachable.
         """

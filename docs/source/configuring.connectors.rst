@@ -12,11 +12,11 @@ Ollama Connector
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 `Ollama <https://ollama.com/>`__ is a widely used software for running language models.
-To use AVISE with Ollama models, you can modify the existing ``avise/configs/connector/ollama.json``
+To use AVISE with Ollama models, you can modify the existing ``avise/configs/connector/languagemodel/ollama.json``
 configuration file:
 
 .. code-block:: json
-   :caption: ``avise/configs/connector/ollama.json``
+   :caption: ``avise/configs/connector/languagemodel/ollama.json``
 
    {
        "target_model": {
@@ -42,11 +42,11 @@ model you wish to test and evaluate. ``target_model`` requires the following sub
 OpenAI Connector
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To use AVISE with `OpenAI <https://openai.com/>`__ models, you can modify the existing ``avise/configs/connector/openai.json``
+To use AVISE with `OpenAI <https://openai.com/>`__ models, you can modify the existing ``avise/configs/connector/languagemodel/openai.json``
 configuration file:
 
 .. code-block:: json
-   :caption: ``avise/configs/connector/openai.json``
+   :caption: ``avise/configs/connector/languagemodel/openai.json``
 
     {
         "target_model": {
@@ -59,7 +59,7 @@ configuration file:
         }
     }
 
-In the Connector configuraiton files, ``target_model`` defines the configurations for the
+In the Connector configuration files, ``target_model`` defines the configurations for the
 model you wish to test and evaluate. ``target_model`` requires the following subfields:
 
 * ``"connector"``: Name of the connector to use (See available connectors by running CLI command ``avise --connector_list``)
@@ -77,10 +77,10 @@ Generic REST API Connector
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 With the Generic REST API Connector, you can connect AVISE to any RESTful API Endpoint. To configure the Generic REST API Connector,
-modify the existing ``avise/configs/connector/genericrest.json`` configuration file:
+modify the existing ``avise/configs/connector/languagemodel/genericrest.json`` configuration file:
 
 .. code-block:: json
-   :caption: ``avise/configs/connector/genericrest.json``
+   :caption: ``avise/configs/connector/languagemodel/genericrest.json``
 
     {
         "target_model": {
