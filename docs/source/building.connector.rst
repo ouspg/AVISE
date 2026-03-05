@@ -100,6 +100,7 @@ The following is the finished abstract base class for language model connectors:
         """
         pass
 
+.. _building_connector_section_2:
 
 2. Creating a Connector
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -117,6 +118,8 @@ For clarity, here are the package imports that we will use later on in the code:
 * ``from .base import BaseLMConnector, Message`` These we defined earlier and will now use.
 * ``from ...registry import connector_registry`` connector_registry holds information of all connectors, sets, and formats available to the Execution Engine. We want to add our connector to the registry as well.
 * ``from ...utils import ansi_colors`` ansi_colors is a dictionary of ansi codes for different colors we can use to make our logging a bit prettier and easier to follow.
+
+.. _building_connector_section_2_init:
 
 Initialization
 ^^^^^^^^^^^^^^^^
@@ -298,7 +301,8 @@ Next, let's write the ``generate()`` method. We want to be able to create SETs t
 multi turn or single turn attacks to test a language model, so we will write ``_single_turn()``
 and ``_multi_turn()`` helper methods to accommodate this. They are very similar, and only differ
 in how the API request is made. Both have ``data`` parameter, that is a dictionary containing all
-the required data for making the API request. ...
+the required data for making the API request. And both return the model response in ``{"response": str}``
+format.
 
 .. code:: python
    :caption: ``_single_turn() helper method``
@@ -349,3 +353,205 @@ the required data for making the API request. ...
             "Failed to generate a response from model due to an error."
         ) from e
     return {"response": response.response}
+
+
+.. code:: python
+   :caption: ``_multi_turn() helper method``
+
+    def _multi_turn(self, data: dict) -> dict:
+    """Make a multi-turn generation.
+
+    Arguments:
+        data: Dictionary with required data for API request.
+
+    Returns:
+        {"response": str}
+    """
+    # Convert Message objects to Ollama's expected format
+    ollama_messages = [
+        {"role": msg.role, "content": msg.content} for msg in data["messages"]
+    ]
+    if "system_prompt" in data:
+        # If system prompt is given in the data dict, insert it into ollama_messages
+        ollama_messages.insert(
+            0, {"role": "system", "content": data["system_prompt"]}
+        )
+    try:
+        response = self.client.chat(
+            model=self.model,
+            messages=ollama_messages,
+            options={
+                "temperature": data["temperature"],
+                "num_predict": data["max_tokens"],
+            },
+        )
+        return {"response": response["message"]["content"]}
+    except Exception as e:
+        logger.error(
+            f"{ansi_colors['red']}ERROR during chat with model: {e}{ansi_colors['reset']}"
+        )
+        raise RuntimeError(f"Failed to chat with model.") from e
+
+Now with the help of ``_single_turn()`` and ``_multi_turn`` methods, we can write the ``generate()``
+method. As we use ``generate()`` method to handle both, single turn and multi turn SET instances,
+we need some way to differentiate when we are making a single turn or a multi turn generation. For this,
+we can use a *boolean* parameter ``multi_turn``, that indicates what kind of a generation we are making
+when calling this method. In addition, we give the required data for making the API request in a dictionary
+``data`` parameter.
+
+The ``generate()`` method checks that all expected fields have a valid value in the connector configuration
+JSON file, and based on the value of the ``multi_turn`` parameter, executes the respective helper method.
+
+.. code:: python
+   :caption: ``generate()`` method
+
+   def generate(self, data: dict, multi_turn: bool = False) -> dict:
+        """Generate a response from the target model via the Ollama API.
+
+        Arguments:
+            data: Dictionary containing data required for the generation API request.
+                Valid Keys:
+                    - prompt : str
+                        Prompt for single turn generation. Required for single turn conversation.
+                    - messages: list[Message]
+                        List of Message objects representing the conversation history.\
+                        Message objects contain 'role' and 'content' attributes.\
+                        Required for multi-turn conversation.
+                    - system_prompt : str
+                        Optional system prompt
+                    - temperature : float [0, 1]
+                        Optional temperature setting for the target model. Defaults to 0.5 if not set.
+                    - max_tokens : int
+                        Optional setting for maximum generated tokens. Defaults to 512 if not set.
+            multi_turn: Boolean flag to indicate if engaging in a multi turn conversation\
+                with the target model. Default False.
+
+        Returns:
+            API response.
+
+        Raises:
+            KeyError: If a required key is missing from data.
+            ValueError: If a value in data is of a wrong type.
+            RuntimeError: If the API call fails.
+        """
+        if "temperature" not in data:
+            data["temperature"] = 0.5
+        data["max_tokens"] = self.max_tokens
+
+        if "system_prompt" in data:
+            if not isinstance(data["system_prompt"], str):
+                raise ValueError(
+                    'If using "system_prompt" in data, it needs to be a string.'
+                )
+
+        if multi_turn:
+            if "messages" not in data:
+                raise KeyError(
+                    'Multi-turn conversation requires a "messages" key in \
+                               data variable, which contains a List of Message objects \
+                               representing the conversation history.'
+                )
+            if not isinstance(data["messages"], list):
+                raise ValueError(
+                    'Multi-turn conversation requires a "messages" key in \
+                               data variable, which contains a List of Message objects \
+                               representing the conversation history.'
+                )
+            for message in data["messages"]:
+                if not isinstance(message, Message):
+                    raise ValueError(
+                        'Multi-turn conversation requires a "messages" key in \
+                               data variable, which contains a List of Message objects \
+                               representing the conversation history.'
+                    )
+            return self._multi_turn(data=data)
+        else:
+            if "prompt" not in data:
+                raise KeyError(
+                    'Single-turn conversation requires a "prompt" key in \
+                               data variable, which contains a prompt as a string.'
+                )
+            if not isinstance(data["prompt"], str):
+                raise ValueError(
+                    'Single-turn conversation requires a "prompt" key in \
+                               data variable, which contains a prompt as a string.'
+                )
+            return self._single_turn(data=data)
+
+
+Creating a configuration JSON file for the Connector
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To be able to pass the required values for making an API request with the connector,
+we need to create a configuration JSON file for our new connector. All of the connector
+configuration files are stored in the ``avise/configs/connector/`` directory, and as our
+connector is intended for language models, we will insert our's into
+``avise/configs/connector/languagemodel/`` directory as ``ollama.json``.
+
+The configuration JSON should include all fields that are required for making an API request
+with the connector (when we previously wrote the ``__init__`` method, we included each as an
+instance attribute). If there are any optional fields that could be useful for some use-case,
+we can set their value as ``null``:
+
+.. code:: text
+   :caption: ``avise/configs/connector/languagemodel/ollama.json``
+
+    {
+        "target_model": {
+            "connector": "ollama-lm",
+            "type": "language_model",
+            "name": "phi3:latest",
+            "api_url": "http://localhost:11434",
+            "api_key": null,
+            "max_tokens": 768
+        }
+    }
+
+We need to give the name of our connector (which we defined earlier in the
+:ref:`building_connector_section_2_init` section) into a ``connector`` field here,
+so that the Execution Engine knows which connector we want to use when running SETs.
+The ``type`` field might be used in later AVISE versions, so it is useful to include it.
+It defines the type of the AI systems we are connecting to with the connector.
+
+
+Testing the new Connector
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Now that we have created a new Ollama Connector and a configuration JSON file for it,
+it is time to make sure it works as we intended.
+As we have created a connector for language model SET cases, we can try to run some available
+SET with the new connector to see if it works. ``prompt_injection`` SET with the
+``avise/configs/SET/languagemodel/single_turn/prompt_injection_mini.json`` configuration is great
+for this as it executes quickly.
+
+By running the ``prompt_injection`` SET in the root directory of AVISE, with the following command,
+we can use the latest modification we have made to the codebase:
+
+.. code:: bash
+
+    python -m avise --SET prompt_injection --connectorconf avise/configs/connector/languagemodel/ollama.json --SETconf avise/configs/SET/languagemodel/single_turn/prompt_injection_mini.json
+
+* ``--SET``: with this argument, we tell the CLI which SET we wish to execute.
+* ``--connectorconf``: with this argument, we tell the CLI the path of the connector configuration JSON we just created.
+* ``--SETconf``: with this optional argument, we can give the CLI a path to a custom SET configuration file
+(there are predefined default paths if we don't use this argument)
+
+If our code has no errors and works as we intended, the Execution Engine starts running the SET and eventually produces
+a report file and prints something like this to the console:
+
+.. code:: text
+    Security Evaluation Test completed!
+        Format: JSON
+        Total: 5
+        Passed: 2 (40.0%)
+        Failed: 3 (60.0%)
+        Errors: 0
+
+In the case that there were some errors in our code, we need to debug them until the SET cases execute fully.
+
+
+Contributing the new Connector
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Now that we have a functional new connector, we can contribute it to the main repository so other users can utilize
+it as well! For details on how to contribute a connector to the main repository, check out :ref:`contributing_connector`.
