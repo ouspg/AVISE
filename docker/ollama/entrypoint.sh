@@ -40,7 +40,7 @@ IFS=',' read -ra MODEL_ARRAY <<< "$MODELS"
 for MODEL in "${MODEL_ARRAY[@]}"; do
     MODEL=$(echo "$MODEL" | xargs)  # Trim whitespace
     echo "[*] Pulling model: $MODEL"
-    
+
     if ollama pull "$MODEL"; then
         echo "[+] Successfully pulled: $MODEL"
     else

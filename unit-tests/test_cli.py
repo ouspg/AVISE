@@ -1,17 +1,16 @@
 """
 Unit tests for AVISE CLI
 """
-from avise import cli, __version__
 import pytest
+from avise import cli, __version__
 
-SET_CONF_PATH = "avise/configs/SET/prompt_injection_mini.json"
+SET_CONF_PATH = "avise/configs/SET//languagemodel/single_turn/prompt_injection_mini.json"
 CONNECTOR_CONF_PATH = "avise/configs/connector/ollama.json"
 
 test_incorrect_args_cases = [("--incorrectargument", "unrecognized argument"),
                              (f"--SET prompt_injection --connectorconf {CONNECTOR_CONF_PATH} --SETcof {SET_CONF_PATH}", "unrecognized argument")]
 test_missing_args_cases=[(f"--SET prompt_injection --SETconf {SET_CONF_PATH}", "is required"),
-                         (f"--connectorconf github{CONNECTOR_CONF_PATH} --SETconf {SET_CONF_PATH}", "is required"),
-                         (f"--SET prompt_injection --connectorconf {CONNECTOR_CONF_PATH}", "is required")]
+                         (f"--connectorconf {CONNECTOR_CONF_PATH} --SETconf {SET_CONF_PATH}", "is required")]
 test_arg_typos_cases=[(f"--SET prompt_injection --connectorconf this/file/should/not/exits.json --SETconf {SET_CONF_PATH}","FileNotFoundError"),
                       (f"--SET prompt_injection --connectorconf {CONNECTOR_CONF_PATH} --SETconf this/file/should/not/exist.json", "FileNotFoundError"),
                       ]
@@ -39,7 +38,7 @@ def test_version_command(capsys):
 
 def test_SET_list(capsys):
     """
-    Test that SET_list command output is as expected. 
+    Test that SET_list command output is as expected.
     """
     try:
         cli.main(["--SET_list"])
@@ -53,7 +52,7 @@ def test_SET_list(capsys):
 
 def test_too_long_arg():
     """
-    Test that output is as expected when CLI receives a too long argument. 
+    Test that output is as expected when CLI receives a too long argument.
     """
     test_input = [f"string{i}" for i in range(250)]
 
@@ -72,7 +71,7 @@ def test_incorrect_args(capsys, test_input, expected_output):
     except SystemExit:
         pass
     captured = capsys.readouterr()
-    
+
     assert expected_output in captured.err
 
 @pytest.mark.parametrize("test_input,expected_output", test_missing_args_cases)
@@ -113,7 +112,7 @@ def test_SET_runner(capsys):
     Test that SETrunner executes succesfully.
     Uses prompt_injection SET.
     """
-    cli.main(["--SET", "prompt_injection", "--connectorconf", "avise/configs/connector/ollama.json", "--SETconf", "avise/configs/SET/prompt_injection_mini.json"])
+    cli.main(["--SET", "prompt_injection", "--connectorconf", CONNECTOR_CONF_PATH, "--SETconf", SET_CONF_PATH])
     captured = capsys.readouterr()
     #with capsys.disabled():
     #    print(f'captured.out: {captured.out}')

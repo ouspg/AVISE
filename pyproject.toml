@@ -1,0 +1,100 @@
+[build-system]
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
+
+
+[project]
+name = "avise"
+version = "0.2.0"
+authors = [
+    { name = "Mikko Lempinen", email="mikko.lempinen@oulu.fi" },
+    { name = "Joni Kemppainen" },
+    { name = "Niklas Raesalmi" }
+]
+
+license = "MIT"
+license-files = ["LICENSE"]
+description = "AI Vulnerability Identification & Security Evaluation framework"
+readme = "README.md"
+
+requires-python = ">=3.10"
+
+dependencies = [
+    "ollama>=0.3.0",
+    "openai>=1.0.0",
+    "pyyaml>=6.0",
+    "scipy>=1.17.0",
+    "numpy>=2.4.2",
+    "requests>=2.32.5",
+    "torch>=2.10.0",
+    "transformers>=5.2.0",
+    "accelerate>=1.12.0",
+    "mistral_common>=1.9.1"
+]
+[project.optional-dependencies]
+unit-tests = [
+    "pytest>=9.0.2"
+]
+docs = [
+    "sphinx",
+    "sphinx-rtd-theme",
+    "sphinx-github-style"
+]
+
+[project.scripts]
+avise = "avise.__main__:main"
+
+[tool.hatch.build]
+exclude = [
+  "/docs",
+  "/unit-tests",
+  "/reports",
+  "/docker"
+]
+
+[tool.pytest.ini_options]
+testpaths = ["unit-tests"]
+
+[tool.ruff]
+
+exclude = [
+    "unit-tests",
+    "docs",
+    "docker",
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
+    "__init__.py",
+]
+
+[tool.ruff.lint]
+select = ["D"]
+ignore = ["D102", "D107", "D205", "D415", "D417"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+ignore-decorators = ["typing.overload"]
+ignore-var-parameters = true

@@ -1,1 +1,1 @@
-from . import language_model
+from . import languagemodel
