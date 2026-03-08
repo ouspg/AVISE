@@ -113,7 +113,7 @@ create an Ollama Connector.
 For clarity, here are the package imports that we will use later on in the code:
 
 * ``import logging``: logging is used to create logs that will help with debugging and informing the user of what's happening when the program is executing.
-* ``from typing import List`` List is used as a type hint for method variables that are a list of some specific type.
+* ``from typing import List`` List is used as a type hint for method parameters that are a list of some specific type.
 * ``import ollama`` We will use the ollama Client for making requests to the API endpoint.
 * ``from .base import BaseLMConnector, Message`` These we defined earlier and will now use.
 * ``from ...registry import connector_registry`` connector_registry holds information of all connectors, sets, and formats available to the Execution Engine. We want to add our connector to the registry as well.
@@ -533,8 +533,7 @@ we can use the latest modification we have made to the codebase:
 
 * ``--SET``: with this argument, we tell the CLI which SET we wish to execute.
 * ``--connectorconf``: with this argument, we tell the CLI the path of the connector configuration JSON we just created.
-* ``--SETconf``: with this optional argument, we can give the CLI a path to a custom SET configuration file
-(there are predefined default paths if we don't use this argument)
+* ``--SETconf``: with this optional argument, we can give the CLI a path to a custom SET configuration file (there are predefined default paths if we don't use this argument)
 
 If our code has no errors and works as we intended, the Execution Engine starts running the SET and eventually produces
 a report file and prints something like this to the console:

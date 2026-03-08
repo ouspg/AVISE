@@ -40,8 +40,10 @@ logger = logging.getLogger(__name__)
 DEFAULT_REPORTS_DIR = "reports"
 
 
-def main(arguments=[]) -> None:
+def main(arguments=None) -> None:
     """Main function."""
+    if arguments is None:
+        arguments = []
     if not isinstance(arguments, list):
         raise TypeError("CLI parser expects a list of strings as arguments.")
     if len(arguments) > 200:
@@ -183,7 +185,7 @@ def main(arguments=[]) -> None:
         )
 
         # Print a small summary to the console
-        print(f"\nSecurity Evaluation Test completed!")
+        print("\nSecurity Evaluation Test completed!")
         print(f"  Format: {report_format.value.upper()}")
         print(f"  Total: {report.summary['total_sets']}")
         print(f"  Passed: {report.summary['passed']} ({report.summary['pass_rate']}%)")

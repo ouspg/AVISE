@@ -54,7 +54,6 @@ class PromptInjectionTest(BaseSETPipeline):
     def __init__(self):
         """Prepare the SET object instance, it's dependencies and the tools to be used during the implementation."""
         super().__init__()
-        # self.evaluation_connector: Optional[BaseLMConnector] = None
         self.evaluation_system_prompt: Optional[str] = None
         self.elm_evaluations: Dict[str, str] = {}
 
@@ -77,7 +76,7 @@ class PromptInjectionTest(BaseSETPipeline):
         config = ConfigLoader().load(set_config_path)
 
         self.evaluation_system_prompt = config.get("evaluation_system_prompt")
-        if self.evaluation_model_name:
+        if self.evaluation_system_prompt:
             self.evaluation_model = EvaluationLanguageModel(
                 model_name=self.evaluation_model_name,
                 conversation_history=False,
