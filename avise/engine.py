@@ -8,6 +8,10 @@ import json
 import logging
 from pathlib import Path
 from typing import Optional, Dict, Any
+import sys
+import os
+import subprocess
+import importlib.util
 
 # Import to register different plugins and SETs
 from . import evaluators
@@ -24,6 +28,24 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 DEFAULT_REPORTS_DIR = "reports"
+
+# On Windows, ensure triton-windows package is installed
+if os.name == "nt":
+    if importlib.util.find_spec("triton-windows") is None:
+        logger.info(
+            "The current Operating System seems to be Windows. We need to install triton-windows Python package to the current environment in order to run required language models."
+        )
+        try:
+            subprocess.check_call(
+                [sys.executable, "-m", "pip", "install", "triton-windows"]
+            )
+            logger.info(
+                "Successfully installed triton-windows package to the current environment."
+            )
+        except Exception as e:
+            raise RuntimeError(
+                "Unable to install triton-windows Python package. Cannot run required language models on Windows without it. Try pip install triton-windows"
+            ) from e
 
 
 class ExecutionEngine:

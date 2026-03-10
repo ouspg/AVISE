@@ -63,6 +63,6 @@ Contributing Your Pipeline
 ----------------------------
 
 Did you build a pipeline that could be useful to other users of AVISE as well? We love community contributions and
-would like to include it in the main repository. Once your pipeline and SET is complete and all
+would like to include it in the main repository. Once your pipeline and a SET that extends it is complete and all
 unit tests are passing, take a look at the :ref:`_contributing` documentation for guidance on how
 to submit your work to the project.

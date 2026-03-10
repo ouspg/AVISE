@@ -64,5 +64,6 @@ and we're happy to help you.
 
    contributing.set
    contributing.pipeline
+   contributing.connector
    contributing
 
