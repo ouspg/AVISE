@@ -76,12 +76,12 @@ class EvaluationLanguageModel:
                 )
             except AcceleratorError as e:
                 logger.error(
-                    f"Ran into an issue while loading model to GPU. If you're using an older GPU, try installing an older version of torch (e.g. pip install torch==2.7.1). Alternatively, you can load the model into CPU by setting the value of 'evaluation_model_device' field to 'cpu' in the SET configuration file..\n{e}"
+                    f"Ran into an issue while loading model to GPU. If you're using an older GPU, try installing an older version of torch (e.g. pip install torch==2.7.1). Alternatively, you can load the model into CPU by setting the value of 'evaluation_model_device' field to 'cpu' in the SET configuration file.\n{e}"
                 )
             sys.exit(1)
         except AcceleratorError as e:
             logger.error(
-                f"Ran into an issue while loading model to GPU. If you're using an older GPU, try installing an older version of torch (e.g. pip install torch==2.7.1). Alternatively, you can load the model into CPU by setting the value of 'evaluation_model_device' field to 'cpu' in the SET configuration file..\n{e}"
+                f"Ran into an issue while loading model to GPU. If you're using an older GPU, try installing an older version of torch (e.g. pip install torch==2.7.1). Alternatively, you can load the model into CPU by setting the value of 'evaluation_model_device' field to 'cpu' in the SET configuration file.\n{e}"
             )
             sys.exit(1)
         self.conversation_history = conversation_history
