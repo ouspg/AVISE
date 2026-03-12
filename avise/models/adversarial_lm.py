@@ -3,7 +3,9 @@
 from pathlib import Path
 import logging
 import os
+import sys
 import re
+from typing import Optional
 
 from transformers import (
     Mistral3ForConditionalGeneration,
@@ -12,7 +14,7 @@ from transformers import (
     AutoTokenizer,
     pipeline,
 )
-from torch import cuda, device
+from torch import cuda, device, AcceleratorError
 from huggingface_hub import snapshot_download
 
 logger = logging.getLogger(__name__)
@@ -35,16 +37,31 @@ class AdversarialLanguageModel:
         max_new_tokens: int = 200,
         conversation_history: bool = True,
         system_prompt: str = None,
+        use_device: Optional[str] = "auto",
     ):
         logger.info("Loading Adversarial Language Model...")
 
         # Check for CUDA
-        if cuda.is_available():
-            print("CUDA is available, loading model to GPU.")
-            self.device = "cuda"
-            device("cuda")
-        else:
-            print("CUDA is not available, loading model to CPU.")
+        if use_device in ("auto", None):
+            if cuda.is_available():
+                print("CUDA is available, loading model to GPU.")
+                self.device = "cuda"
+                device("cuda")
+            else:
+                print("CUDA is not available, loading model to CPU.")
+                device("cpu")
+                self.device = "cpu"
+        elif use_device == "gpu":
+            if cuda.is_available():
+                print("CUDA is available, loading model to GPU.")
+                self.device = "cuda"
+                device("cuda")
+            else:
+                print("CUDA is not available, loading model to CPU.")
+                device("cpu")
+                self.device = "cpu"
+        elif use_device == "cpu":
+            print("Loading model to CPU.")
             device("cpu")
             self.device = "cpu"
 
@@ -68,16 +85,29 @@ class AdversarialLanguageModel:
                 "Adversarial model not found locally. Downloading it from Hugging Face..."
             )
             self._model_download(self.model_path, model_name)
-            if "mistral" in self.model_name:
-                self.tokenizer = MistralCommonBackend.from_pretrained(self.model_path)
-                self.model = Mistral3ForConditionalGeneration.from_pretrained(
-                    self.model_path, device_map="auto"
+            try:
+                if "mistral" in self.model_name:
+                    self.tokenizer = MistralCommonBackend.from_pretrained(
+                        self.model_path
+                    )
+                    self.model = Mistral3ForConditionalGeneration.from_pretrained(
+                        self.model_path, device_map="auto"
+                    )
+                else:
+                    self.model = AutoModelForCausalLM.from_pretrained(
+                        self.model_path, device_map="auto"
+                    )
+                    self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
+            except AcceleratorError as e:
+                logger.error(
+                    f"Ran into an issue while loading model to GPU. If you're using an older GPU, try installing an older version of torch instead (e.g. 2.7.1). Alternatively, you can load the model into CPU by adding a ['evaluation_model']['use_device'] field into SET configuration file, and setting its value as 'cpu'.\n{e}"
                 )
-            else:
-                self.model = AutoModelForCausalLM.from_pretrained(
-                    self.model_path, device_map="auto"
-                )
-                self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
+                sys.exit(1)
+        except AcceleratorError as e:
+            logger.error(
+                f"Ran into an issue while loading model to GPU. If you're using an older GPU, try installing an older version of torch instead (e.g. 2.7.1). Alternatively, you can load the model into CPU by adding a ['evaluation_model']['use_device'] field into SET configuration file, and setting its value as 'cpu'.\n{e}"
+            )
+            sys.exit(1)
 
         self.conversation_history = conversation_history
         self.max_new_tokens = max_new_tokens
