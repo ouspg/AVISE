@@ -7,6 +7,10 @@ A framework for identifying vulnerabilities in and evaluating the security of AI
 
 #### Full Documentations: https://avise.readthedocs.io
 
+<br>
+<br>
+
+## Quickstart for evaluating Language Models
 
 ### Prerequisites
 
@@ -56,7 +60,7 @@ docker exec -it avise-ollama ollama pull <model_name>
 
 ### 5. Configure Connectors
 
-Edit `avise/configs/connector/ollama.json`:
+Edit `avise/configs/connector/languagemodel/ollama.json`:
 
 ```json
 {
@@ -89,7 +93,7 @@ python -m avise --SET prompt_injection --connectorconf ollama
 If you want to use custom configuration files for SETs and/or Connectors, you can do so by giving the paths to the configuration files with `--SETconf` and `--connectorconf` arguments:
 
 ```bash
-python -m avise --SET prompt_injection --SETconf avise/configs/SET/languagemodel/single_turn/prompt_injection_mini.json --connectorconf avise/configs/connector/ollama.json
+python -m avise --SET prompt_injection --SETconf avise/configs/SET/languagemodel/single_turn/prompt_injection_mini.json --connectorconf avise/configs/connector/languagemodel/ollama.json
 ```
 
 ### Required Arguments
