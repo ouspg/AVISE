@@ -6,7 +6,7 @@ import os
 import sys
 
 from transformers import Mistral3ForConditionalGeneration, MistralCommonBackend
-from torch import cuda, device, AcceleratorError, OutOfMemoryError
+from torch import cuda, device
 from huggingface_hub import snapshot_download
 
 logger = logging.getLogger(__name__)
@@ -74,12 +74,12 @@ class EvaluationLanguageModel:
                 self.model = Mistral3ForConditionalGeneration.from_pretrained(
                     self.model_path, device_map="auto"
                 )
-            except AcceleratorError as e:
+            except cuda.AcceleratorError as e:
                 logger.error(
                     f"Ran into an issue while loading model to GPU. If you're using an older GPU, try installing an older version of torch (e.g. pip install torch==2.7.1). Alternatively, you can load the model into CPU by setting the value of 'evaluation_model_device' field to 'cpu' in the SET configuration file.\n{e}"
                 )
                 sys.exit(1)
-            except OutOfMemoryError:
+            except cuda.OutOfMemoryError:
                 logger.error(
                     "CUDA out of memory. Trying to load the model onto CPU instead..."
                 )
@@ -95,12 +95,12 @@ class EvaluationLanguageModel:
                         f"Unable to load Evaluation model onto GPU or CPU: {e}"
                     )
                     sys.exit(1)
-        except AcceleratorError as e:
+        except cuda.AcceleratorError as e:
             logger.error(
                 f"Ran into an issue while loading model to GPU. If you're using an older GPU, try installing an older version of torch (e.g. pip install torch==2.7.1). Alternatively, you can load the model into CPU by setting the value of 'evaluation_model_device' field to 'cpu' in the SET configuration file.\n{e}"
             )
             sys.exit(1)
-        except OutOfMemoryError:
+        except cuda.OutOfMemoryError:
             logger.error(
                 "CUDA out of memory. Trying to load the model onto CPU instead..."
             )
