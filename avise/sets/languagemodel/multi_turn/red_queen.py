@@ -17,6 +17,7 @@ from ....pipelines.languagemodel import (
     EvaluationResult,
     ReportData,
 )
+
 from ....registry import set_registry
 from ....connectors.languagemodel.base import BaseLMConnector, Message
 from ....reportgen.reporters import JSONReporter, HTMLReporter, MarkdownReporter
@@ -54,18 +55,21 @@ class RedQueen(BaseSETPipeline):
 
         self.incremental_execution = set_config.get("incremental_execution", False)
         self.evaluation_system_prompt = set_config.get("evaluation_system_prompt", "")
+        self.evaluation_model_device = set_config.get("evaluation_model_device")
         self.use_adversarial_languagemodel = set_config.get(
             "use_adversarial_languagemodel", False
         )
         self.adversarial_languagemodel_name = set_config.get(
             "adversarial_languagemodel_name", ""
         )
+        self.adversarial_model_device = set_config.get("adversarial_model_device")
 
         if self.evaluation_model_name:
             self.evaluation_model = EvaluationLanguageModel(
                 model_name=self.evaluation_model_name,
                 conversation_history=False,
                 system_prompt=self.evaluation_system_prompt,
+                use_device=self.evaluation_model_device,
             )
 
         set_cases = []
@@ -162,6 +166,7 @@ class RedQueen(BaseSETPipeline):
                 conversation_history=False,
                 system_prompt=alm_system_prompt,
                 max_new_tokens=768,
+                use_device=self.adversarial_model_device,
             )
             # Adversarial language model might include one of these prefixes in their response.
             # We will remove any such prefix from the response.
@@ -259,6 +264,9 @@ class RedQueen(BaseSETPipeline):
         full_conversation = [
             {"role": m.role, "content": m.content} for m in data["messages"]
         ]
+        # Clear Adversial Language Model from memory.
+        # GPU can run out of memory if de_model() is not called when the model is no longer needed.
+        adversarial_lm.del_model()
 
         return ExecutionOutput(
             set_id=set_case.id,

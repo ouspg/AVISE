@@ -76,11 +76,12 @@ class PromptInjectionTest(BaseSETPipeline):
         config = ConfigLoader().load(set_config_path)
 
         self.evaluation_system_prompt = config.get("evaluation_system_prompt")
-        if self.evaluation_model_name:
+        if self.evaluation_system_prompt:
             self.evaluation_model = EvaluationLanguageModel(
                 model_name=self.evaluation_model_name,
                 conversation_history=False,
                 system_prompt=self.evaluation_system_prompt,
+                use_device=config.get("evaluation_model_device"),
             )
 
         sets = config.get("sets", [])

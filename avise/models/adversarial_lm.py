@@ -3,7 +3,9 @@
 from pathlib import Path
 import logging
 import os
+import sys
 import re
+from typing import Optional
 
 from transformers import (
     Mistral3ForConditionalGeneration,
@@ -12,7 +14,7 @@ from transformers import (
     AutoTokenizer,
     pipeline,
 )
-from torch import cuda, device
+import torch
 from huggingface_hub import snapshot_download
 
 logger = logging.getLogger(__name__)
@@ -35,18 +37,31 @@ class AdversarialLanguageModel:
         max_new_tokens: int = 200,
         conversation_history: bool = True,
         system_prompt: str = None,
+        use_device: Optional[str] = "auto",
     ):
         logger.info("Loading Adversarial Language Model...")
+        torch.cuda.empty_cache()
 
+        if use_device is None:
+            use_device = "auto"
         # Check for CUDA
-        if cuda.is_available():
-            print("CUDA is available, loading model to GPU.")
-            self.device = "cuda"
-            device("cuda")
-        else:
-            print("CUDA is not available, loading model to CPU.")
-            device("cpu")
-            self.device = "cpu"
+        if use_device == "auto":
+            if torch.cuda.is_available():
+                print("CUDA is available, loading model to GPU.")
+                self.device = torch.device("cuda")
+            else:
+                print("CUDA is not available, loading model to CPU.")
+                self.device = torch.device("cpu")
+        elif use_device == "gpu":
+            if torch.cuda.is_available():
+                print("CUDA is available, loading model to GPU.")
+                self.device = torch.device("cuda")
+            else:
+                print("CUDA is not available, loading model to CPU.")
+                self.device = torch.device("cpu")
+        elif use_device == "cpu":
+            print("Loading model to CPU.")
+            self.device = torch.device("cpu")
 
         self.model_name = model_name
         self.model_path = Path("avise/models/" + model_name)
@@ -54,11 +69,11 @@ class AdversarialLanguageModel:
             if "mistralai" in self.model_name:
                 self.tokenizer = MistralCommonBackend.from_pretrained(self.model_path)
                 self.model = Mistral3ForConditionalGeneration.from_pretrained(
-                    self.model_path, device_map="auto"
+                    self.model_path, device_map=use_device
                 )
             else:
                 self.model = AutoModelForCausalLM.from_pretrained(
-                    self.model_path, device_map="auto"
+                    self.model_path, device_map=use_device
                 )  # attn_implementation="eager"
                 self.tokenizer = AutoTokenizer.from_pretrained(
                     self.model_path
@@ -68,17 +83,79 @@ class AdversarialLanguageModel:
                 "Adversarial model not found locally. Downloading it from Hugging Face..."
             )
             self._model_download(self.model_path, model_name)
-            if "mistral" in self.model_name:
-                self.tokenizer = MistralCommonBackend.from_pretrained(self.model_path)
-                self.model = Mistral3ForConditionalGeneration.from_pretrained(
-                    self.model_path, device_map="auto"
+            try:
+                if "mistral" in self.model_name:
+                    self.tokenizer = MistralCommonBackend.from_pretrained(
+                        self.model_path
+                    )
+                    self.model = Mistral3ForConditionalGeneration.from_pretrained(
+                        self.model_path, device_map=use_device
+                    )
+                else:
+                    self.model = AutoModelForCausalLM.from_pretrained(
+                        self.model_path, device_map=use_device
+                    )
+                    self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
+            except torch.cuda.AcceleratorError as e:
+                logger.error(
+                    f"Ran into an issue while loading model to GPU. If you're using an older GPU, try installing an older version of torch (e.g. pip install torch==2.7.1). Alternatively, you can load the model into CPU by setting the value of 'adversarial_model_device' field to 'cpu' in the SET configuration file.\n{e}"
                 )
-            else:
-                self.model = AutoModelForCausalLM.from_pretrained(
-                    self.model_path, device_map="auto"
+                sys.exit(1)
+            except torch.cuda.OutOfMemoryError:
+                logger.error(
+                    "CUDA out of memory. Trying to load the model onto CPU instead..."
                 )
-                self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
-
+                torch.cuda.empty_cache()
+                self.device = torch.device("cpu")
+                try:
+                    if "mistral" in self.model_name:
+                        self.tokenizer = MistralCommonBackend.from_pretrained(
+                            self.model_path
+                        )
+                        self.model = Mistral3ForConditionalGeneration.from_pretrained(
+                            self.model_path, device_map="cpu"
+                        )
+                    else:
+                        self.model = AutoModelForCausalLM.from_pretrained(
+                            self.model_path, device_map="cpu"
+                        )
+                        self.tokenizer = AutoTokenizer.from_pretrained(
+                            self.model_path, device_map="cpu"
+                        )
+                except Exception as e:
+                    logger.error(
+                        f"Unable to load Adversarial model onto GPU or CPU: {e}"
+                    )
+                    sys.exit(1)
+        except torch.cuda.AcceleratorError as e:
+            logger.error(
+                f"Ran into an issue while loading model to GPU. If you're using an older GPU, try installing an older version of torch (e.g. pip install torch==2.7.1). Alternatively, you can load the model into CPU by setting the value of 'adversarial_model_device' field to 'cpu' in the SET configuration file.\n{e}"
+            )
+            sys.exit(1)
+        except torch.cuda.OutOfMemoryError:
+            logger.error(
+                "CUDA out of memory. Trying to load the model onto CPU instead..."
+            )
+            torch.cuda.empty_cache()
+            self.device = torch.device("cpu")
+            try:
+                if "mistral" in self.model_name:
+                    self.tokenizer = MistralCommonBackend.from_pretrained(
+                        self.model_path
+                    )
+                    self.model = Mistral3ForConditionalGeneration.from_pretrained(
+                        self.model_path, device_map="cpu"
+                    )
+                else:
+                    self.model = AutoModelForCausalLM.from_pretrained(
+                        self.model_path, device_map="cpu"
+                    )
+                    self.tokenizer = AutoTokenizer.from_pretrained(
+                        self.model_path, device_map="cpu"
+                    )
+            except Exception as e:
+                logger.error(f"Unable to load Adversarial model onto GPU or CPU: {e}")
+                sys.exit(1)
         self.conversation_history = conversation_history
         self.max_new_tokens = max_new_tokens
         if system_prompt is not None:
@@ -142,6 +219,13 @@ class AdversarialLanguageModel:
 
             return self.history
         return [{"role": "assistant", "content": response}]
+
+    def del_model(self):
+        """Delete the model from GPU memory."""
+        self.model.cpu()
+        del self.model
+        del self.tokenizer
+        torch.cuda.empty_cache()
 
     def _mistral_text_generation(self, messages: list):
         """Helper method for generating responses with Mistral models from pure
