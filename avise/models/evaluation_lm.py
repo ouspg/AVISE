@@ -5,8 +5,8 @@ import logging
 import os
 import sys
 
+import torch
 from transformers import Mistral3ForConditionalGeneration, MistralCommonBackend
-from torch import cuda, device
 from huggingface_hub import snapshot_download
 
 logger = logging.getLogger(__name__)
@@ -32,37 +32,34 @@ class EvaluationLanguageModel:
         use_device: str = "auto",
     ):
         logger.info("Loading Evaluation Language Model...")
-
+        torch.cuda.empty_cache()
+        if use_device is None:
+            use_device = "auto"
         # Check for CUDA
-        if use_device in ("auto", None):
-            if cuda.is_available():
+        if use_device == "auto":
+            if torch.cuda.is_available():
                 print("CUDA is available, loading model to GPU.")
-                self.device = "cuda"
-                device("cuda")
+                self.device = torch.device("cuda")
             else:
                 print("CUDA is not available, loading model to CPU.")
-                device("cpu")
-                self.device = "cpu"
+                self.device = torch.device("cpu")
         elif use_device == "gpu":
-            if cuda.is_available():
+            if torch.cuda.is_available():
                 print("CUDA is available, loading model to GPU.")
-                self.device = "cuda"
-                device("cuda")
+                self.device = torch.device("cuda")
             else:
                 print("CUDA is not available, loading model to CPU.")
-                device("cpu")
-                self.device = "cpu"
+                self.device = torch.device("cpu")
         elif use_device == "cpu":
             print("Loading model to CPU.")
-            device("cpu")
-            self.device = "cpu"
+            self.device = torch.device("cpu")
 
         self.model_name = model_name
         self.model_path = Path("avise/models/" + model_name)
         try:
             self.tokenizer = MistralCommonBackend.from_pretrained(self.model_path)
             self.model = Mistral3ForConditionalGeneration.from_pretrained(
-                self.model_path, device_map=self.device
+                self.model_path, device_map=use_device
             )
         except (FileNotFoundError, IOError, ValueError):
             logger.error(
@@ -72,17 +69,18 @@ class EvaluationLanguageModel:
             try:
                 self.tokenizer = MistralCommonBackend.from_pretrained(self.model_path)
                 self.model = Mistral3ForConditionalGeneration.from_pretrained(
-                    self.model_path, device_map="auto"
+                    self.model_path, device_map=use_device
                 )
-            except cuda.AcceleratorError as e:
+            except torch.cuda.AcceleratorError as e:
                 logger.error(
                     f"Ran into an issue while loading model to GPU. If you're using an older GPU, try installing an older version of torch (e.g. pip install torch==2.7.1). Alternatively, you can load the model into CPU by setting the value of 'evaluation_model_device' field to 'cpu' in the SET configuration file.\n{e}"
                 )
                 sys.exit(1)
-            except cuda.OutOfMemoryError:
+            except torch.cuda.OutOfMemoryError:
                 logger.error(
                     "CUDA out of memory. Trying to load the model onto CPU instead..."
                 )
+                torch.cuda.empty_cache()
                 try:
                     self.tokenizer = MistralCommonBackend.from_pretrained(
                         self.model_path
@@ -95,15 +93,16 @@ class EvaluationLanguageModel:
                         f"Unable to load Evaluation model onto GPU or CPU: {e}"
                     )
                     sys.exit(1)
-        except cuda.AcceleratorError as e:
+        except torch.cuda.AcceleratorError as e:
             logger.error(
                 f"Ran into an issue while loading model to GPU. If you're using an older GPU, try installing an older version of torch (e.g. pip install torch==2.7.1). Alternatively, you can load the model into CPU by setting the value of 'evaluation_model_device' field to 'cpu' in the SET configuration file.\n{e}"
             )
             sys.exit(1)
-        except cuda.OutOfMemoryError:
+        except torch.cuda.OutOfMemoryError:
             logger.error(
                 "CUDA out of memory. Trying to load the model onto CPU instead..."
             )
+            torch.cuda.empty_cache()
             try:
                 self.tokenizer = MistralCommonBackend.from_pretrained(self.model_path)
                 self.model = Mistral3ForConditionalGeneration.from_pretrained(
@@ -112,6 +111,7 @@ class EvaluationLanguageModel:
             except Exception as e:
                 logger.error(f"Unable to load Evaluation model onto GPU or CPU: {e}")
                 sys.exit(1)
+        self.model = self.model.to(self.device)
         self.conversation_history = conversation_history
         self.max_new_tokens = max_new_tokens
         if system_prompt is not None:
