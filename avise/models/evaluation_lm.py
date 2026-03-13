@@ -81,6 +81,7 @@ class EvaluationLanguageModel:
                     "CUDA out of memory. Trying to load the model onto CPU instead..."
                 )
                 torch.cuda.empty_cache()
+                self.device = torch.device("cpu")
                 try:
                     self.tokenizer = MistralCommonBackend.from_pretrained(
                         self.model_path
@@ -103,6 +104,7 @@ class EvaluationLanguageModel:
                 "CUDA out of memory. Trying to load the model onto CPU instead..."
             )
             torch.cuda.empty_cache()
+            self.device = torch.device("cpu")
             try:
                 self.tokenizer = MistralCommonBackend.from_pretrained(self.model_path)
                 self.model = Mistral3ForConditionalGeneration.from_pretrained(

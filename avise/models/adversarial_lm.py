@@ -107,6 +107,7 @@ class AdversarialLanguageModel:
                     "CUDA out of memory. Trying to load the model onto CPU instead..."
                 )
                 torch.cuda.empty_cache()
+                self.device = torch.device("cpu")
                 try:
                     if "mistral" in self.model_name:
                         self.tokenizer = MistralCommonBackend.from_pretrained(
@@ -137,6 +138,7 @@ class AdversarialLanguageModel:
                 "CUDA out of memory. Trying to load the model onto CPU instead..."
             )
             torch.cuda.empty_cache()
+            self.device = torch.device("cpu")
             try:
                 if "mistral" in self.model_name:
                     self.tokenizer = MistralCommonBackend.from_pretrained(
@@ -155,7 +157,7 @@ class AdversarialLanguageModel:
             except Exception as e:
                 logger.error(f"Unable to load Adversarial model onto GPU or CPU: {e}")
                 sys.exit(1)
-
+        self.model = self.model.to(self.device)
         self.conversation_history = conversation_history
         self.max_new_tokens = max_new_tokens
         if system_prompt is not None:
