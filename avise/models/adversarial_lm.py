@@ -15,7 +15,6 @@ from transformers import (
     pipeline,
 )
 import torch
-from torch import cuda, device
 from huggingface_hub import snapshot_download
 
 logger = logging.getLogger(__name__)
@@ -157,7 +156,6 @@ class AdversarialLanguageModel:
             except Exception as e:
                 logger.error(f"Unable to load Adversarial model onto GPU or CPU: {e}")
                 sys.exit(1)
-        # self.model = self.model.to(self.device)
         self.conversation_history = conversation_history
         self.max_new_tokens = max_new_tokens
         if system_prompt is not None:
@@ -222,8 +220,8 @@ class AdversarialLanguageModel:
             return self.history
         return [{"role": "assistant", "content": response}]
 
-    def cleanup(self):
-        """Explicitly free GPU memory used by the model."""
+    def del_model(self):
+        """Delete the model from GPU memory."""
         self.model.cpu()
         del self.model
         del self.tokenizer

@@ -113,7 +113,6 @@ class EvaluationLanguageModel:
             except Exception as e:
                 logger.error(f"Unable to load Evaluation model onto GPU or CPU: {e}")
                 sys.exit(1)
-        # self.model = self.model.to(self.device)
         self.conversation_history = conversation_history
         self.max_new_tokens = max_new_tokens
         if system_prompt is not None:
@@ -183,6 +182,13 @@ class EvaluationLanguageModel:
             output[len(tokenized["input_ids"][0]) :]
         ).replace("</s>", "")
         return decoded_output
+
+    def del_model(self):
+        """Delete the model from GPU memory."""
+        self.model.cpu()
+        del self.model
+        del self.tokenizer
+        torch.cuda.empty_cache()
 
     def _model_download(
         self,

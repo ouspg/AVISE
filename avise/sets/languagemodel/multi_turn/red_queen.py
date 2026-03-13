@@ -18,8 +18,6 @@ from ....pipelines.languagemodel import (
     ReportData,
 )
 
-import torch
-
 from ....registry import set_registry
 from ....connectors.languagemodel.base import BaseLMConnector, Message
 from ....reportgen.reporters import JSONReporter, HTMLReporter, MarkdownReporter
@@ -266,11 +264,9 @@ class RedQueen(BaseSETPipeline):
         full_conversation = [
             {"role": m.role, "content": m.content} for m in data["messages"]
         ]
-        print(f"\nMEMORY ALLOCATED BEFORE cleanup: {torch.cuda.memory_allocated()}")
-        print(f"\nMEMORY CACHED BEFORE cleanup: {torch.cuda.memory_reserved()}")
-        adversarial_lm.cleanup()
-        print(f"\nMEMORY ALLOCATED AFTER cleanup: {torch.cuda.memory_allocated()}")
-        print(f"\nMEMORY CACHED AFTER cleanup: {torch.cuda.memory_reserved()}\n")
+        # Clear Adversial Language Model from memory.
+        # GPU can run out of memory if de_model() is not called when the model is no longer needed.
+        adversarial_lm.del_model()
 
         return ExecutionOutput(
             set_id=set_case.id,

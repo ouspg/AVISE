@@ -6,7 +6,7 @@ OLLAMA_HOST="${OLLAMA_HOST:-0.0.0.0:11434}"
 MODELS="${MODELS:-llama3.2:3b}"
 
 echo "=========================================="
-echo "AIVuT Ollama Container"
+echo "AVISE Ollama Container"
 echo "=========================================="
 echo "Host: $OLLAMA_HOST"
 echo "Models to load: $MODELS"
