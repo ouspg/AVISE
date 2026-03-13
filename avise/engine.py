@@ -12,6 +12,7 @@ import sys
 import os
 import subprocess
 import importlib.util
+from importlib.resources import files
 
 # Import to register different plugins and SETs
 from . import evaluators
@@ -71,11 +72,12 @@ class ExecutionEngine:
                 - api_key (str): API authentication key if required by the evaluation API.
 
         """
-        path = Path(config_path)
+        path = Path(files("avise").joinpath(config_path))
+        print(f"new path: {path}")
         if not path.exists():
-            raise FileNotFoundError(
-                f"Connector configuration file not found: {config_path}"
-            )
+            path = Path(config_path)
+            if not path.exists():
+                raise FileNotFoundError(f"Configuration not found from: {config_path}")
 
         with open(path, "r") as f:
             config = json.load(f)

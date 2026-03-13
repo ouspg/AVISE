@@ -13,7 +13,7 @@ Usage:
     python -m avise --SET <SET_name> --connectorconf </path/to/connectorconfig/> --SETconf </path/to/setconfig/> --format json/html/md --output <path/to/outputdir>
 
 Example:
-    python -m avise --SET prompt_injection --connectorconf avise/configs/connector/languagemodel/ollama.json --SETconf avise/configs/SET/prompt_injection_mini.json
+    python -m avise --SET prompt_injection --connectorconf configs/connector/languagemodel/ollama.json --SETconf configs/SET/prompt_injection_mini.json
 
 """
 
@@ -131,15 +131,13 @@ def main(arguments=None) -> None:
     if not args.SETconf:
         # Check predefined configs
         if args.SET == "red_queen":
-            args.SETconf = "avise/configs/SET/languagemodel/multi_turn/red_queen.json"
+            args.SETconf = "configs/SET/languagemodel/multi_turn/red_queen.json"
         elif args.SET == "prompt_injection":
             args.SETconf = (
-                "avise/configs/SET/languagemodel/single_turn/prompt_injection_mini.json"
+                "configs/SET/languagemodel/single_turn/prompt_injection_mini.json"
             )
         elif args.SET == "context_test":
-            args.SETconf = (
-                "avise/configs/SET/languagemodel/multi_turn/context_test.json"
-            )
+            args.SETconf = "configs/SET/languagemodel/multi_turn/context_test.json"
         else:
             parser.print_help()
             print("\nError: --SETconf is required for this SET.")
@@ -166,11 +164,11 @@ def main(arguments=None) -> None:
 
     # Predefined configs
     if args.connectorconf == "ollama":
-        args.connectorconf = "avise/configs/connector/languagemodel/ollama.json"
+        args.connectorconf = "configs/connector/languagemodel/ollama.json"
     elif args.connectorconf == "openai":
-        args.connectorconf = "avise/configs/connector/languagemodel/openai.json"
+        args.connectorconf = "configs/connector/languagemodel/openai.json"
     elif args.connectorconf == "genericrest":
-        args.connectorconf = "avise/configs/connector/languagemodel/genericrest.json"
+        args.connectorconf = "configs/connector/languagemodel/genericrest.json"
 
     try:
         # Run the SET by calling run_test function. The selected SET's run() function is called.
