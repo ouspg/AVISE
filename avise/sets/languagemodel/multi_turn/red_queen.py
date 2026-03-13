@@ -166,7 +166,7 @@ class RedQueen(BaseSETPipeline):
                 conversation_history=False,
                 system_prompt=alm_system_prompt,
                 max_new_tokens=768,
-                use_device=self.evaluation_model_device,
+                use_device=self.adversarial_model_device,
             )
             # Adversarial language model might include one of these prefixes in their response.
             # We will remove any such prefix from the response.
