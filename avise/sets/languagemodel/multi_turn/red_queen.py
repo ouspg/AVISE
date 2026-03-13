@@ -266,11 +266,11 @@ class RedQueen(BaseSETPipeline):
         full_conversation = [
             {"role": m.role, "content": m.content} for m in data["messages"]
         ]
-        print(f"\nMEMORY ALLOCATED BEFORE DEL: {torch.cuda.memory_allocated()}")
-        print(f"\nMEMORY CACHED BEFORE DEL: {torch.cuda.memory_reserved()}")
-        del adversarial_lm
-        print(f"\nMEMORY ALLOCATED AFTER DEL: {torch.cuda.memory_allocated()}")
-        print(f"\nMEMORY CACHED AFTER DEL: {torch.cuda.memory_reserved()}")
+        print(f"\nMEMORY ALLOCATED BEFORE cleanup: {torch.cuda.memory_allocated()}")
+        print(f"\nMEMORY CACHED BEFORE cleanup: {torch.cuda.memory_reserved()}")
+        adversarial_lm.cleanup()
+        print(f"\nMEMORY ALLOCATED AFTER cleanup: {torch.cuda.memory_allocated()}")
+        print(f"\nMEMORY CACHED AFTER cleanup: {torch.cuda.memory_reserved()}\n")
 
         return ExecutionOutput(
             set_id=set_case.id,

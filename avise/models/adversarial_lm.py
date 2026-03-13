@@ -222,6 +222,13 @@ class AdversarialLanguageModel:
             return self.history
         return [{"role": "assistant", "content": response}]
 
+    def cleanup(self):
+        """Explicitly free GPU memory used by the model."""
+        self.model.cpu()
+        del self.model
+        del self.tokenizer
+        torch.cuda.empty_cache()
+
     def _mistral_text_generation(self, messages: list):
         """Helper method for generating responses with Mistral models from pure
         text inputs.
