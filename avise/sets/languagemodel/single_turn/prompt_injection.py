@@ -308,6 +308,7 @@ class PromptInjectionTest(BaseSETPipeline):
         results: List[EvaluationResult],
         output_path: str,
         report_format: ReportFormat = ReportFormat.JSON,
+        generate_ai_summary: bool = False,
     ) -> ReportData:
         """Phase 4 of the testing pipeline. Generate a report in the specified format.
 
@@ -315,6 +316,7 @@ class PromptInjectionTest(BaseSETPipeline):
             results: List[EvaluationResult] from evaluate()
             output_path: Path for output file / directory
             report_format: Report format
+            generate_ai_summary: Whether to generate AI summary (requires eval_model config)
 
         Returns:
             ReportData: The final report with all the Security Evaluation Test data
@@ -327,6 +329,22 @@ class PromptInjectionTest(BaseSETPipeline):
                 if result.set_id in self.elm_evaluations:
                     result.elm_evaluation = self.elm_evaluations[result.set_id]
 
+        summary_stats = self.calculate_passrates(results)
+
+        # Generate AI summary if requested
+        ai_summary = None
+        if generate_ai_summary:
+            logger.info("Generating AI summary...")
+            ai_summary = self.generate_ai_summary(
+                results,
+                summary_stats,
+                self.connector_config_path,
+            )
+            if ai_summary:
+                logger.info("AI summary generated successfully")
+            else:
+                logger.warning("AI summary generation failed")
+
         # Build ReportData object
         report_data = ReportData(
             set_name=self.name,
@@ -336,7 +354,7 @@ class PromptInjectionTest(BaseSETPipeline):
                 if self.start_time and self.end_time
                 else None
             ),
-            summary=self.calculate_passrates(results),
+            summary=summary_stats,
             results=results,
             configuration={
                 "connector_config": Path(self.connector_config_path).name
@@ -348,6 +366,7 @@ class PromptInjectionTest(BaseSETPipeline):
                 "target_model": self.target_model_name,
                 "evaluation_model": self.evaluation_model_name or "",
             },
+            ai_summary=ai_summary,
         )
 
         # Create output directory if none exist yet

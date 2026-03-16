@@ -102,6 +102,11 @@ def main(arguments=None) -> None:
     parser.add_argument(
         "--verbose", "-v", action="store_true", help="Enable verbose logging"
     )
+    parser.add_argument(
+        "--ai-summary",
+        action="store_true",
+        help="Generate AI-powered summary of results using Ollama",
+    )
     parser.add_argument("--version", "-V", action="version", version=__version__)
     args = parser.parse_args(arguments)
 
@@ -182,6 +187,7 @@ def main(arguments=None) -> None:
             output_path=args.output,
             report_format=report_format,
             reports_dir=args.reports_dir,
+            generate_ai_summary=args.ai_summary,
         )
 
         # Print a small summary to the console

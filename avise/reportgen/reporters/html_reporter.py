@@ -32,8 +32,37 @@ class HTMLReporter(BaseReporter):
         html = self._get_html_header(report_data)
         html += self._get_summary_section(report_data)
         html += self._get_results(report_data.results)
+        if report_data.ai_summary:
+            html += self._get_ai_summary(report_data.ai_summary)
         html += "</body>\n</html>"
         return html
+
+    def _get_ai_summary(self, ai_summary: Dict[str, Any]) -> str:
+        """Generate AI summary section for HTML report."""
+        notes_html = "".join(
+            f"<li>{note}</li>" for note in ai_summary.get("notes", [])
+        )
+        return f"""
+    <div class="category">
+        <div class="category-header">
+            <h2>AI Security Evaluation Summary</h2>
+        </div>
+        <div class="set-item">
+            <h3>Issue Summary</h3>
+            <p>{self.escape_html(ai_summary.get('issue_summary', ''))}</p>
+        </div>
+        <div class="set-item">
+            <h3>Recommended Remediations</h3>
+            <p>{self.escape_html(ai_summary.get('recommended_remediations', ''))}</p>
+        </div>
+        <div class="set-item">
+            <h3>Notes</h3>
+            <ul>
+                {notes_html}
+            </ul>
+        </div>
+    </div>
+"""
 
     def _get_html_header(self, report_data: ReportData) -> str:
         """Generate HTML head and opening body."""

@@ -5,6 +5,7 @@ initialize() -> execute() -> evaluate() -> report()
 
 """
 
+import logging
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import List, Dict, Any, Optional
@@ -16,6 +17,8 @@ from ...connectors.languagemodel.base import BaseLMConnector
 from ...models import EvaluationLanguageModel
 
 from scipy.special import erfinv
+
+logger = logging.getLogger(__name__)
 
 
 class ReportFormat(Enum):
@@ -120,6 +123,7 @@ class BaseSETPipeline(ABC):
         results: List[EvaluationResult],
         output_path: str,
         report_format: ReportFormat = ReportFormat.JSON,
+        generate_ai_summary: bool = False,
     ) -> ReportData:
         """Generate the final report in the desired format and save it to target location.
 
@@ -127,6 +131,7 @@ class BaseSETPipeline(ABC):
             results: List[EvaluationResult] from evaluate()
             output_path: Path for output file (../user/reports/..)
             report_format: Report format (Json, Toml, Yaml...) Set to JSON as default.
+            generate_ai_summary: Whether to generate AI summary (optional)
 
         Returns:
             ReportData: The final report with all the SET data
@@ -143,6 +148,7 @@ class BaseSETPipeline(ABC):
         output_path: str,
         report_format: ReportFormat = ReportFormat.JSON,
         connector_config_path: Optional[str] = None,
+        generate_ai_summary: bool = False,
     ) -> ReportData:
         """Orchestration method that executes the 4-phase pipeline.
         This method gets called by the execution engine.
@@ -153,6 +159,7 @@ class BaseSETPipeline(ABC):
             output_path: Path where the output report is written
             report_format: Desired output format
             connector_config_path: Path to model configuration (for report metadata)
+            generate_ai_summary: Whether to generate AI summary
 
         Requirements:
             Return the final report
@@ -173,9 +180,62 @@ class BaseSETPipeline(ABC):
         results = self.evaluate(execution_data)
 
         # Report
-        report_data = self.report(results, output_path, report_format)
+        report_data = self.report(results, output_path, report_format, generate_ai_summary)
 
         return report_data
+
+    def generate_ai_summary(
+        self,
+        results: List[EvaluationResult],
+        summary_stats: Dict[str, Any],
+        connector_config_path: Optional[str] = None,
+        subcategory_runs: Optional[Dict[str, int]] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """Generate an AI summary of the security evaluation test results.
+
+        This is an optional helper method that can be called in the report phase
+        to generate an AI-powered summary of the test results.
+
+        Args:
+            results: List of EvaluationResult from evaluate()
+            summary_stats: Summary statistics from calculate_passrates()
+            connector_config_path: Path to connector config for AI summarizer
+            subcategory_runs: Optional dict of subcategory -> number of runs
+
+        Returns:
+            Dict with ai_summary or None if generation fails
+        """
+        import json
+
+        if not connector_config_path:
+            logger.warning("No connector config path provided for AI summary generation")
+            return None
+
+        try:
+            with open(connector_config_path) as f:
+                config = json.load(f)
+
+            # If no eval_model is defined, use target_model for AI summarization
+            if "eval_model" not in config:
+                logger.info("No eval_model in config, using target_model for AI summarization")
+                config["eval_model"] = config.get("target_model", {})
+
+            from ...reportgen.ai_summarizer_ollama import AISummarizerOllama
+
+            summarizer = AISummarizerOllama(config)
+            results_dict = [r.to_dict() for r in results]
+            ai_summary = summarizer.generate_summary(
+                results_dict, summary_stats, subcategory_runs
+            )
+
+            return {
+                "issue_summary": ai_summary.issue_summary,
+                "recommended_remediations": ai_summary.recommended_remediations,
+                "notes": ai_summary.notes,
+            }
+        except Exception as e:
+            logger.error(f"Failed to generate AI summary: {e}")
+            return None
 
     @staticmethod
     def calculate_passrates(results: List[EvaluationResult]) -> Dict[str, Any]:

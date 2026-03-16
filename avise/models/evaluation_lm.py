@@ -57,7 +57,7 @@ class EvaluationLanguageModel:
         self.model_name = model_name
         self.model_path = Path("avise/models/" + model_name)
         try:
-            self.tokenizer = MistralCommonBackend.from_pretrained(self.model_path)
+            self.tokenizer = MistralCommonBackend.from_pretrained(str(self.model_path))
             self.model = Mistral3ForConditionalGeneration.from_pretrained(
                 self.model_path, device_map=use_device
             )
@@ -67,7 +67,7 @@ class EvaluationLanguageModel:
             )
             self._model_download(self.model_path, model_name)
             try:
-                self.tokenizer = MistralCommonBackend.from_pretrained(self.model_path)
+                self.tokenizer = MistralCommonBackend.from_pretrained(str(self.model_path))
                 self.model = Mistral3ForConditionalGeneration.from_pretrained(
                     self.model_path, device_map=use_device
                 )
@@ -143,7 +143,7 @@ class EvaluationLanguageModel:
         else:
             messages = [self.system_prompt, {"role": "user", "content": prompt}]
 
-            response = self._mistral_text_generation(messages)
+        response = self._mistral_text_generation(messages)
 
         # Update history
         if self.conversation_history:
@@ -168,7 +168,8 @@ class EvaluationLanguageModel:
             messages, return_tensors="pt", return_dict=True
         )
 
-        tokenized["input_ids"] = tokenized["input_ids"].to(device=self.device)
+        # Move all tensors to the correct device
+        tokenized = {k: v.to(device=self.device) if hasattr(v, "to") else v for k, v in tokenized.items()}
         # tokenized["pixel_values"] = tokenized["pixel_values"].to(dtype=bfloat16, device=self.device)
         # image_sizes = [tokenized["pixel_values"].shape[-2:]]
 

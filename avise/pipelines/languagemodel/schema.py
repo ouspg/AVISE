@@ -117,9 +117,10 @@ class ReportData:
     summary: Dict[str, Any]  # total tests ran, passed%, failed%, error% rates
     results: List[EvaluationResult]  # All evaluation results
     configuration: Dict[str, Any] = field(default_factory=dict)  # Test config
+    ai_summary: Optional[Dict[str, Any]] = field(default_factory=dict)  # AI-generated summary
 
     def to_dict(self) -> Dict[str, Any]:
-        return {
+        result = {
             "set_name": self.set_name,
             "timestamp": self.timestamp,
             "execution_time_seconds": self.execution_time_seconds,
@@ -127,3 +128,6 @@ class ReportData:
             "summary": self.summary,
             "results": [result.to_dict() for result in self.results],
         }
+        if self.ai_summary:
+            result["ai_summary"] = self.ai_summary
+        return result

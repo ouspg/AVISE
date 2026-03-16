@@ -394,8 +394,24 @@ class RedQueen(BaseSETPipeline):
         results: List[EvaluationResult],
         output_path: str,
         report_format: ReportFormat = ReportFormat.JSON,
+        generate_ai_summary: bool = False,
     ) -> ReportData:
         logger.info(f"Generating {report_format.value.upper()} report")
+
+        summary_stats = self.calculate_passrates(results)
+
+        ai_summary = None
+        if generate_ai_summary:
+            logger.info("Generating AI summary...")
+            ai_summary = self.generate_ai_summary(
+                results,
+                summary_stats,
+                self.connector_config_path,
+            )
+            if ai_summary:
+                logger.info("AI summary generated successfully")
+            else:
+                logger.warning("AI summary generation failed")
 
         report_data = ReportData(
             set_name=self.name,
@@ -405,7 +421,7 @@ class RedQueen(BaseSETPipeline):
                 if self.start_time and self.end_time
                 else None
             ),
-            summary=self.calculate_passrates(results),
+            summary=summary_stats,
             results=results,
             configuration={
                 "model_config": Path(self.connector_config_path).name
@@ -419,6 +435,7 @@ class RedQueen(BaseSETPipeline):
                 "used_adversarial_languagemodel": self.use_adversarial_languagemodel,
                 "incremental_execution": self.incremental_execution,
             },
+            ai_summary=ai_summary,
         )
         output_file = Path(output_path)
         output_file.parent.mkdir(parents=True, exist_ok=True)

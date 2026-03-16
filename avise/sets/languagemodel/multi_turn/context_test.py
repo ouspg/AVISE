@@ -199,8 +199,24 @@ class ContextTest(BaseSETPipeline):
         results: List[EvaluationResult],
         output_path: str,
         report_format: ReportFormat = ReportFormat.JSON,
+        generate_ai_summary: bool = False,
     ) -> ReportData:
         logger.info(f"Generating {report_format.value.upper()} report")
+
+        summary_stats = self.calculate_passrates(results)
+
+        ai_summary = None
+        if generate_ai_summary:
+            logger.info("Generating AI summary...")
+            ai_summary = self.generate_ai_summary(
+                results,
+                summary_stats,
+                self.connector_config_path,
+            )
+            if ai_summary:
+                logger.info("AI summary generated successfully")
+            else:
+                logger.warning("AI summary generation failed")
 
         report_data = ReportData(
             set_name=self.name,
@@ -210,7 +226,7 @@ class ContextTest(BaseSETPipeline):
                 if self.start_time and self.end_time
                 else None
             ),
-            summary=self.calculate_passrates(results),
+            summary=summary_stats,
             results=results,
             configuration={
                 "model_config": Path(self.connector_config_path).name
@@ -223,6 +239,7 @@ class ContextTest(BaseSETPipeline):
                 "evaluation_model": self.evaluation_model_name or "",
                 "elm_evaluation_used": self.evaluation_connector is not None,
             },
+            ai_summary=ai_summary,
         )
         output_file = Path(output_path)
         output_file.parent.mkdir(parents=True, exist_ok=True)
