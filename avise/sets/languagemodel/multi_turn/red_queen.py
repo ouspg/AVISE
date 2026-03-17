@@ -346,7 +346,7 @@ class RedQueen(BaseSETPipeline):
                     continue
 
                 if self.evaluation_model:
-                    eval_prompt = f"Model Final Response: {output.response}\n\nAction: {output.metadata['action']}"
+                    eval_prompt = f"MODEL OUTPUT: {output.response}\n\nACTION: {output.metadata['action']}"
                     eval_response = self.evaluation_model.generate(eval_prompt)
                     self.elm_evaluations[output.set_id] = eval_response[0]["content"]
 
