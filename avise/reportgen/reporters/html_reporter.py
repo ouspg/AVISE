@@ -1,5 +1,6 @@
 """HTML report writer."""
 
+import re
 from pathlib import Path
 from typing import Dict, Any
 
@@ -40,7 +41,7 @@ class HTMLReporter(BaseReporter):
     def _get_ai_summary(self, ai_summary: Dict[str, Any]) -> str:
         """Generate AI summary section for HTML report."""
         notes_html = "".join(
-            f"<li>{note}</li>" for note in ai_summary.get("notes", [])
+            f"<li>{self._markdown_to_html(note)}</li>" for note in ai_summary.get("notes", [])
         )
         return f"""
     <div class="category">
@@ -49,11 +50,11 @@ class HTMLReporter(BaseReporter):
         </div>
         <div class="set-item">
             <h3>Issue Summary</h3>
-            <p>{self.escape_html(ai_summary.get('issue_summary', ''))}</p>
+            <div class="ai-content">{self._markdown_to_html(ai_summary.get('issue_summary', ''))}</div>
         </div>
         <div class="set-item">
             <h3>Recommended Remediations</h3>
-            <p>{self.escape_html(ai_summary.get('recommended_remediations', ''))}</p>
+            <div class="ai-content">{self._markdown_to_html(ai_summary.get('recommended_remediations', ''))}</div>
         </div>
         <div class="set-item">
             <h3>Notes</h3>
@@ -63,6 +64,31 @@ class HTMLReporter(BaseReporter):
         </div>
     </div>
 """
+
+    def _markdown_to_html(self, text: str) -> str:
+        """Convert basic markdown to HTML."""
+        if not text:
+            return ""
+        html = text
+        html = html.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', html)
+        html = re.sub(r'\*(.+?)\*', r'<em>\1</em>', html)
+        html = re.sub(r'^### (.+)$', r'<h4>\1</h4>', html, flags=re.MULTILINE)
+        html = re.sub(r'^## (.+)$', r'<h3>\1</h3>', html, flags=re.MULTILINE)
+        html = re.sub(r'^# (.+)$', r'<h2>\1</h2>', html, flags=re.MULTILINE)
+        html = re.sub(r'^\d+\. (.+)$', r'<li>\1</li>', html, flags=re.MULTILINE)
+        html = re.sub(r'^- (.+)$', r'<li>\1</li>', html, flags=re.MULTILINE)
+        html = re.sub(r'^\* (.+)$', r'<li>\1</li>', html, re.MULTILINE)
+        html = re.sub(r'\n\n', r'</p><p>', html)
+        html = f"<p>{html}</p>"
+        html = re.sub(r'<p></p>', r'', html)
+        html = re.sub(r'<p>(<h[234]>)', r'\1', html)
+        html = re.sub(r'(</h[234]>)<p>', r'\1', html)
+        html = re.sub(r'(</h[234]>)</p>', r'\1', html)
+        html = re.sub(r'<p>(<li>)', r'\1', html)
+        html = re.sub(r'(</li>)<p>', r'\1', html)
+        html = re.sub(r'(</li>)</p>', r'\1', html)
+        return html
 
     def _get_html_header(self, report_data: ReportData) -> str:
         """Generate HTML head and opening body."""
@@ -177,6 +203,9 @@ class HTMLReporter(BaseReporter):
         .conversation .user {{ background: #e3f2fd; }}
         .conversation .assistant {{ background: #e8f5e9; }}
         .conversation .system {{ background: #fff3e0; }}
+        .ai-content {{ white-space: pre-wrap; }}
+        .ai-content h3, .ai-content h4 {{ margin: 15px 0 10px 0; }}
+        .ai-content li {{ margin: 5px 0; }}
     </style>
 </head>
 <body>

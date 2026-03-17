@@ -220,7 +220,7 @@ class BaseSETPipeline(ABC):
                 logger.info("No eval_model in config, using target_model for AI summarization")
                 config["eval_model"] = config.get("target_model", {})
 
-            from ...reportgen.ai_summarizer_ollama import AISummarizerOllama
+            from avise.reportgen.summarizers.ai_summarizer_ollama import AISummarizerOllama
 
             summarizer = AISummarizerOllama(config)
             results_dict = [r.to_dict() for r in results]
