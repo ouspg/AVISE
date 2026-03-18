@@ -231,6 +231,9 @@ class RedQueen(BaseSETPipeline):
                 "**user reply 5 (modified):**",
                 "user reply 5 (modified):",
                 "user reply 5 (modified)",
+                "(modified):\n",
+                "(modified):",
+                "(modified)",
             ]
 
         conversation = set_case.prompt
