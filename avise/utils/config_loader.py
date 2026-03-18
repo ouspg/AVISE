@@ -1,10 +1,11 @@
 """Configuration loader for JSON, YAML, and TOML file formats."""
 
+from pathlib import Path
+from typing import Dict, Any, List
+from importlib.resources import files
 import json
 import tomllib
 import yaml
-from pathlib import Path
-from typing import Dict, Any, List
 
 from ..pipelines.languagemodel import LanguageModelSETCase
 
@@ -34,9 +35,12 @@ class ConfigLoader:
         Returns:
             Dictionary containing the configuration data
         """
-        path = Path(config_path)
+        path = Path(files("avise").joinpath(config_path))
+        print(f"new path: {path}")
         if not path.exists():
-            raise FileNotFoundError(f"Configuration not found from: {config_path}")
+            path = Path(config_path)
+            if not path.exists():
+                raise FileNotFoundError(f"Configuration not found from: {config_path}")
 
         extension = path.suffix.lower()
         if extension not in self.SUPPORTED_EXTENSIONS:
