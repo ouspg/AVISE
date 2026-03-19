@@ -6,6 +6,7 @@ import os
 import sys
 import re
 from typing import Optional
+from importlib.resources import files
 
 from transformers import (
     Mistral3ForConditionalGeneration,
@@ -64,7 +65,7 @@ class AdversarialLanguageModel:
             self.device = torch.device("cpu")
 
         self.model_name = model_name
-        self.model_path = Path("avise/models/" + model_name)
+        self.model_path = Path(files("avise").joinpath("models/" + model_name))
         try:
             if "mistralai" in self.model_name:
                 self.tokenizer = MistralCommonBackend.from_pretrained(self.model_path)
@@ -259,7 +260,7 @@ class AdversarialLanguageModel:
 
     def _model_download(
         self,
-        model_path: str = "avise/models/Qwen/Qwen3-0.6B",
+        model_path: str = "models/Qwen/Qwen3-0.6B",
         model_name: str = "Qwen/Qwen3-0.6B",
     ):
         """Downloads a HF model and saves it to chosen path.
@@ -268,7 +269,8 @@ class AdversarialLanguageModel:
             model_path (str): Path where to save the model.
             model_name (str): Name of the Hugging Face model.
         """
-        model_path = Path(model_path)
+        model_path = Path(files("avise").joinpath(model_path))
+
         # Check if path exists
         if not os.path.exists(model_path):
             # Create the directory

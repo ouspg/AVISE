@@ -4,6 +4,7 @@ from pathlib import Path
 import logging
 import os
 import sys
+from importlib.resources import files
 
 import torch
 from transformers import Mistral3ForConditionalGeneration, MistralCommonBackend
@@ -55,7 +56,7 @@ class EvaluationLanguageModel:
             self.device = torch.device("cpu")
 
         self.model_name = model_name
-        self.model_path = Path("avise/models/" + model_name)
+        self.model_path = Path(files("avise").joinpath("models/" + model_name))
         try:
             self.tokenizer = MistralCommonBackend.from_pretrained(str(self.model_path))
             self.model = Mistral3ForConditionalGeneration.from_pretrained(
@@ -193,7 +194,7 @@ class EvaluationLanguageModel:
 
     def _model_download(
         self,
-        model_path: str = "avise/models/mistralai/Ministral-3-3B-Instruct-2512",
+        model_path: str = "models/mistralai/Ministral-3-3B-Instruct-2512",
         model_name: str = "mistralai/Ministral-3-3B-Instruct-2512",
     ):
         """Downloads a HF model and saves it to chosen path.
@@ -202,7 +203,7 @@ class EvaluationLanguageModel:
             model_path (str): Path where to save the model.
             model_name (str): Name of the Hugging Face model.
         """
-        model_path = Path(model_path)
+        model_path = Path(files("avise").joinpath(model_path))
         # Check if path exists
         if not os.path.exists(model_path):
             # Create the directory
