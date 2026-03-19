@@ -48,7 +48,7 @@ class AISummarizerOllama:
         """
         issue_summary = self._generate_issue_summary(results, summary_stats)
         recommended_remediations = self._generate_remediations(results, summary_stats)
-        notes = self._generate_notes(results, subcategory_runs)
+        notes = self._generate_notes(results, subcategory_runs, summary_stats)
 
         return AISummary(
             issue_summary=issue_summary,
@@ -87,7 +87,7 @@ Requirements:
 - Do NOT use conversational phrases (e.g., "you should", "you need to").
 - Do NOT include explanations about the analysis process.
 - Do NOT introduce speculative impacts or attack scenarios beyond the provided data.
-- Do NOT simplify explanations into “plain language” or educational descriptions.
+- Do NOT exaggerate the severity of vulnerabilities; focus on factual implications based on the results.
 
 Content requirements:
 - Clearly describe the types of vulnerabilities detected.
@@ -140,10 +140,12 @@ Requirements:
 - Do NOT include explanations framed as "what this means in simple terms".
 - Do NOT include conversational phrasing or advisory tone.
 - Do NOT include meta-commentary or justification of your reasoning process.
+- Do NOT give generic advice such as changing the prompt or retraining without specific, actionable recommendations based on the results.
+- Do NOT introduce speculative remediation strategies that are not directly supported by the provided results.
 
 Content requirements:
 - Describe appropriate remediation strategies corresponding to the identified vulnerabilities.
-- Explain mitigation approaches in terms of system or model behavior changes.
+- Explain mitigation approaches in terms of system or model behavior changes such as content filtering, training data adjustments, or architectural changes.
 - Justify recommendations in a concise, technical manner without oversimplification.
 
 Output:
@@ -164,19 +166,26 @@ Output:
         self,
         results: List[Dict[str, Any]],
         subcategory_runs: Optional[Dict[str, int]] = None,
+        summary_stats: Optional[Dict[str, Any]] = None,
     ) -> List[str]:
         """Generate notes section programmatically.
 
         Args:
             results: List of evaluation results
             subcategory_runs: Optional dict of subcategory -> number of runs
+            summary_stats: Optional summary statistics containing total_sets
 
         Returns:
             List[str]: List of note strings
         """
         notes = []
 
-        if subcategory_runs:
+        total_runs = summary_stats.get("total_sets", 0) if summary_stats else 0
+        if total_runs > 0 and total_runs < 100:
+            notes.append(
+                f"The total number of runs ({total_runs}) is fewer than 100 and results may vary due to AI stochasticity. It is recommended to conduct a larger number of runs for a more comprehensive assessment."
+            )
+        elif subcategory_runs:
             low_run_categories = [
                 category for category, count in subcategory_runs.items() if count < 100
             ]

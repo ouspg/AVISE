@@ -281,6 +281,25 @@ class BaseSETPipeline(ABC):
         }
 
     @staticmethod
+    def calculate_subcategory_runs(
+        results: List[EvaluationResult], subcategory_field: str = "vulnerability_subcategory"
+    ) -> Dict[str, int]:
+        """Calculate number of runs per vulnerability subcategory.
+
+        Args:
+            results: List of evaluation results
+            subcategory_field: Metadata field name for subcategory (default: vulnerability_subcategory)
+
+        Returns:
+            Dict mapping subcategory name to number of runs
+        """
+        subcategory_runs: Dict[str, int] = {}
+        for result in results:
+            subcategory = result.metadata.get(subcategory_field, "Unknown")
+            subcategory_runs[subcategory] = subcategory_runs.get(subcategory, 0) + 1
+        return subcategory_runs
+
+    @staticmethod
     def _calculate_confidence_interval(
         passed: int, failed: int, confidence_level: float = 0.95
     ) -> tuple[int, float, float]:
