@@ -117,7 +117,9 @@ class ReportData:
     summary: Dict[str, Any]  # total tests ran, passed%, failed%, error% rates
     results: List[EvaluationResult]  # All evaluation results
     configuration: Dict[str, Any] = field(default_factory=dict)  # Test config
-    ai_summary: Optional[Dict[str, Any]] = field(default_factory=dict)  # AI-generated summary
+    ai_summary: Optional[Dict[str, Any]] = field(
+        default_factory=dict
+    )  # AI-generated summary
 
     def to_dict(self) -> Dict[str, Any]:
         result = {

@@ -67,7 +67,9 @@ class EvaluationLanguageModel:
             )
             self._model_download(self.model_path, model_name)
             try:
-                self.tokenizer = MistralCommonBackend.from_pretrained(str(self.model_path))
+                self.tokenizer = MistralCommonBackend.from_pretrained(
+                    str(self.model_path)
+                )
                 self.model = Mistral3ForConditionalGeneration.from_pretrained(
                     self.model_path, device_map=use_device
                 )
@@ -169,7 +171,10 @@ class EvaluationLanguageModel:
         )
 
         # Move all tensors to the correct device
-        tokenized = {k: v.to(device=self.device) if hasattr(v, "to") else v for k, v in tokenized.items()}
+        tokenized = {
+            k: v.to(device=self.device) if hasattr(v, "to") else v
+            for k, v in tokenized.items()
+        }
         # tokenized["pixel_values"] = tokenized["pixel_values"].to(dtype=bfloat16, device=self.device)
         # image_sizes = [tokenized["pixel_values"].shape[-2:]]
 
