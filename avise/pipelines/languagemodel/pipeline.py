@@ -180,7 +180,9 @@ class BaseSETPipeline(ABC):
         results = self.evaluate(execution_data)
 
         # Report
-        report_data = self.report(results, output_path, report_format, generate_ai_summary)
+        report_data = self.report(
+            results, output_path, report_format, generate_ai_summary
+        )
 
         return report_data
 
@@ -208,7 +210,9 @@ class BaseSETPipeline(ABC):
         import json
 
         if not connector_config_path:
-            logger.warning("No connector config path provided for AI summary generation")
+            logger.warning(
+                "No connector config path provided for AI summary generation"
+            )
             return None
 
         try:
@@ -217,10 +221,14 @@ class BaseSETPipeline(ABC):
 
             # If no eval_model is defined, use target_model for AI summarization
             if "eval_model" not in config:
-                logger.info("No eval_model in config, using target_model for AI summarization")
+                logger.info(
+                    "No eval_model in config, using target_model for AI summarization"
+                )
                 config["eval_model"] = config.get("target_model", {})
 
-            from avise.reportgen.summarizers.ai_summarizer_ollama import AISummarizerOllama
+            from avise.reportgen.summarizers.ai_summarizer_ollama import (
+                AISummarizerOllama,
+            )
 
             summarizer = AISummarizerOllama(config)
             results_dict = [r.to_dict() for r in results]
@@ -282,7 +290,8 @@ class BaseSETPipeline(ABC):
 
     @staticmethod
     def calculate_subcategory_runs(
-        results: List[EvaluationResult], subcategory_field: str = "vulnerability_subcategory"
+        results: List[EvaluationResult],
+        subcategory_field: str = "vulnerability_subcategory",
     ) -> Dict[str, int]:
         """Calculate number of runs per vulnerability subcategory.
 

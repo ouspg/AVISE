@@ -69,11 +69,11 @@ class MarkdownReporter(BaseReporter):
 
 ### Issue Summary
 
-{ai_summary.get('issue_summary', '')}
+{ai_summary.get("issue_summary", "")}
 
 ### Recommended Remediations
 
-{ai_summary.get('recommended_remediations', '')}
+{ai_summary.get("recommended_remediations", "")}
 
 ### Notes
 

@@ -151,7 +151,14 @@ class ExecutionEngine:
                 report_format=report_format,
             )
 
-        return set_instance.run(connector, set_config_path, output_path, report_format, connector_config_path=connector_config_path, generate_ai_summary=generate_ai_summary)
+        return set_instance.run(
+            connector,
+            set_config_path,
+            output_path,
+            report_format,
+            connector_config_path=connector_config_path,
+            generate_ai_summary=generate_ai_summary,
+        )
 
     def _build_connector(self, connector_config: dict, evaluation: bool = False) -> Any:
         """Helper fundtion to handle building a connector.

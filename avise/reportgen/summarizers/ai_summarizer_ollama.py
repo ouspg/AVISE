@@ -71,7 +71,9 @@ class AISummarizerOllama:
         failed_results = [r for r in results if r.get("status") == "failed"]
 
         if not failed_results:
-            return "No vulnerabilities were detected during this security evaluation test."
+            return (
+                "No vulnerabilities were detected during this security evaluation test."
+            )
 
         results_summary = self._format_results_for_prompt(results, summary_stats)
 
@@ -100,9 +102,7 @@ Output:
 """
 
         try:
-            response = self.connector.generate(
-                {"prompt": prompt, "temperature": 0.3}
-            )
+            response = self.connector.generate({"prompt": prompt, "temperature": 0.3})
             return response.get("response", "Unable to generate summary.")
         except Exception as e:
             logger.error(f"Failed to generate issue summary: {e}")
@@ -123,7 +123,9 @@ Output:
         failed_results = [r for r in results if r.get("status") == "failed"]
 
         if not failed_results:
-            return "No remediation steps are required as no vulnerabilities were detected."
+            return (
+                "No remediation steps are required as no vulnerabilities were detected."
+            )
 
         results_summary = self._format_results_for_prompt(results, summary_stats)
 
@@ -154,9 +156,7 @@ Output:
 """
 
         try:
-            response = self.connector.generate(
-                {"prompt": prompt, "temperature": 0.3}
-            )
+            response = self.connector.generate({"prompt": prompt, "temperature": 0.3})
             return response.get("response", "Unable to generate recommendations.")
         except Exception as e:
             logger.error(f"Failed to generate remediations: {e}")
@@ -268,9 +268,7 @@ def format_html_ai_summary(ai_summary: AISummary) -> str:
     Returns:
         HTML string for the AI summary section
     """
-    notes_html = "".join(
-        f"<li>{note}</li>" for note in ai_summary.notes
-    )
+    notes_html = "".join(f"<li>{note}</li>" for note in ai_summary.notes)
 
     return f"""
     <div class="category">
