@@ -123,7 +123,7 @@ class BaseSETPipeline(ABC):
         results: List[EvaluationResult],
         output_path: str,
         report_format: ReportFormat = ReportFormat.JSON,
-        generate_ai_summary: bool = False,
+        generate_ai_summary: bool = True,
     ) -> ReportData:
         """Generate the final report in the desired format and save it to target location.
 
@@ -148,7 +148,7 @@ class BaseSETPipeline(ABC):
         output_path: str,
         report_format: ReportFormat = ReportFormat.JSON,
         connector_config_path: Optional[str] = None,
-        generate_ai_summary: bool = False,
+        generate_ai_summary: bool = True,
     ) -> ReportData:
         """Orchestration method that executes the 4-phase pipeline.
         This method gets called by the execution engine.
@@ -190,7 +190,6 @@ class BaseSETPipeline(ABC):
         self,
         results: List[EvaluationResult],
         summary_stats: Dict[str, Any],
-        connector_config_path: Optional[str] = None,
         subcategory_runs: Optional[Dict[str, int]] = None,
     ) -> Optional[Dict[str, Any]]:
         """Generate an AI summary of the security evaluation test results.
@@ -201,36 +200,23 @@ class BaseSETPipeline(ABC):
         Args:
             results: List of EvaluationResult from evaluate()
             summary_stats: Summary statistics from calculate_passrates()
-            connector_config_path: Path to connector config for AI summarizer
             subcategory_runs: Optional dict of subcategory -> number of runs
 
         Returns:
             Dict with ai_summary or None if generation fails
         """
-        import json
-
-        if not connector_config_path:
-            logger.warning(
-                "No connector config path provided for AI summary generation"
-            )
-            return None
-
         try:
-            with open(connector_config_path) as f:
-                config = json.load(f)
+            from avise.reportgen.summarizers.ai_summarizer import AISummarizer
 
-            # If no eval_model is defined, use target_model for AI summarization
-            if "eval_model" not in config:
-                logger.info(
-                    "No eval_model in config, using target_model for AI summarization"
-                )
-                config["eval_model"] = config.get("target_model", {})
+            model_to_use = None
+            if hasattr(self, "evaluation_model") and self.evaluation_model is not None:
+                logger.info("Reusing existing evaluation model for AI summary")
+                model_to_use = self.evaluation_model
+            else:
+                logger.info("Creating new model for AI summary (CPU mode due to memory constraints)")
+                model_to_use = None
 
-            from avise.reportgen.summarizers.ai_summarizer_ollama import (
-                AISummarizerOllama,
-            )
-
-            summarizer = AISummarizerOllama(config)
+            summarizer = AISummarizer(reuse_model=model_to_use)
             results_dict = [r.to_dict() for r in results]
             ai_summary = summarizer.generate_summary(
                 results_dict, summary_stats, subcategory_runs

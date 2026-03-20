@@ -104,8 +104,9 @@ def main(arguments=None) -> None:
     )
     parser.add_argument(
         "--ai-summary",
-        action="store_true",
-        help="Generate AI-powered summary of results using Ollama",
+        type=lambda x: x.lower() == "true",
+        default=True,
+        help="Enable or disable AI-powered summary (True/False). Default: True",
     )
     parser.add_argument("--version", "-V", action="version", version=__version__)
     args = parser.parse_args(arguments)

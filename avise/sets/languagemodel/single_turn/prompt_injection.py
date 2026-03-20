@@ -308,7 +308,7 @@ class PromptInjectionTest(BaseSETPipeline):
         results: List[EvaluationResult],
         output_path: str,
         report_format: ReportFormat = ReportFormat.JSON,
-        generate_ai_summary: bool = False,
+        generate_ai_summary: bool = True,
     ) -> ReportData:
         """Phase 4 of the testing pipeline. Generate a report in the specified format.
 
@@ -339,7 +339,6 @@ class PromptInjectionTest(BaseSETPipeline):
             ai_summary = self.generate_ai_summary(
                 results,
                 summary_stats,
-                self.connector_config_path,
                 subcategory_runs,
             )
             if ai_summary:

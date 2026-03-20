@@ -199,7 +199,7 @@ class ContextTest(BaseSETPipeline):
         results: List[EvaluationResult],
         output_path: str,
         report_format: ReportFormat = ReportFormat.JSON,
-        generate_ai_summary: bool = False,
+        generate_ai_summary: bool = True,
     ) -> ReportData:
         logger.info(f"Generating {report_format.value.upper()} report")
 
@@ -211,7 +211,6 @@ class ContextTest(BaseSETPipeline):
             ai_summary = self.generate_ai_summary(
                 results,
                 summary_stats,
-                self.connector_config_path,
             )
             if ai_summary:
                 logger.info("AI summary generated successfully")

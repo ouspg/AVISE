@@ -374,9 +374,7 @@ class RedQueen(BaseSETPipeline):
                         metadata=output.metadata,
                     )
                 )
-            # Clear Evaluation Language Model from memory.
-            # GPU can run out of memory if de_model() is not called when the model is no longer needed.
-            self.evaluation_model.del_model()
+            # Model will be deleted after AI summary generation in report()
         else:
             for output in execution_data.outputs:
                 results.append(
@@ -400,7 +398,7 @@ class RedQueen(BaseSETPipeline):
         results: List[EvaluationResult],
         output_path: str,
         report_format: ReportFormat = ReportFormat.JSON,
-        generate_ai_summary: bool = False,
+        generate_ai_summary: bool = True,
     ) -> ReportData:
         logger.info(f"Generating {report_format.value.upper()} report")
 
@@ -412,12 +410,17 @@ class RedQueen(BaseSETPipeline):
             ai_summary = self.generate_ai_summary(
                 results,
                 summary_stats,
-                self.connector_config_path,
             )
             if ai_summary:
                 logger.info("AI summary generated successfully")
             else:
                 logger.warning("AI summary generation failed")
+
+        # Clean up evaluation model if it exists
+        if hasattr(self, "evaluation_model") and self.evaluation_model:
+            logger.info("Cleaning up evaluation model...")
+            self.evaluation_model.del_model()
+            self.evaluation_model = None
 
         report_data = ReportData(
             set_name=self.name,

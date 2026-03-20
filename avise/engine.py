@@ -97,7 +97,7 @@ class ExecutionEngine:
         output_path: Optional[str] = None,
         report_format: ReportFormat = ReportFormat.JSON,
         reports_dir: str = DEFAULT_REPORTS_DIR,
-        generate_ai_summary: bool = False,
+        generate_ai_summary: bool = True,
     ) -> dict:
         """Run the 4-phase pipeline
 

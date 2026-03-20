@@ -1,4 +1,4 @@
-"""AI summarizer for security evaluation test results using Ollama."""
+"""AI summarizer for security evaluation test results."""
 
 import logging
 from typing import Dict, Any, List, Optional
@@ -16,19 +16,35 @@ class AISummary:
     notes: List[str]
 
 
-class AISummarizerOllama:
-    """Generates AI-based summaries of security evaluation test results using Ollama."""
+class AISummarizer:
+    """Generates AI-based summaries of security evaluation test results."""
 
-    def __init__(self, config: dict):
-        """Initialize the AI summarizer with Ollama connector configuration.
+    def __init__(
+        self,
+        evaluation_model_name: str = "mistralai/Ministral-3-3B-Instruct-2512",
+        max_new_tokens: int = 512,
+        reuse_model=None,
+    ):
+        """Initialize the AI summarizer with evaluation model.
 
         Args:
-            config: Dictionary containing Ollama configuration with eval_model settings
+            evaluation_model_name: Name of the HuggingFace model to use
+            max_new_tokens: Maximum tokens to generate
+            reuse_model: Optional existing model instance to reuse
         """
-        from avise.connectors.languagemodel.ollama import OllamaLMConnector
+        from avise.models.evaluation_lm import EvaluationLanguageModel
 
-        self.connector = OllamaLMConnector(config, evaluation=True)
-        self.model = self.connector.model
+        if reuse_model is not None:
+            logger.info("Reusing existing evaluation model for AI summary")
+            self.model = reuse_model
+            self._owns_model = False
+        else:
+            logger.info("Loading AI summarizer model...")
+            self.model = EvaluationLanguageModel(
+                model_name=evaluation_model_name,
+                max_new_tokens=max_new_tokens,
+            )
+            self._owns_model = True
 
     def generate_summary(
         self,
@@ -59,7 +75,7 @@ class AISummarizerOllama:
     def _generate_issue_summary(
         self, results: List[Dict[str, Any]], summary_stats: Dict[str, Any]
     ) -> str:
-        """Generate issue summary by querying Ollama.
+        """Generate issue summary by querying the evaluation model.
 
         Args:
             results: List of evaluation results
@@ -102,8 +118,10 @@ Output:
 """
 
         try:
-            response = self.connector.generate({"prompt": prompt, "temperature": 0.3})
-            return response.get("response", "Unable to generate summary.")
+            response = self.model.generate(prompt)
+            if response and len(response) > 0:
+                return response[-1].get("content", "Unable to generate summary.")
+            return "Unable to generate summary."
         except Exception as e:
             logger.error(f"Failed to generate issue summary: {e}")
             return "Unable to generate issue summary due to an error."
@@ -111,7 +129,7 @@ Output:
     def _generate_remediations(
         self, results: List[Dict[str, Any]], summary_stats: Dict[str, Any]
     ) -> str:
-        """Generate remediation recommendations by querying Ollama.
+        """Generate remediation recommendations by querying the evaluation model.
 
         Args:
             results: List of evaluation results
@@ -156,8 +174,10 @@ Output:
 """
 
         try:
-            response = self.connector.generate({"prompt": prompt, "temperature": 0.3})
-            return response.get("response", "Unable to generate recommendations.")
+            response = self.model.generate(prompt)
+            if response and len(response) > 0:
+                return response[-1].get("content", "Unable to generate recommendations.")
+            return "Unable to generate recommendations."
         except Exception as e:
             logger.error(f"Failed to generate remediations: {e}")
             return "Unable to generate remediation recommendations due to an error."
@@ -183,7 +203,7 @@ Output:
         total_runs = summary_stats.get("total_sets", 0) if summary_stats else 0
         if total_runs > 0 and total_runs < 100:
             notes.append(
-                f"The total number of runs ({total_runs}) is fewer than 100 and results may vary due to AI stochasticity. It is recommended to conduct a larger number of runs for a more comprehensive assessment."
+                f"The total number of runs ({total_runs}) is fewer than the suggested 100 and results may vary due to AI stochasticity. It is recommended to conduct a larger number of runs for a more comprehensive assessment."
             )
         elif subcategory_runs:
             low_run_categories = [
@@ -191,7 +211,7 @@ Output:
             ]
             if low_run_categories:
                 notes.append(
-                    f"Following SET categories had fewer than 100 runs and results may vary due to AI stochasticity: {', '.join(low_run_categories)}. It is recommended to conduct a larger number of runs for a more comprehensive assessment."
+                    f"Following SET categories had fewer than the suggested 100 runs and results may vary due to AI stochasticity: {', '.join(low_run_categories)}. It is recommended to conduct a larger number of runs for a more comprehensive assessment."
                 )
 
         notes.append(
@@ -239,6 +259,15 @@ Output:
             lines.append(f"  ... and {len(failed_results) - 20} more failed tests")
 
         return "\n".join(lines)
+
+    def cleanup(self):
+        """Clean up the model from memory."""
+        if self.model and self._owns_model:
+            logger.info("Cleaning up AI summarizer model...")
+            self.model.del_model()
+            self.model = None
+        elif self.model:
+            logger.info("Skipping cleanup - model is shared with evaluation")
 
 
 def format_json_ai_summary(ai_summary: AISummary) -> Dict[str, Any]:
