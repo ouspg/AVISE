@@ -269,7 +269,8 @@ class RedQueen(BaseSETPipeline):
         ]
         # Clear Adversial Language Model from memory.
         # GPU can run out of memory if de_model() is not called when the model is no longer needed.
-        adversarial_lm.del_model()
+        if self.use_adversarial_languagemodel:
+            adversarial_lm.del_model()
 
         return ExecutionOutput(
             set_id=set_case.id,
