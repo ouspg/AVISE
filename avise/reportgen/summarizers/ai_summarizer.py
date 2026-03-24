@@ -119,11 +119,22 @@ Output:
 
         try:
             response = self.model.generate(prompt)
+            logger.info(f"AI summary response type: {type(response)}")
             if response and len(response) > 0:
-                return response[-1].get("content", "Unable to generate summary.")
+                last_item = response[-1]
+                logger.info(f"AI summary last_item type: {type(last_item)}")
+                if isinstance(last_item, dict):
+                    return last_item.get("content", "Unable to generate summary.")
+                elif isinstance(last_item, str):
+                    return last_item
+                else:
+                    return f"Unable to generate summary - unexpected type: {type(last_item)}"
             return "Unable to generate summary."
         except Exception as e:
             logger.error(f"Failed to generate issue summary: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            return "Unable to generate issue summary due to an error."
             return "Unable to generate issue summary due to an error."
 
     def _generate_remediations(
@@ -175,8 +186,16 @@ Output:
 
         try:
             response = self.model.generate(prompt)
+            logger.debug(f"AI remediations response type: {type(response)}, value: {response}")
             if response and len(response) > 0:
-                return response[-1].get("content", "Unable to generate recommendations.")
+                last_item = response[-1]
+                if isinstance(last_item, dict):
+                    return last_item.get("content", "Unable to generate recommendations.")
+                elif isinstance(last_item, str):
+                    return last_item
+                elif isinstance(last_item, (list, tuple)):
+                    return str(last_item[0]) if len(last_item) > 0 else "Unable to generate recommendations."
+                return str(last_item)
             return "Unable to generate recommendations."
         except Exception as e:
             logger.error(f"Failed to generate remediations: {e}")

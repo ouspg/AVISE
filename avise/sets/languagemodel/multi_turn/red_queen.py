@@ -417,12 +417,6 @@ class RedQueen(BaseSETPipeline):
             else:
                 logger.warning("AI summary generation failed")
 
-        # Clean up evaluation model if it exists
-        if hasattr(self, "evaluation_model") and self.evaluation_model:
-            logger.info("Cleaning up evaluation model...")
-            self.evaluation_model.del_model()
-            self.evaluation_model = None
-
         report_data = ReportData(
             set_name=self.name,
             timestamp=datetime.now().strftime("%Y-%m-%d | %H:%M"),
@@ -450,11 +444,16 @@ class RedQueen(BaseSETPipeline):
         output_file = Path(output_path)
         output_file.parent.mkdir(parents=True, exist_ok=True)
 
-        if report_format == ReportFormat.JSON:
-            JSONReporter().write(report_data, output_file)
-        elif report_format == ReportFormat.HTML:
-            HTMLReporter().write(report_data, output_file)
-        elif report_format == ReportFormat.MARKDOWN:
-            MarkdownReporter().write(report_data, output_file)
-        logger.info(f"Report written to {output_path}")
+        try:
+            if report_format == ReportFormat.JSON:
+                JSONReporter().write(report_data, output_file)
+            elif report_format == ReportFormat.HTML:
+                HTMLReporter().write(report_data, output_file)
+            elif report_format == ReportFormat.MARKDOWN:
+                MarkdownReporter().write(report_data, output_file)
+            logger.info(f"Report written to {output_path}")
+        except Exception as e:
+            logger.error(f"Error writing report: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
         return report_data
