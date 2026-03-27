@@ -33,10 +33,12 @@ class HTMLReporter(BaseReporter):
         """Generate complete HTML report."""
         html = self._get_html_header(report_data)
         html += self._get_summary_section(report_data)
-        
+
         # Use grouping if enabled in reporter or report_data
-        use_grouping = getattr(self, 'group_results', True) and getattr(report_data, 'group_results', True)
-        
+        use_grouping = getattr(self, "group_results", True) and getattr(
+            report_data, "group_results", True
+        )
+
         if use_grouping:
             html += self._get_results_grouped(report_data)
         else:
@@ -61,9 +63,9 @@ class HTMLReporter(BaseReporter):
         <div class="set-item" style="background: #f0f0f0;">
             <div class="set-header">
                 <span class="set-id">{group_name}</span>
-                <span class="status passed">{group_stats['passed']} passed</span>
-                <span class="status failed">{group_stats['failed']} failed</span>
-                <span class="status error">{group_stats['error']} error</span>
+                <span class="status passed">{group_stats["passed"]} passed</span>
+                <span class="status failed">{group_stats["failed"]} failed</span>
+                <span class="status error">{group_stats["error"]} error</span>
             </div>
         </div>
 """
@@ -77,7 +79,9 @@ class HTMLReporter(BaseReporter):
                         "reason": result.reason,
                         "attack_type": result.metadata.get("attack_type", ""),
                         "detections": result.detections,
-                        "full_conversation": result.metadata.get("full_conversation", []),
+                        "full_conversation": result.metadata.get(
+                            "full_conversation", []
+                        ),
                         "description": result.metadata.get("description", ""),
                     }
                     if result.elm_evaluation:

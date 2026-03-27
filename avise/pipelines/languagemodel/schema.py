@@ -130,7 +130,9 @@ class ReportData:
         """
         grouped: Dict[str, List[EvaluationResult]] = {}
         for result in self.results:
-            group_name = result.metadata.get("vulnerability_subcategory", "Uncategorized")
+            group_name = result.metadata.get(
+                "vulnerability_subcategory", "Uncategorized"
+            )
             if group_name not in grouped:
                 grouped[group_name] = []
             grouped[group_name].append(result)
@@ -144,7 +146,7 @@ class ReportData:
             "configuration": self.configuration,
             "summary": self.summary,
         }
-        
+
         if self.group_results:
             grouped = self.group_by_vulnerability()
             result["set_category"] = {
@@ -153,7 +155,7 @@ class ReportData:
             }
         else:
             result["results"] = [r.to_dict() for r in self.results]
-        
+
         if self.ai_summary:
             result["ai_summary"] = self.ai_summary
         return result

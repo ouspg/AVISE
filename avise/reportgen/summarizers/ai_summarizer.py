@@ -133,6 +133,7 @@ Output:
         except Exception as e:
             logger.error(f"Failed to generate issue summary: {e}")
             import traceback
+
             logger.error(f"Traceback: {traceback.format_exc()}")
             return "Unable to generate issue summary due to an error."
 
@@ -189,11 +190,17 @@ Output:
             if response and len(response) > 0:
                 last_item = response[-1]
                 if isinstance(last_item, dict):
-                    return last_item.get("content", "Unable to generate recommendations.")
+                    return last_item.get(
+                        "content", "Unable to generate recommendations."
+                    )
                 elif isinstance(last_item, str):
                     return last_item
                 elif isinstance(last_item, (list, tuple)):
-                    return str(last_item[0]) if len(last_item) > 0 else "Unable to generate recommendations."
+                    return (
+                        str(last_item[0])
+                        if len(last_item) > 0
+                        else "Unable to generate recommendations."
+                    )
                 return str(last_item)
             return "Unable to generate recommendations."
         except Exception as e:
@@ -219,13 +226,17 @@ Output:
         notes = []
 
         total_runs = summary_stats.get("total_sets", 0) if summary_stats else 0
-        
+
         low_run_categories = {
-            category: count for category, count in subcategory_runs.items() if count < 100
+            category: count
+            for category, count in subcategory_runs.items()
+            if count < 100
         }
-        
+
         if low_run_categories:
-            categories_str = ", ".join(f"{cat} ({count})" for cat, count in low_run_categories.items())
+            categories_str = ", ".join(
+                f"{cat} ({count})" for cat, count in low_run_categories.items()
+            )
             notes.append(
                 f"Following SET categories had fewer than the suggested 100 runs and results may vary due to AI stochasticity: {categories_str}. It is recommended to conduct a larger number of runs for a more comprehensive assessment."
             )

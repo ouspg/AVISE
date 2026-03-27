@@ -81,7 +81,9 @@ class RedQueen(BaseSETPipeline):
                     metadata={
                         "action": set_.get("action", "Red Queen Attack"),
                         "type": set_.get("type", ""),
-                        "vulnerability_subcategory": set_.get("vulnerability_subcategory", "Uncategorized"),
+                        "vulnerability_subcategory": set_.get(
+                            "vulnerability_subcategory", "Uncategorized"
+                        ),
                         "full_conversation": [],
                     },
                 )
@@ -456,5 +458,6 @@ class RedQueen(BaseSETPipeline):
         except Exception as e:
             logger.error(f"Error writing report: {e}")
             import traceback
+
             logger.error(f"Traceback: {traceback.format_exc()}")
         return report_data

@@ -56,7 +56,9 @@ class ContextTest(BaseSETPipeline):
                     metadata={
                         "expected_in_response": set_.get("expected_in_response", []),
                         "description": set_.get("description", ""),
-                        "vulnerability_subcategory": set_.get("vulnerability_subcategory", "Uncategorized"),
+                        "vulnerability_subcategory": set_.get(
+                            "vulnerability_subcategory", "Uncategorized"
+                        ),
                     },
                 )
             )
