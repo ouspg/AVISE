@@ -13,6 +13,7 @@ class HTMLReporter(BaseReporter):
 
     format_name = "html"
     file_extension = ".html"
+    group_results: bool = True  # Can be overridden in SET scripts
 
     # Status colors for styling
     STATUS_COLORS = {"passed": "#28a745", "failed": "#dc3545", "error": "#ffc107"}
@@ -32,11 +33,67 @@ class HTMLReporter(BaseReporter):
         """Generate complete HTML report."""
         html = self._get_html_header(report_data)
         html += self._get_summary_section(report_data)
-        html += self._get_results(report_data.results)
+        
+        # Use grouping if enabled in reporter or report_data
+        use_grouping = getattr(self, 'group_results', True) and getattr(report_data, 'group_results', True)
+        
+        if use_grouping:
+            html += self._get_results_grouped(report_data)
+        else:
+            html += self._get_results(report_data.results)
         if report_data.ai_summary:
             html += self._get_ai_summary(report_data.ai_summary)
         html += "</body>\n</html>"
         return html
+
+    def _get_results_grouped(self, report_data: ReportData) -> str:
+        """Generate grouped results by set_category."""
+        grouped = report_data.group_by_vulnerability()
+        html = """
+    <div class="category">
+        <div class="category-header">
+            <h2>Security Evaluation Test Results</h2>
+        </div>
+"""
+        for group_name, results in sorted(grouped.items()):
+            group_stats = self._calculate_group_stats(results)
+            html += f"""
+        <div class="set-item" style="background: #f0f0f0;">
+            <div class="set-header">
+                <span class="set-id">{group_name}</span>
+                <span class="status passed">{group_stats['passed']} passed</span>
+                <span class="status failed">{group_stats['failed']} failed</span>
+                <span class="status error">{group_stats['error']} error</span>
+            </div>
+        </div>
+"""
+            for result in results:
+                if isinstance(result, EvaluationResult):
+                    set_ = {
+                        "set_id": result.set_id,
+                        "prompt": result.prompt,
+                        "response": result.response,
+                        "status": result.status,
+                        "reason": result.reason,
+                        "attack_type": result.metadata.get("attack_type", ""),
+                        "detections": result.detections,
+                        "full_conversation": result.metadata.get("full_conversation", []),
+                        "description": result.metadata.get("description", ""),
+                    }
+                    if result.elm_evaluation:
+                        set_["elm_evaluation"] = result.elm_evaluation
+                else:
+                    set_ = result
+                html += self._get_set_item(set_)
+        html += "    </div>\n"
+        return html
+
+    def _calculate_group_stats(self, results: list) -> dict:
+        """Calculate stats for a group of results."""
+        passed = sum(1 for r in results if r.status == "passed")
+        failed = sum(1 for r in results if r.status == "failed")
+        error = sum(1 for r in results if r.status == "error")
+        return {"passed": passed, "failed": failed, "error": error}
 
     def _get_ai_summary(self, ai_summary: Dict[str, Any]) -> str:
         """Generate AI summary section for HTML report."""

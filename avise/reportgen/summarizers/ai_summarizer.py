@@ -119,10 +119,10 @@ Output:
 
         try:
             response = self.model.generate(prompt)
-            logger.info(f"AI summary response type: {type(response)}")
+            logger.debug(f"AI summary response type: {type(response)}")
             if response and len(response) > 0:
                 last_item = response[-1]
-                logger.info(f"AI summary last_item type: {type(last_item)}")
+                logger.debug(f"AI summary last_item type: {type(last_item)}")
                 if isinstance(last_item, dict):
                     return last_item.get("content", "Unable to generate summary.")
                 elif isinstance(last_item, str):
@@ -134,7 +134,6 @@ Output:
             logger.error(f"Failed to generate issue summary: {e}")
             import traceback
             logger.error(f"Traceback: {traceback.format_exc()}")
-            return "Unable to generate issue summary due to an error."
             return "Unable to generate issue summary due to an error."
 
     def _generate_remediations(
@@ -186,7 +185,7 @@ Output:
 
         try:
             response = self.model.generate(prompt)
-            logger.debug(f"AI remediations response type: {type(response)}, value: {response}")
+            logger.debug(f"AI remediations response type: {type(response)}")
             if response and len(response) > 0:
                 last_item = response[-1]
                 if isinstance(last_item, dict):
@@ -220,18 +219,20 @@ Output:
         notes = []
 
         total_runs = summary_stats.get("total_sets", 0) if summary_stats else 0
-        if total_runs > 0 and total_runs < 100:
+        
+        low_run_categories = {
+            category: count for category, count in subcategory_runs.items() if count < 100
+        }
+        
+        if low_run_categories:
+            categories_str = ", ".join(f"{cat} ({count})" for cat, count in low_run_categories.items())
+            notes.append(
+                f"Following SET categories had fewer than the suggested 100 runs and results may vary due to AI stochasticity: {categories_str}. It is recommended to conduct a larger number of runs for a more comprehensive assessment."
+            )
+        elif total_runs > 0 and total_runs < 100:
             notes.append(
                 f"The total number of runs ({total_runs}) is fewer than the suggested 100 and results may vary due to AI stochasticity. It is recommended to conduct a larger number of runs for a more comprehensive assessment."
             )
-        elif subcategory_runs:
-            low_run_categories = [
-                category for category, count in subcategory_runs.items() if count < 100
-            ]
-            if low_run_categories:
-                notes.append(
-                    f"Following SET categories had fewer than the suggested 100 runs and results may vary due to AI stochasticity: {', '.join(low_run_categories)}. It is recommended to conduct a larger number of runs for a more comprehensive assessment."
-                )
 
         notes.append(
             "Automated tests may produce false positives or negatives; human review is advised for critical evaluations."

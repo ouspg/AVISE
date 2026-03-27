@@ -120,6 +120,21 @@ class ReportData:
     ai_summary: Optional[Dict[str, Any]] = field(
         default_factory=dict
     )  # AI-generated summary
+    group_results: bool = True  # Group results by set_category
+
+    def group_by_vulnerability(self) -> Dict[str, List[EvaluationResult]]:
+        """Group results by vulnerability_subcategory field in metadata.
+
+        Returns:
+            Dict mapping set_category to list of results
+        """
+        grouped: Dict[str, List[EvaluationResult]] = {}
+        for result in self.results:
+            group_name = result.metadata.get("vulnerability_subcategory", "Uncategorized")
+            if group_name not in grouped:
+                grouped[group_name] = []
+            grouped[group_name].append(result)
+        return grouped
 
     def to_dict(self) -> Dict[str, Any]:
         result = {
@@ -128,8 +143,17 @@ class ReportData:
             "execution_time_seconds": self.execution_time_seconds,
             "configuration": self.configuration,
             "summary": self.summary,
-            "results": [result.to_dict() for result in self.results],
         }
+        
+        if self.group_results:
+            grouped = self.group_by_vulnerability()
+            result["set_category"] = {
+                group: [r.to_dict() for r in results]
+                for group, results in grouped.items()
+            }
+        else:
+            result["results"] = [r.to_dict() for r in self.results]
+        
         if self.ai_summary:
             result["ai_summary"] = self.ai_summary
         return result

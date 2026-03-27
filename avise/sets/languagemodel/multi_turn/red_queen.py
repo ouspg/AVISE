@@ -81,6 +81,7 @@ class RedQueen(BaseSETPipeline):
                     metadata={
                         "action": set_.get("action", "Red Queen Attack"),
                         "type": set_.get("type", ""),
+                        "vulnerability_subcategory": set_.get("vulnerability_subcategory", "Uncategorized"),
                         "full_conversation": [],
                     },
                 )
