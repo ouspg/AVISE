@@ -411,9 +411,11 @@ class RedQueen(BaseSETPipeline):
         ai_summary = None
         if generate_ai_summary:
             logger.info("Generating AI summary...")
+            subcategory_runs = self.calculate_subcategory_runs(results)
             ai_summary = self.generate_ai_summary(
-                results,
-                summary_stats,
+                results=results,
+                summary_stats=summary_stats,
+                subcategory_runs=subcategory_runs,
             )
             if ai_summary:
                 logger.info("AI summary generated successfully")
