@@ -136,7 +136,7 @@ class BaseSETPipeline(ABC):
         Returns:
             ReportData: The final report with all the SET data
 
-        Requirements:ExecutionOutput
+        Requirements:
             - Must write a report in the requested format to output_path
         """
         pass
@@ -239,7 +239,7 @@ class BaseSETPipeline(ABC):
 
         Helper for report phase. Can be overwritten.
         """
-        total_sets = len(results)
+        total_set_cases = len(results)
         passed = 0
         failed = 0
         errors = 0
@@ -254,9 +254,9 @@ class BaseSETPipeline(ABC):
             else:
                 errors += 1
 
-        if total_sets > 0:
-            pass_rate = round(passed / total_sets * 100, 1)
-            fail_rate = round(failed / total_sets * 100, 1)
+        if total_set_cases > 0:
+            pass_rate = round(passed / total_set_cases * 100, 1)
+            fail_rate = round(failed / total_set_cases * 100, 1)
         else:
             pass_rate = 0
             fail_rate = 0
@@ -266,7 +266,7 @@ class BaseSETPipeline(ABC):
         )
 
         return {
-            "total_sets": total_sets,
+            "total_set_cases": total_set_cases,
             "passed": passed,
             "failed": failed,
             "error": errors,

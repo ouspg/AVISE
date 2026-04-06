@@ -84,8 +84,8 @@ def main(arguments=None) -> None:
         "--format",
         "-f",
         choices=["json", "html", "md"],
-        default="json",
-        help="Report format: json (default), html, or md (markdown)",
+        default="html",
+        help="Report format: html (default; generates both, json and html report files), json, or md (markdown)",
     )
     parser.add_argument(
         "--output",
@@ -192,7 +192,7 @@ def main(arguments=None) -> None:
         # Print a small summary to the console
         print("\nSecurity Evaluation Test completed!")
         print(f"  Format: {report_format.value.upper()}")
-        print(f"  Total: {report.summary['total_sets']}")
+        print(f"  Total: {report.summary['total_set_cases']}")
         print(f"  Passed: {report.summary['passed']} ({report.summary['pass_rate']}%)")
         print(f"  Failed: {report.summary['failed']} ({report.summary['fail_rate']}%)")
         print(f"  Errors: {report.summary['error']}")

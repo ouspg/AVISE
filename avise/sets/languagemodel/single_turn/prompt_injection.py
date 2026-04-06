@@ -374,11 +374,20 @@ class PromptInjectionTest(BaseSETPipeline):
         output_file = Path(output_path)
         output_file.parent.mkdir(parents=True, exist_ok=True)
 
-        if report_format == ReportFormat.JSON:
-            JSONReporter().write(report_data, output_file)
-        elif report_format == ReportFormat.HTML:
-            HTMLReporter().write(report_data, output_file)
-        elif report_format == ReportFormat.MARKDOWN:
-            MarkdownReporter().write(report_data, output_file)
-        logger.info(f"Report written to {output_path}")
+        try:
+            if report_format == ReportFormat.HTML:
+                # If report format is default HTML, write JSON & HTML files
+                HTMLReporter().write(report_data, output_file)
+                json_output_file = Path(output_path.replace(".html", ".json"))
+                JSONReporter().write(report_data, json_output_file)
+            elif report_format == ReportFormat.JSON:
+                JSONReporter().write(report_data, output_file)
+            elif report_format == ReportFormat.MARKDOWN:
+                MarkdownReporter().write(report_data, output_file)
+            logger.info(f"Report written to {output_path}")
+        except Exception as e:
+            logger.error(f"Error writing report: {e}")
+            import traceback
+
+            logger.error(f"Traceback: {traceback.format_exc()}")
         return report_data

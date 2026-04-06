@@ -34,6 +34,10 @@ class HTMLReporter(BaseReporter):
         html = self._get_html_header(report_data)
         html += self._get_summary_section(report_data)
 
+        # Add AI Summary section
+        if report_data.ai_summary:
+            html += self._get_ai_summary(report_data.ai_summary)
+
         # Use grouping if enabled in reporter or report_data
         use_grouping = getattr(self, "group_results", True) and getattr(
             report_data, "group_results", True
@@ -43,8 +47,6 @@ class HTMLReporter(BaseReporter):
             html += self._get_results_grouped(report_data)
         else:
             html += self._get_results(report_data.results)
-        if report_data.ai_summary:
-            html += self._get_ai_summary(report_data.ai_summary)
         html += "</body>\n</html>"
         return html
 
@@ -106,10 +108,12 @@ class HTMLReporter(BaseReporter):
             for note in ai_summary.get("notes", [])
         )
         return f"""
-    <div class="category">
-        <div class="category-header">
-            <h2>AI Security Evaluation Summary</h2>
-        </div>
+    <details class="category" open>
+        <summary>
+            <div class="category-header">
+                <h2>AI Security Evaluation Summary</h2>
+            </div>
+        </summary>
         <div class="set-item">
             <h3>Issue Summary</h3>
             <div class="ai-content">{self._markdown_to_html(ai_summary.get("issue_summary", ""))}</div>
@@ -124,7 +128,7 @@ class HTMLReporter(BaseReporter):
                 {notes_html}
             </ul>
         </div>
-    </div>
+    </details>
 """
 
     def _markdown_to_html(self, text: str) -> str:
@@ -268,6 +272,51 @@ class HTMLReporter(BaseReporter):
         .ai-content {{ white-space: pre-wrap; }}
         .ai-content h3, .ai-content h4 {{ margin: 15px 0 10px 0; }}
         .ai-content li {{ margin: 5px 0; }}
+        details.category > summary {{
+            list-style: none;
+            cursor: pointer;
+            user-select: none;
+        }}
+        details.category > summary::-webkit-details-marker {{
+            display: none;
+        }}
+        details.category > summary .category-header {{
+            border-radius: 10px;
+        }}
+        details.category[open] > summary .category-header {{
+            border-radius: 10px 10px 0 0;
+        }}
+        details.category > summary .category-header h2::after {{
+            content: '       ▸';
+            font-size: 20px;
+            opacity: 0.7;
+        }}
+        details.category[open] > summary .category-header h2::after {{
+            content: '       ▾';
+        }}
+        details.set-item > summary {{
+            list-style: none;
+            cursor: pointer;
+            user-select: none;
+        }}
+        details.set-item > summary::-webkit-details-marker {{
+            display: none;
+        }}
+        details.set-item > summary .set-header {{
+            margin-bottom: 0;
+        }}
+        details.set-item[open] > summary .set-header {{
+            margin-bottom: 10px;
+        }}
+        details.set-item > summary .set-header .set-id::after {{
+            content: '       ▸';
+            font-size: 20px;
+            opacity: 0.7;
+        }}
+        details.set-item[open] > summary .set-header .set-id::after {{
+            content: '       ▾';
+        }}
+
     </style>
 </head>
 <body>
@@ -288,8 +337,8 @@ class HTMLReporter(BaseReporter):
         return f"""
     <div class="summary-cards">
         <div class="card">
-            <div class="number">{summary["total_sets"]}</div>
-            <div class="label">Total Security Evaluation Tests</div>
+            <div class="number">{summary["total_set_cases"]}</div>
+            <div class="label">Total Security Evaluation Test Cases</div>
         </div>
         <div class="card passed">
             <div class="number">{summary["passed"]}</div>
@@ -373,11 +422,13 @@ class HTMLReporter(BaseReporter):
             <div class="response">{self.escape_html(set_.get("response", ""))}</div>"""
 
         return f"""
-        <div class="set-item">
-            <div class="set-header">
-                <span class="set-id">{set_["set_id"]}{set_label}</span>
-                <span class="status {set_["status"]}">{set_["status"]}</span>
-            </div>
+        <details class="set-item">
+            <summary>
+                <div class="set-header">
+                    <span class="set-id">{set_["set_id"]}{set_label}</span>
+                    <span class="status {set_["status"]}">{set_["status"]}</span>
+                </div>
+            </summary>
             {prompt_response_html}
             {conversation_html}
             <div class="reason">{self.escape_html(set_.get("reason", ""))}</div>

@@ -56,7 +56,7 @@ class AISummarizer:
 
         Args:
             results: List of evaluation results from the security test
-            summary_stats: Summary statistics (total_sets, passed, failed, etc.)
+            summary_stats: Summary statistics (total_set_cases, passed, failed, etc.)
             subcategory_runs: Optional dict of subcategory -> number of runs
 
         Returns:
@@ -64,7 +64,9 @@ class AISummarizer:
         """
         issue_summary = self._generate_issue_summary(results, summary_stats)
         recommended_remediations = self._generate_remediations(results, summary_stats)
-        notes = self._generate_notes(results, subcategory_runs, summary_stats)
+        notes = self._generate_notes(
+            subcategory_runs=subcategory_runs, summary_stats=summary_stats
+        )
 
         return AISummary(
             issue_summary=issue_summary,
@@ -209,7 +211,6 @@ Output:
 
     def _generate_notes(
         self,
-        results: List[Dict[str, Any]],
         subcategory_runs: Optional[Dict[str, int]] = None,
         summary_stats: Optional[Dict[str, Any]] = None,
     ) -> List[str]:
@@ -218,14 +219,14 @@ Output:
         Args:
             results: List of evaluation results
             subcategory_runs: Optional dict of subcategory -> number of runs
-            summary_stats: Optional summary statistics containing total_sets
+            summary_stats: Optional summary statistics containing total_set_cases
 
         Returns:
             List[str]: List of note strings
         """
         notes = []
 
-        total_runs = summary_stats.get("total_sets", 0) if summary_stats else 0
+        total_runs = summary_stats.get("total_set_cases", 0) if summary_stats else 0
 
         low_run_categories = {
             category: count
@@ -235,7 +236,7 @@ Output:
 
         if low_run_categories:
             categories_str = ", ".join(
-                f"{cat} ({count})" for cat, count in low_run_categories.items()
+                f"**{cat}** ({count})" for cat, count in low_run_categories.items()
             )
             notes.append(
                 f"Following SET categories had fewer than the suggested 100 runs and results may vary due to AI stochasticity: {categories_str}. It is recommended to conduct a larger number of runs for a more comprehensive assessment."
@@ -263,7 +264,7 @@ Output:
         Returns:
             str: Formatted results string
         """
-        total = summary_stats.get("total_sets", 0)
+        total = summary_stats.get("total_set_cases", 0)
         passed = summary_stats.get("passed", 0)
         failed = summary_stats.get("failed", 0)
         error = summary_stats.get("error", 0)

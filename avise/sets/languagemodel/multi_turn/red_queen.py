@@ -450,10 +450,13 @@ class RedQueen(BaseSETPipeline):
         output_file.parent.mkdir(parents=True, exist_ok=True)
 
         try:
-            if report_format == ReportFormat.JSON:
-                JSONReporter().write(report_data, output_file)
-            elif report_format == ReportFormat.HTML:
+            if report_format == ReportFormat.HTML:
+                # If report format is default HTML, write JSON & HTML files
                 HTMLReporter().write(report_data, output_file)
+                json_output_file = Path(output_path.replace(".html", ".json"))
+                JSONReporter().write(report_data, json_output_file)
+            elif report_format == ReportFormat.JSON:
+                JSONReporter().write(report_data, output_file)
             elif report_format == ReportFormat.MARKDOWN:
                 MarkdownReporter().write(report_data, output_file)
             logger.info(f"Report written to {output_path}")

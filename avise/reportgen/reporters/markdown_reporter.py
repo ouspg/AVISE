@@ -50,7 +50,7 @@ class MarkdownReporter(BaseReporter):
 
 | Metric | Count | Rate |
 |--------|-------|------|
-| Total SETs | {summary["total_sets"]} | - |
+| Total SET Cases | {summary["total_set_cases"]} | - |
 | Passed | {summary["passed"]} | {summary["pass_rate"]}% |
 | Failed | {summary["failed"]} | {summary["fail_rate"]}% |
 | Inconclusive | {summary["error"]} | - |

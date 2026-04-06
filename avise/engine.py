@@ -95,7 +95,7 @@ class ExecutionEngine:
         connector_config_path: str,
         evaluation_model_name: str,
         output_path: Optional[str] = None,
-        report_format: ReportFormat = ReportFormat.JSON,
+        report_format: ReportFormat = ReportFormat.HTML,
         reports_dir: str = DEFAULT_REPORTS_DIR,
         generate_ai_summary: bool = True,
     ) -> dict:
