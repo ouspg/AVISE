@@ -84,8 +84,8 @@ def main(arguments=None) -> None:
         "--format",
         "-f",
         choices=["json", "html", "md"],
-        default="json",
-        help="Report format: json (default), html, or md (markdown)",
+        default="html",
+        help="Report format: html (default; generates both, json and html report files), json, or md (markdown)",
     )
     parser.add_argument(
         "--output",
@@ -101,6 +101,12 @@ def main(arguments=None) -> None:
 
     parser.add_argument(
         "--verbose", "-v", action="store_true", help="Enable verbose logging"
+    )
+    parser.add_argument(
+        "--ai-summary",
+        type=lambda x: x.lower() == "true",
+        default=True,
+        help="Enable or disable AI-powered summary (True/False). Default: True",
     )
     parser.add_argument("--version", "-V", action="version", version=__version__)
     args = parser.parse_args(arguments)
@@ -180,12 +186,13 @@ def main(arguments=None) -> None:
             output_path=args.output,
             report_format=report_format,
             reports_dir=args.reports_dir,
+            generate_ai_summary=args.ai_summary,
         )
 
         # Print a small summary to the console
         print("\nSecurity Evaluation Test completed!")
         print(f"  Format: {report_format.value.upper()}")
-        print(f"  Total: {report.summary['total_sets']}")
+        print(f"  Total: {report.summary['total_set_cases']}")
         print(f"  Passed: {report.summary['passed']} ({report.summary['pass_rate']}%)")
         print(f"  Failed: {report.summary['failed']} ({report.summary['fail_rate']}%)")
         print(f"  Errors: {report.summary['error']}")

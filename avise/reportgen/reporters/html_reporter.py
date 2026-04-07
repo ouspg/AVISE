@@ -1,5 +1,6 @@
 """HTML report writer."""
 
+import re
 from pathlib import Path
 from typing import Dict, Any
 
@@ -12,6 +13,7 @@ class HTMLReporter(BaseReporter):
 
     format_name = "html"
     file_extension = ".html"
+    group_results: bool = True  # Can be overridden in SET scripts
 
     # Status colors for styling
     STATUS_COLORS = {"passed": "#28a745", "failed": "#dc3545", "error": "#ffc107"}
@@ -31,8 +33,127 @@ class HTMLReporter(BaseReporter):
         """Generate complete HTML report."""
         html = self._get_html_header(report_data)
         html += self._get_summary_section(report_data)
-        html += self._get_results(report_data.results)
+
+        # Add AI Summary section
+        if report_data.ai_summary:
+            html += self._get_ai_summary(report_data.ai_summary)
+
+        # Use grouping if enabled in reporter or report_data
+        use_grouping = getattr(self, "group_results", True) and getattr(
+            report_data, "group_results", True
+        )
+
+        if use_grouping:
+            html += self._get_results_grouped(report_data)
+        else:
+            html += self._get_results(report_data.results)
         html += "</body>\n</html>"
+        return html
+
+    def _get_results_grouped(self, report_data: ReportData) -> str:
+        """Generate grouped results by set_category."""
+        grouped = report_data.group_by_vulnerability()
+        html = """
+    <div class="category">
+        <div class="category-header">
+            <h2>Security Evaluation Test Results</h2>
+        </div>
+"""
+        for group_name, results in sorted(grouped.items()):
+            group_stats = self._calculate_group_stats(results)
+            html += f"""
+        <div class="set-item" style="background: #f0f0f0;">
+            <div class="set-header">
+                <span class="set-id">{group_name}</span>
+                <span class="status passed">{group_stats["passed"]} passed</span>
+                <span class="status failed">{group_stats["failed"]} failed</span>
+                <span class="status error">{group_stats["error"]} error</span>
+            </div>
+        </div>
+"""
+            for result in results:
+                if isinstance(result, EvaluationResult):
+                    set_ = {
+                        "set_id": result.set_id,
+                        "prompt": result.prompt,
+                        "response": result.response,
+                        "status": result.status,
+                        "reason": result.reason,
+                        "attack_type": result.metadata.get("attack_type", ""),
+                        "detections": result.detections,
+                        "full_conversation": result.metadata.get(
+                            "full_conversation", []
+                        ),
+                        "description": result.metadata.get("description", ""),
+                    }
+                    if result.elm_evaluation:
+                        set_["elm_evaluation"] = result.elm_evaluation
+                else:
+                    set_ = result
+                html += self._get_set_item(set_)
+        html += "    </div>\n"
+        return html
+
+    def _calculate_group_stats(self, results: list) -> dict:
+        """Calculate stats for a group of results."""
+        passed = sum(1 for r in results if r.status == "passed")
+        failed = sum(1 for r in results if r.status == "failed")
+        error = sum(1 for r in results if r.status == "error")
+        return {"passed": passed, "failed": failed, "error": error}
+
+    def _get_ai_summary(self, ai_summary: Dict[str, Any]) -> str:
+        """Generate AI summary section for HTML report."""
+        notes_html = "".join(
+            f"<li>{self._markdown_to_html(note)}</li>"
+            for note in ai_summary.get("notes", [])
+        )
+        return f"""
+    <details class="category" open>
+        <summary>
+            <div class="category-header">
+                <h2>AI Security Evaluation Summary</h2>
+            </div>
+        </summary>
+        <div class="set-item">
+            <h3>Issue Summary</h3>
+            <div class="ai-content">{self._markdown_to_html(ai_summary.get("issue_summary", ""))}</div>
+        </div>
+        <div class="set-item">
+            <h3>Recommended Remediations</h3>
+            <div class="ai-content">{self._markdown_to_html(ai_summary.get("recommended_remediations", ""))}</div>
+        </div>
+        <div class="set-item">
+            <h3>Notes</h3>
+            <ul>
+                {notes_html}
+            </ul>
+        </div>
+    </details>
+"""
+
+    def _markdown_to_html(self, text: str) -> str:
+        """Convert basic markdown to HTML."""
+        if not text:
+            return ""
+        html = text
+        html = html.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        html = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", html)
+        html = re.sub(r"\*(.+?)\*", r"<em>\1</em>", html)
+        html = re.sub(r"^### (.+)$", r"<h4>\1</h4>", html, flags=re.MULTILINE)
+        html = re.sub(r"^## (.+)$", r"<h3>\1</h3>", html, flags=re.MULTILINE)
+        html = re.sub(r"^# (.+)$", r"<h2>\1</h2>", html, flags=re.MULTILINE)
+        html = re.sub(r"^\d+\. (.+)$", r"<li>\1</li>", html, flags=re.MULTILINE)
+        html = re.sub(r"^- (.+)$", r"<li>\1</li>", html, flags=re.MULTILINE)
+        html = re.sub(r"^\* (.+)$", r"<li>\1</li>", html, re.MULTILINE)
+        html = re.sub(r"\n\n", r"</p><p>", html)
+        html = f"<p>{html}</p>"
+        html = re.sub(r"<p></p>", r"", html)
+        html = re.sub(r"<p>(<h[234]>)", r"\1", html)
+        html = re.sub(r"(</h[234]>)<p>", r"\1", html)
+        html = re.sub(r"(</h[234]>)</p>", r"\1", html)
+        html = re.sub(r"<p>(<li>)", r"\1", html)
+        html = re.sub(r"(</li>)<p>", r"\1", html)
+        html = re.sub(r"(</li>)</p>", r"\1", html)
         return html
 
     def _get_html_header(self, report_data: ReportData) -> str:
@@ -148,6 +269,54 @@ class HTMLReporter(BaseReporter):
         .conversation .user {{ background: #e3f2fd; }}
         .conversation .assistant {{ background: #e8f5e9; }}
         .conversation .system {{ background: #fff3e0; }}
+        .ai-content {{ white-space: pre-wrap; }}
+        .ai-content h3, .ai-content h4 {{ margin: 15px 0 10px 0; }}
+        .ai-content li {{ margin: 5px 0; }}
+        details.category > summary {{
+            list-style: none;
+            cursor: pointer;
+            user-select: none;
+        }}
+        details.category > summary::-webkit-details-marker {{
+            display: none;
+        }}
+        details.category > summary .category-header {{
+            border-radius: 10px;
+        }}
+        details.category[open] > summary .category-header {{
+            border-radius: 10px 10px 0 0;
+        }}
+        details.category > summary .category-header h2::after {{
+            content: '       ▸';
+            font-size: 20px;
+            opacity: 0.7;
+        }}
+        details.category[open] > summary .category-header h2::after {{
+            content: '       ▾';
+        }}
+        details.set-item > summary {{
+            list-style: none;
+            cursor: pointer;
+            user-select: none;
+        }}
+        details.set-item > summary::-webkit-details-marker {{
+            display: none;
+        }}
+        details.set-item > summary .set-header {{
+            margin-bottom: 0;
+        }}
+        details.set-item[open] > summary .set-header {{
+            margin-bottom: 10px;
+        }}
+        details.set-item > summary .set-header .set-id::after {{
+            content: '       ▸';
+            font-size: 20px;
+            opacity: 0.7;
+        }}
+        details.set-item[open] > summary .set-header .set-id::after {{
+            content: '       ▾';
+        }}
+
     </style>
 </head>
 <body>
@@ -168,8 +337,8 @@ class HTMLReporter(BaseReporter):
         return f"""
     <div class="summary-cards">
         <div class="card">
-            <div class="number">{summary["total_sets"]}</div>
-            <div class="label">Total Security Evaluation Tests</div>
+            <div class="number">{summary["total_set_cases"]}</div>
+            <div class="label">Total Security Evaluation Test Cases</div>
         </div>
         <div class="card passed">
             <div class="number">{summary["passed"]}</div>
@@ -253,14 +422,16 @@ class HTMLReporter(BaseReporter):
             <div class="response">{self.escape_html(set_.get("response", ""))}</div>"""
 
         return f"""
-        <div class="set-item">
-            <div class="set-header">
-                <span class="set-id">{set_["set_id"]}{set_label}</span>
-                <span class="status {set_["status"]}">{set_["status"]}</span>
-            </div>
+        <details class="set-item">
+            <summary>
+                <div class="set-header">
+                    <span class="set-id">{set_["set_id"]}{set_label}</span>
+                    <span class="status {set_["status"]}">{set_["status"]}</span>
+                </div>
+            </summary>
             {prompt_response_html}
             {conversation_html}
             <div class="reason">{self.escape_html(set_.get("reason", ""))}</div>
             {elm_html}
-        </div>
+        </details>
 """

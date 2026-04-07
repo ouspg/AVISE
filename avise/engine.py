@@ -95,8 +95,9 @@ class ExecutionEngine:
         connector_config_path: str,
         evaluation_model_name: str,
         output_path: Optional[str] = None,
-        report_format: ReportFormat = ReportFormat.JSON,
+        report_format: ReportFormat = ReportFormat.HTML,
         reports_dir: str = DEFAULT_REPORTS_DIR,
+        generate_ai_summary: bool = True,
     ) -> dict:
         """Run the 4-phase pipeline
 
@@ -107,6 +108,7 @@ class ExecutionEngine:
             output_path: Optional custom output path (overrides date-based)
             report_format: Report format (JSON, HTML, or MARKDOWN)
             reports_dir: Base directory for reports
+            generate_ai_summary: Whether to generate AI-powered summary
 
         Returns:
             Report dictionary
@@ -149,7 +151,14 @@ class ExecutionEngine:
                 report_format=report_format,
             )
 
-        return set_instance.run(connector, set_config_path, output_path, report_format)
+        return set_instance.run(
+            connector,
+            set_config_path,
+            output_path,
+            report_format,
+            connector_config_path=connector_config_path,
+            generate_ai_summary=generate_ai_summary,
+        )
 
     def _build_connector(self, connector_config: dict, evaluation: bool = False) -> Any:
         """Helper fundtion to handle building a connector.

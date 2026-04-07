@@ -308,6 +308,7 @@ class PromptInjectionTest(BaseSETPipeline):
         results: List[EvaluationResult],
         output_path: str,
         report_format: ReportFormat = ReportFormat.JSON,
+        generate_ai_summary: bool = True,
     ) -> ReportData:
         """Phase 4 of the testing pipeline. Generate a report in the specified format.
 
@@ -315,6 +316,7 @@ class PromptInjectionTest(BaseSETPipeline):
             results: List[EvaluationResult] from evaluate()
             output_path: Path for output file / directory
             report_format: Report format
+            generate_ai_summary: Whether to generate AI summary (requires eval_model config)
 
         Returns:
             ReportData: The final report with all the Security Evaluation Test data
@@ -327,6 +329,23 @@ class PromptInjectionTest(BaseSETPipeline):
                 if result.set_id in self.elm_evaluations:
                     result.elm_evaluation = self.elm_evaluations[result.set_id]
 
+        summary_stats = self.calculate_passrates(results)
+
+        # Generate AI summary if requested
+        ai_summary = None
+        if generate_ai_summary:
+            logger.info("Generating AI summary...")
+            subcategory_runs = self.calculate_subcategory_runs(results)
+            ai_summary = self.generate_ai_summary(
+                results,
+                summary_stats,
+                subcategory_runs,
+            )
+            if ai_summary:
+                logger.info("AI summary generated successfully")
+            else:
+                logger.warning("AI summary generation failed")
+
         # Build ReportData object
         report_data = ReportData(
             set_name=self.name,
@@ -336,7 +355,7 @@ class PromptInjectionTest(BaseSETPipeline):
                 if self.start_time and self.end_time
                 else None
             ),
-            summary=self.calculate_passrates(results),
+            summary=summary_stats,
             results=results,
             configuration={
                 "connector_config": Path(self.connector_config_path).name
@@ -348,17 +367,27 @@ class PromptInjectionTest(BaseSETPipeline):
                 "target_model": self.target_model_name,
                 "evaluation_model": self.evaluation_model_name or "",
             },
+            ai_summary=ai_summary,
         )
 
         # Create output directory if none exist yet
         output_file = Path(output_path)
         output_file.parent.mkdir(parents=True, exist_ok=True)
 
-        if report_format == ReportFormat.JSON:
-            JSONReporter().write(report_data, output_file)
-        elif report_format == ReportFormat.HTML:
-            HTMLReporter().write(report_data, output_file)
-        elif report_format == ReportFormat.MARKDOWN:
-            MarkdownReporter().write(report_data, output_file)
-        logger.info(f"Report written to {output_path}")
+        try:
+            if report_format == ReportFormat.HTML:
+                # If report format is default HTML, write JSON & HTML files
+                HTMLReporter().write(report_data, output_file)
+                json_output_file = Path(output_path.replace(".html", ".json"))
+                JSONReporter().write(report_data, json_output_file)
+            elif report_format == ReportFormat.JSON:
+                JSONReporter().write(report_data, output_file)
+            elif report_format == ReportFormat.MARKDOWN:
+                MarkdownReporter().write(report_data, output_file)
+            logger.info(f"Report written to {output_path}")
+        except Exception as e:
+            logger.error(f"Error writing report: {e}")
+            import traceback
+
+            logger.error(f"Traceback: {traceback.format_exc()}")
         return report_data

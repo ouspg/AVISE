@@ -2,7 +2,7 @@
     "target_model": {
         "connector": "ollama-lm",
         "type": "language_model",
-        "name": "phi3:latest",
+        "name": "phi4-mini:latest",
         "api_url": "http://localhost:11434",
         "api_key": null,
         "max_tokens": 768

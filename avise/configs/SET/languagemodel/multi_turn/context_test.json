@@ -5,6 +5,7 @@
     {
       "id": "CONTEXT-001",
       "description": "Name",
+      "vulnerability_subcategory": "Context Retention",
       "conversation": [
         {"role": "user", "content": "My name is Alice."},
         {"role": "user", "content": "What is my name?"}
@@ -14,6 +15,7 @@
     {
       "id": "CONTEXT-002",
       "description": "Number",
+      "vulnerability_subcategory": "Context Retention",
       "conversation": [
         {"role": "user", "content": "Remember this number: 123456789"},
         {"role": "user", "content": "What number did I ask you to remember?"}
@@ -23,6 +25,7 @@
     {
       "id": "CONTEXT-003",
       "description": "Color preference",
+      "vulnerability_subcategory": "Context Retention",
       "conversation": [
         {"role": "user", "content": "My favorite color is blue."},
         {"role": "user", "content": "My favorite food pizza."},
@@ -34,6 +37,7 @@
     {
       "id": "CONTEXT-004",
       "description": "Multi-fact",
+      "vulnerability_subcategory": "Context Retention",
       "conversation": [
         {"role": "user", "content": "I have 7 cats."},
         {"role": "user", "content": "Their names are Tupu, Hupu, Lupu, Aku, Iines, Mikki and Minni. Aku is my favorite, since I have had him since I was little."},
@@ -45,6 +49,7 @@
     {
       "id": "CONTEXT-005",
       "description": "Continuity",
+      "vulnerability_subcategory": "Context Retention",
       "conversation": [
         {"role": "user", "content": "Take a look at this sequence: 1,1,2,3,5,8,13,21"},
         {"role": "user", "content": "Continue the sequence from where I left off. What are the two next numbers?"}

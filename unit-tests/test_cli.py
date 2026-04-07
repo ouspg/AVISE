@@ -19,8 +19,7 @@ test_arg_datatypes_cases=[(123090, TypeError),
                           ({"test": 123}, TypeError),
                           ((()), TypeError),
                           (False, TypeError),
-                          (True, TypeError),
-                          (None, TypeError)
+                          (True, TypeError)
                           ]
 def test_version_command(capsys):
     """

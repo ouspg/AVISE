@@ -5,6 +5,7 @@ initialize() -> execute() -> evaluate() -> report()
 
 """
 
+import logging
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import List, Dict, Any, Optional
@@ -16,6 +17,8 @@ from ...connectors.languagemodel.base import BaseLMConnector
 from ...models import EvaluationLanguageModel
 
 from scipy.special import erfinv
+
+logger = logging.getLogger(__name__)
 
 
 class ReportFormat(Enum):
@@ -120,6 +123,7 @@ class BaseSETPipeline(ABC):
         results: List[EvaluationResult],
         output_path: str,
         report_format: ReportFormat = ReportFormat.JSON,
+        generate_ai_summary: bool = True,
     ) -> ReportData:
         """Generate the final report in the desired format and save it to target location.
 
@@ -127,11 +131,12 @@ class BaseSETPipeline(ABC):
             results: List[EvaluationResult] from evaluate()
             output_path: Path for output file (../user/reports/..)
             report_format: Report format (Json, Toml, Yaml...) Set to JSON as default.
+            generate_ai_summary: Whether to generate AI summary (optional)
 
         Returns:
             ReportData: The final report with all the SET data
 
-        Requirements:ExecutionOutput
+        Requirements:
             - Must write a report in the requested format to output_path
         """
         pass
@@ -143,6 +148,7 @@ class BaseSETPipeline(ABC):
         output_path: str,
         report_format: ReportFormat = ReportFormat.JSON,
         connector_config_path: Optional[str] = None,
+        generate_ai_summary: bool = True,
     ) -> ReportData:
         """Orchestration method that executes the 4-phase pipeline.
         This method gets called by the execution engine.
@@ -153,6 +159,7 @@ class BaseSETPipeline(ABC):
             output_path: Path where the output report is written
             report_format: Desired output format
             connector_config_path: Path to model configuration (for report metadata)
+            generate_ai_summary: Whether to generate AI summary
 
         Requirements:
             Return the final report
@@ -173,9 +180,58 @@ class BaseSETPipeline(ABC):
         results = self.evaluate(execution_data)
 
         # Report
-        report_data = self.report(results, output_path, report_format)
+        report_data = self.report(
+            results, output_path, report_format, generate_ai_summary
+        )
 
         return report_data
+
+    def generate_ai_summary(
+        self,
+        results: List[EvaluationResult],
+        summary_stats: Dict[str, Any],
+        subcategory_runs: Optional[Dict[str, int]] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """Generate an AI summary of the security evaluation test results.
+
+        This is an optional helper method that can be called in the report phase
+        to generate an AI-powered summary of the test results.
+
+        Args:
+            results: List of EvaluationResult from evaluate()
+            summary_stats: Summary statistics from calculate_passrates()
+            subcategory_runs: Optional dict of subcategory -> number of runs
+
+        Returns:
+            Dict with ai_summary or None if generation fails
+        """
+        try:
+            from avise.reportgen.summarizers.ai_summarizer import AISummarizer
+
+            model_to_use = None
+            if hasattr(self, "evaluation_model") and self.evaluation_model is not None:
+                logger.info("Reusing existing evaluation model for AI summary")
+                model_to_use = self.evaluation_model
+            else:
+                logger.info(
+                    "Creating new model for AI summary (CPU mode due to memory constraints)"
+                )
+                model_to_use = None
+
+            summarizer = AISummarizer(reuse_model=model_to_use)
+            results_dict = [r.to_dict() for r in results]
+            ai_summary = summarizer.generate_summary(
+                results_dict, summary_stats, subcategory_runs
+            )
+
+            return {
+                "issue_summary": ai_summary.issue_summary,
+                "recommended_remediations": ai_summary.recommended_remediations,
+                "notes": ai_summary.notes,
+            }
+        except Exception as e:
+            logger.error(f"Failed to generate AI summary: {e}")
+            return None
 
     @staticmethod
     def calculate_passrates(results: List[EvaluationResult]) -> Dict[str, Any]:
@@ -183,7 +239,7 @@ class BaseSETPipeline(ABC):
 
         Helper for report phase. Can be overwritten.
         """
-        total_sets = len(results)
+        total_set_cases = len(results)
         passed = 0
         failed = 0
         errors = 0
@@ -198,9 +254,9 @@ class BaseSETPipeline(ABC):
             else:
                 errors += 1
 
-        if total_sets > 0:
-            pass_rate = round(passed / total_sets * 100, 1)
-            fail_rate = round(failed / total_sets * 100, 1)
+        if total_set_cases > 0:
+            pass_rate = round(passed / total_set_cases * 100, 1)
+            fail_rate = round(failed / total_set_cases * 100, 1)
         else:
             pass_rate = 0
             fail_rate = 0
@@ -210,7 +266,7 @@ class BaseSETPipeline(ABC):
         )
 
         return {
-            "total_sets": total_sets,
+            "total_set_cases": total_set_cases,
             "passed": passed,
             "failed": failed,
             "error": errors,
@@ -219,6 +275,26 @@ class BaseSETPipeline(ABC):
             "ci_lower_bound": confidence_interval[1],
             "ci_upper_bound": confidence_interval[2],
         }
+
+    @staticmethod
+    def calculate_subcategory_runs(
+        results: List[EvaluationResult],
+        subcategory_field: str = "vulnerability_subcategory",
+    ) -> Dict[str, int]:
+        """Calculate number of runs per vulnerability subcategory.
+
+        Args:
+            results: List of evaluation results
+            subcategory_field: Metadata field name for subcategory (default: vulnerability_subcategory)
+
+        Returns:
+            Dict mapping subcategory name to number of runs
+        """
+        subcategory_runs: Dict[str, int] = {}
+        for result in results:
+            subcategory = result.metadata.get(subcategory_field, "Unknown")
+            subcategory_runs[subcategory] = subcategory_runs.get(subcategory, 0) + 1
+        return subcategory_runs
 
     @staticmethod
     def _calculate_confidence_interval(
