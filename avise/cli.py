@@ -39,6 +39,12 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_REPORTS_DIR = "reports"
 
+DEFAULT_SET_CONFIGS = {
+    "red_queen": "configs/SET/languagemodel/multi_turn/red_queen.json",
+    "prompt_injection": "configs/SET/languagemodel/single_turn/prompt_injection_mini.json",
+    "context_test": "configs/SET/languagemodel/multi_turn/context_test.json",
+}
+
 
 def main(arguments=None) -> None:
     """Main function."""
@@ -66,10 +72,16 @@ def main(arguments=None) -> None:
     )
 
     parser.add_argument(
-        "--SET", help="Security Evaluation Test to run (e.g., prompt_injection)"
+        "--SET",
+        "-s",
+        nargs="+",
+        type=str,
+        help="Security Evaluation Test(s) to run (e.g., prompt_injection)",
     )
 
-    parser.add_argument("--connectorconf", help="Path to connector configuration JSON")
+    parser.add_argument(
+        "--connectorconf", "-c", help="Path to connector configuration JSON"
+    )
 
     parser.add_argument(
         "--SETconf", help="Path to Security Evaluation Test configuration JSON"
@@ -90,13 +102,20 @@ def main(arguments=None) -> None:
     parser.add_argument(
         "--output",
         "-o",
-        help="Custom output path (Overrider default date based naming)",
+        help="Custom output path (overrides default date based naming)",
+    )
+    parser.add_argument(
+        "--runs",
+        "-r",
+        type=int,
+        default=1,
+        help="How many times each SET is executed (default 1).",
     )
     parser.add_argument(
         "--reports_dir",
         "-d",
         default=DEFAULT_REPORTS_DIR,
-        help=f"Base directory for reports (default: {DEFAULT_REPORTS_DIR})",
+        help=f"Base directory for reports (default: {DEFAULT_REPORTS_DIR}).",
     )
 
     parser.add_argument(
@@ -134,21 +153,6 @@ def main(arguments=None) -> None:
         print("\nError: --connectorconf is required")
         return
 
-    if not args.SETconf:
-        # Check predefined configs
-        if args.SET == "red_queen":
-            args.SETconf = "configs/SET/languagemodel/multi_turn/red_queen.json"
-        elif args.SET == "prompt_injection":
-            args.SETconf = (
-                "configs/SET/languagemodel/single_turn/prompt_injection_mini.json"
-            )
-        elif args.SET == "context_test":
-            args.SETconf = "configs/SET/languagemodel/multi_turn/context_test.json"
-        else:
-            parser.print_help()
-            print("\nError: --SETconf is required for this SET.")
-            return
-
     if args.elm:
         if args.elm == "True":
             args.elm = "mistralai/Ministral-3-3B-Instruct-2512"
@@ -168,41 +172,69 @@ def main(arguments=None) -> None:
     }
     report_format = format_map[args.format]
 
-    # Predefined configs
-    if args.connectorconf == "ollama":
+    # Predefined connector configs
+    if args.connectorconf == "ollama_lm":
         args.connectorconf = "configs/connector/languagemodel/ollama.json"
-    elif args.connectorconf == "openai":
+    elif args.connectorconf == "openai_lm":
         args.connectorconf = "configs/connector/languagemodel/openai.json"
-    elif args.connectorconf == "genericrest":
+    elif args.connectorconf == "genericrest_lm":
         args.connectorconf = "configs/connector/languagemodel/genericrest.json"
 
-    try:
-        # Run the SET by calling run_test function. The selected SET's run() function is called.
-        report = engine.run_test(
-            set_name=args.SET,
-            set_config_path=args.SETconf,
-            connector_config_path=args.connectorconf,
-            evaluation_model_name=args.elm,
-            output_path=args.output,
-            report_format=report_format,
-            reports_dir=args.reports_dir,
-            generate_ai_summary=args.ai_summary,
-        )
+    for set_ in args.SET:
+        try:
+            if len(args.SET) == 1:
+                if not args.SETconf:
+                    try:
+                        set_config_path = DEFAULT_SET_CONFIGS[set_]
+                    except KeyError:
+                        parser.print_help()
+                        print("\nError: --SETconf is required for this SET.")
+                        return
+                else:
+                    set_config_path = args.SETconf
+            elif len(args.SET) > 1:
+                try:
+                    set_config_path = DEFAULT_SET_CONFIGS[set_]
+                except KeyError:
+                    logger.error(
+                        f"{ansi_colors['red']}Could not find default configuration path for {set_} SET. When executing multiple SETs, each needs to have a default configuration path. Add it to DEFAULT_SET_CONFIGS in cli.py.{ansi_colors['reset']}"
+                    )
+                    continue
+            else:
+                parser.print_help()
+                print("\nError: --SET is required")
+                return
+            # Run the SET by calling run_test function. The selected SET's run() function is called.
+            report = engine.run_test(
+                set_name=set_,
+                set_config_path=set_config_path,
+                connector_config_path=args.connectorconf,
+                evaluation_model_name=args.elm,
+                output_path=args.output,
+                report_format=report_format,
+                reports_dir=args.reports_dir,
+                generate_ai_summary=args.ai_summary,
+                runs=args.runs,
+            )
 
-        # Print a small summary to the console
-        print("\nSecurity Evaluation Test completed!")
-        print(f"  Format: {report_format.value.upper()}")
-        print(f"  Total: {report.summary['total_set_cases']}")
-        print(f"  Passed: {report.summary['passed']} ({report.summary['pass_rate']}%)")
-        print(f"  Failed: {report.summary['failed']} ({report.summary['fail_rate']}%)")
-        print(f"  Errors: {report.summary['error']}")
+            # Print a small summary to the console
+            print("\nSecurity Evaluation Test completed!")
+            print(f"  Format: {report_format.value.upper()}")
+            print(f"  Total: {report.summary['total_set_cases']}")
+            print(
+                f"  Passed: {report.summary['passed']} ({report.summary['pass_rate']}%)"
+            )
+            print(
+                f"  Failed: {report.summary['failed']} ({report.summary['fail_rate']}%)"
+            )
+            print(f"  Errors: {report.summary['error']}")
 
-    except Exception as e:
-        logger.error(
-            f"{ansi_colors['red']}Security Evaluation Test run failed: {e}{ansi_colors['reset']}",
-            exc_info=True,
-        )
-        raise
+        except Exception as e:
+            logger.error(
+                f"{ansi_colors['red']}Security Evaluation Test run failed: {e}{ansi_colors['reset']}",
+                exc_info=True,
+            )
+            raise
 
 
 if __name__ == "__main__":
