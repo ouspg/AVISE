@@ -76,7 +76,7 @@ def main(arguments=None) -> None:
         "-s",
         nargs="+",
         type=str,
-        help="Security Evaluation Test to run (e.g., prompt_injection)",
+        help="Security Evaluation Test(s) to run (e.g., prompt_injection)",
     )
 
     parser.add_argument(
@@ -153,21 +153,6 @@ def main(arguments=None) -> None:
         print("\nError: --connectorconf is required")
         return
 
-    if not args.SETconf:
-        # Check predefined configs
-        if args.SET == "red_queen":
-            args.SETconf = "configs/SET/languagemodel/multi_turn/red_queen.json"
-        elif args.SET == "prompt_injection":
-            args.SETconf = (
-                "configs/SET/languagemodel/single_turn/prompt_injection_mini.json"
-            )
-        elif args.SET == "context_test":
-            args.SETconf = "configs/SET/languagemodel/multi_turn/context_test.json"
-        else:
-            parser.print_help()
-            print("\nError: --SETconf is required for this SET.")
-            return
-
     if args.elm:
         if args.elm == "True":
             args.elm = "mistralai/Ministral-3-3B-Instruct-2512"
@@ -187,12 +172,12 @@ def main(arguments=None) -> None:
     }
     report_format = format_map[args.format]
 
-    # Predefined configs
-    if args.connectorconf == "ollama":
+    # Predefined connector configs
+    if args.connectorconf == "ollama_lm":
         args.connectorconf = "configs/connector/languagemodel/ollama.json"
-    elif args.connectorconf == "openai":
+    elif args.connectorconf == "openai_lm":
         args.connectorconf = "configs/connector/languagemodel/openai.json"
-    elif args.connectorconf == "genericrest":
+    elif args.connectorconf == "genericrest_lm":
         args.connectorconf = "configs/connector/languagemodel/genericrest.json"
 
     for set_ in args.SET:
