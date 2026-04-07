@@ -433,5 +433,5 @@ class HTMLReporter(BaseReporter):
             {conversation_html}
             <div class="reason">{self.escape_html(set_.get("reason", ""))}</div>
             {elm_html}
-        </div>
+        </details>
 """
