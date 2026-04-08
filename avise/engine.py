@@ -98,17 +98,19 @@ class ExecutionEngine:
         report_format: ReportFormat = ReportFormat.HTML,
         reports_dir: str = DEFAULT_REPORTS_DIR,
         generate_ai_summary: bool = True,
+        runs: int = 1,
     ) -> dict:
         """Run the 4-phase pipeline
 
         Args:
-            set_name: Registered SET name (e.g., "prompt_injection")
+            set_name: Registered SET name (e.g., "prompt_injection").
             set_config_path: Path to Security Evaluation Test configuration JSON file.
             connector_config_path: Path to Connector configuration JSON file. Required if using GenericRESTLMConnector.
-            output_path: Optional custom output path (overrides date-based)
-            report_format: Report format (JSON, HTML, or MARKDOWN)
-            reports_dir: Base directory for reports
-            generate_ai_summary: Whether to generate AI-powered summary
+            output_path: Optional custom output path (overrides date-based).
+            report_format: Report format (JSON, HTML, or MARKDOWN).
+            reports_dir: Base directory for reports.
+            generate_ai_summary: Whether to generate AI-powered summary.
+            runs: How many times the SET is ran.
 
         Returns:
             Report dictionary
@@ -158,6 +160,7 @@ class ExecutionEngine:
             report_format,
             connector_config_path=connector_config_path,
             generate_ai_summary=generate_ai_summary,
+            runs=runs,
         )
 
     def _build_connector(self, connector_config: dict, evaluation: bool = False) -> Any:

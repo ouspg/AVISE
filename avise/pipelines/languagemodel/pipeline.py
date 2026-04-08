@@ -149,6 +149,7 @@ class BaseSETPipeline(ABC):
         report_format: ReportFormat = ReportFormat.JSON,
         connector_config_path: Optional[str] = None,
         generate_ai_summary: bool = True,
+        runs: int = 1,
     ) -> ReportData:
         """Orchestration method that executes the 4-phase pipeline.
         This method gets called by the execution engine.
@@ -160,6 +161,7 @@ class BaseSETPipeline(ABC):
             report_format: Desired output format
             connector_config_path: Path to model configuration (for report metadata)
             generate_ai_summary: Whether to generate AI summary
+            runs: How many times to the SET is ran
 
         Returns:
             ReportData: The final report with all the SET data
@@ -177,11 +179,18 @@ class BaseSETPipeline(ABC):
             # Initialize
             sets = self.initialize(set_config_path)
 
-            # Execute
-            execution_data = self.execute(connector, sets)
+            results = []
+            # Loop to allow multiple SET runs
+            for run in range(runs):
+                logger.info(f"Starting SET run {run}/{runs}.")
 
-            # Evaluate
-            results = self.evaluate(execution_data)
+                # Execute
+                execution_data = self.execute(connector, sets)
+
+                # Evaluate
+                results += self.evaluate(execution_data)
+
+                logger.info(f"SET run {run}/{runs} finished.")
 
             # Report
             report_data = self.report(
