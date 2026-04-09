@@ -201,7 +201,7 @@ class BaseSETPipeline(ABC):
 
         finally:
             if self.evaluation_model:
-                logger.info("Cleaning up report model after pipeline execution")
+                # Clean evaluation model from memory
                 self.evaluation_model.del_model()
                 self.evaluation_model = None
 
@@ -224,22 +224,21 @@ class BaseSETPipeline(ABC):
         try:
             from avise.reportgen.summarizers.ai_summarizer import AISummarizer
 
-            model_to_use = None
+            model_to_use = self.evaluation_model
             if hasattr(self, "evaluation_model") and self.evaluation_model is not None:
                 logger.info("Reusing existing evaluation model for AI summary")
-                model_to_use = self.evaluation_model
             else:
                 logger.info(
                     "Creating new model for AI summary (no existing evaluation model)"
                 )
-                model_to_use = None
 
             summarizer = AISummarizer(reuse_model=model_to_use)
             results_dict = [r.to_dict() for r in results]
             ai_summary = summarizer.generate_summary(
                 results_dict, summary_stats, subcategory_runs
             )
-
+            # Delete model from memory
+            summarizer.model.del_model()
             return {
                 "issue_summary": ai_summary.issue_summary,
                 "recommended_remediations": ai_summary.recommended_remediations,
