@@ -161,7 +161,7 @@ class BaseSETPipeline(ABC):
             report_format: Desired output format
             connector_config_path: Path to model configuration (for report metadata)
             generate_ai_summary: Whether to generate AI summary
-            runs: How many times to the SET is ran
+            runs: How many times to run the SET
 
         Returns:
             ReportData: The final report with all the SET data
