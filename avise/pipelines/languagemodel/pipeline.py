@@ -229,7 +229,9 @@ class BaseSETPipeline(ABC):
                 logger.info("Reusing existing evaluation model for AI summary")
                 model_to_use = self.evaluation_model
             else:
-                logger.info("Creating new model for AI summary (no existing evaluation model)")
+                logger.info(
+                    "Creating new model for AI summary (no existing evaluation model)"
+                )
                 model_to_use = None
 
             summarizer = AISummarizer(reuse_model=model_to_use)

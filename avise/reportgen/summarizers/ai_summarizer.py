@@ -289,6 +289,7 @@ Output:
 
         return "\n".join(lines)
 
+
 def format_json_ai_summary(ai_summary: AISummary) -> Dict[str, Any]:
     """Format AI summary for JSON report output.
 

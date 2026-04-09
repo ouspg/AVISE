@@ -26,7 +26,7 @@ class HTMLReporter(BaseReporter):
             output_path: Path to the output file / directory
         """
         html = self._generate_html(report_data)
-        with open(output_path, "w", encoding='utf-8') as f:
+        with open(output_path, "w", encoding="utf-8") as f:
             f.write(html)
 
     def _generate_html(self, report_data: ReportData) -> str:
