@@ -238,7 +238,7 @@ class BaseSETPipeline(ABC):
                 results_dict, summary_stats, subcategory_runs
             )
             # Delete model from memory
-            summarizer.model.del_model()
+            summarizer.del_model()
             return {
                 "issue_summary": ai_summary.issue_summary,
                 "recommended_remediations": ai_summary.recommended_remediations,
