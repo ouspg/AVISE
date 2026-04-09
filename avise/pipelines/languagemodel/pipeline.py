@@ -161,7 +161,10 @@ class BaseSETPipeline(ABC):
             report_format: Desired output format
             connector_config_path: Path to model configuration (for report metadata)
             generate_ai_summary: Whether to generate AI summary
-            runs: How many times to the SET is ran
+            runs: How many times to run the SET
+
+        Returns:
+            ReportData: The final report with all the SET data
 
         Requirements:
             Return the final report
@@ -172,28 +175,35 @@ class BaseSETPipeline(ABC):
         self.set_config_path = set_config_path
         self.target_model_name = connector.model
 
-        # Initialize
-        sets = self.initialize(set_config_path)
+        try:
+            # Initialize
+            sets = self.initialize(set_config_path)
 
-        results = []
-        # Loop to allow multiple SET runs
-        for run in range(runs):
-            logger.info(f"Starting SET run {run}/{runs}.")
+            results = []
+            # Loop to allow multiple SET runs
+            for run in range(runs):
+                logger.info(f"Starting SET run {run}/{runs}.")
 
-            # Execute
-            execution_data = self.execute(connector, sets)
+                # Execute
+                execution_data = self.execute(connector, sets)
 
-            # Evaluate
-            results += self.evaluate(execution_data)
+                # Evaluate
+                results += self.evaluate(execution_data)
 
-            logger.info(f"SET run {run}/{runs} finished.")
+                logger.info(f"SET run {run}/{runs} finished.")
 
-        # Report
-        report_data = self.report(
-            results, output_path, report_format, generate_ai_summary
-        )
+            # Report
+            report_data = self.report(
+                results, output_path, report_format, generate_ai_summary
+            )
 
-        return report_data
+            return report_data
+
+        finally:
+            if self.evaluation_model:
+                # Clean evaluation model from memory
+                self.evaluation_model.del_model()
+                self.evaluation_model = None
 
     def generate_ai_summary(
         self,
@@ -210,29 +220,25 @@ class BaseSETPipeline(ABC):
             results: List of EvaluationResult from evaluate()
             summary_stats: Summary statistics from calculate_passrates()
             subcategory_runs: Optional dict of subcategory -> number of runs
-
-        Returns:
-            Dict with ai_summary or None if generation fails
         """
         try:
             from avise.reportgen.summarizers.ai_summarizer import AISummarizer
 
-            model_to_use = None
+            model_to_use = self.evaluation_model
             if hasattr(self, "evaluation_model") and self.evaluation_model is not None:
                 logger.info("Reusing existing evaluation model for AI summary")
-                model_to_use = self.evaluation_model
             else:
                 logger.info(
-                    "Creating new model for AI summary (CPU mode due to memory constraints)"
+                    "Creating new model for AI summary (no existing evaluation model)"
                 )
-                model_to_use = None
 
             summarizer = AISummarizer(reuse_model=model_to_use)
             results_dict = [r.to_dict() for r in results]
             ai_summary = summarizer.generate_summary(
                 results_dict, summary_stats, subcategory_runs
             )
-
+            # Delete model from memory
+            summarizer.del_model()
             return {
                 "issue_summary": ai_summary.issue_summary,
                 "recommended_remediations": ai_summary.recommended_remediations,

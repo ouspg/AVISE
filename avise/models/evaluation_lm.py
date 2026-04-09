@@ -191,10 +191,11 @@ class EvaluationLanguageModel:
 
     def del_model(self):
         """Delete the model from GPU memory."""
-        self.model.cpu()
-        del self.model
-        del self.tokenizer
-        torch.cuda.empty_cache()
+        if self.model:
+            self.model.cpu()
+            del self.model
+            del self.tokenizer
+            torch.cuda.empty_cache()
 
     def _model_download(
         self,
