@@ -35,16 +35,13 @@ class AISummarizer:
         from avise.models.evaluation_lm import EvaluationLanguageModel
 
         if reuse_model is not None:
-            logger.info("Reusing existing evaluation model for AI summary")
             self.model = reuse_model
-            self._owns_model = False
         else:
             logger.info("Loading AI summarizer model...")
             self.model = EvaluationLanguageModel(
                 model_name=evaluation_model_name,
                 max_new_tokens=max_new_tokens,
             )
-            self._owns_model = True
 
     def generate_summary(
         self,
@@ -291,15 +288,6 @@ Output:
             lines.append(f"  ... and {len(failed_results) - 20} more failed tests")
 
         return "\n".join(lines)
-
-    def cleanup(self):
-        """Clean up the model from memory."""
-        if self.model and self._owns_model:
-            logger.info("Cleaning up AI summarizer model...")
-            self.model.del_model()
-            self.model = None
-        elif self.model:
-            logger.info("Skipping cleanup - model is shared with evaluation")
 
 
 def format_json_ai_summary(ai_summary: AISummary) -> Dict[str, Any]:
