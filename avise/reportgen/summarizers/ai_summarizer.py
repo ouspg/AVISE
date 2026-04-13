@@ -88,9 +88,11 @@ class AISummarizer:
         Returns:
             str: Natural language summary of detected vulnerabilities
         """
+        logger.info("Starting to generate AI summary of the evaluation results...")
         failed_results = [r for r in results if r.get("status") == "failed"]
 
         if not failed_results:
+            logger.info("Succesfully generated the AI summary.")
             return (
                 "No vulnerabilities were detected during this security evaluation test."
             )
@@ -125,6 +127,7 @@ Output:
             response = self.model.generate(prompt)
             logger.debug(f"AI summary response type: {type(response)}")
             if response and len(response) > 0:
+                logger.info("Succesfully generated the AI summary.")
                 last_item = response[-1]
                 logger.debug(f"AI summary last_item type: {type(last_item)}")
                 if isinstance(last_item, dict):
@@ -133,6 +136,7 @@ Output:
                     return last_item
                 else:
                     return f"Unable to generate summary - unexpected type: {type(last_item)}"
+            logger.info("Unable to generate the AI summary.")
             return "Unable to generate summary."
         except Exception as e:
             logger.error(f"Failed to generate issue summary: {e}")
@@ -159,7 +163,7 @@ Output:
             return (
                 "No remediation steps are required as no vulnerabilities were detected."
             )
-
+        logger.info("Starting to generate recommended remediations...")
         results_summary = self._format_results_for_prompt(results, summary_stats)
 
         prompt = f"""You are a cybersecurity analyst producing formal remediation guidance for a security assessment report.
@@ -191,21 +195,24 @@ Output:
         try:
             response = self.model.generate(prompt)
             logger.debug(f"AI remediations response type: {type(response)}")
+
             if response and len(response) > 0:
+                logger.info("Succesfully generated recommended remediations.")
                 last_item = response[-1]
                 if isinstance(last_item, dict):
                     return last_item.get(
                         "content", "Unable to generate recommendations."
                     )
-                elif isinstance(last_item, str):
+                if isinstance(last_item, str):
                     return last_item
-                elif isinstance(last_item, (list, tuple)):
+                if isinstance(last_item, (list, tuple)):
                     return (
                         str(last_item[0])
                         if len(last_item) > 0
                         else "Unable to generate recommendations."
                     )
                 return str(last_item)
+            logger.info("Unable to generate recommended remediations.")
             return "Unable to generate recommendations."
         except Exception as e:
             logger.error(f"Failed to generate remediations: {e}")
