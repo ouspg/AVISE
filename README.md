@@ -30,6 +30,10 @@ Install with
     ```bash
     uv pip install avise
     ```
+    or
+    ```bash
+    uv tool install avise
+    ```
 
 ### 2. Run a model
 
