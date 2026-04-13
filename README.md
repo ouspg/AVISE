@@ -28,7 +28,7 @@ Install with
 - **uv:**
 
     ```bash
-    uv install avise
+    uv pip install avise
     ```
 
 ### 2. Run a model
