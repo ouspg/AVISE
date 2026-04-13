@@ -94,11 +94,12 @@ class ExecutionEngine:
         set_config_path: str,
         connector_config_path: str,
         evaluation_model_name: str,
-        output_path: Optional[str] = None,
         report_format: ReportFormat = ReportFormat.HTML,
         reports_dir: str = DEFAULT_REPORTS_DIR,
         generate_ai_summary: bool = True,
         runs: int = 1,
+        output_path: Optional[str] = None,
+        target: str = Optional[None],
     ) -> dict:
         """Run the 4-phase pipeline
 
@@ -117,6 +118,12 @@ class ExecutionEngine:
         """
         # Load model configuration
         connector_config = self.load_connector_config(connector_config_path)
+        # If provided with `target`, override target model from configuration file with it
+        if target is not None:
+            if "name" in connector_config["target_model"]:
+                connector_config["target_model"]["name"] = target
+            # TODO: Once there are default connectors for other system/model types than language models,
+            # add logic here to replace possible "name" in their config files with `target`.
 
         # Create a connector for the target model
         connector = self._build_connector(connector_config, evaluation=False)

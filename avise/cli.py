@@ -61,12 +61,12 @@ def main(arguments=None) -> None:
         description="AVISE - AI Vulnerability Identification & Security Evaluation"
     )
     parser.add_argument(
-        "--SET_list",
+        "--SET-list",
         action="store_true",
         help="List available Security Evaluation Tests",
     )
     parser.add_argument(
-        "--connector_list",
+        "--connector-list",
         action="store_true",
         help="List available connectors and formats",
     )
@@ -85,6 +85,10 @@ def main(arguments=None) -> None:
 
     parser.add_argument(
         "--SETconf", help="Path to Security Evaluation Test configuration JSON"
+    )
+
+    parser.add_argument(
+        "--target", "-t", help="Name of the target model or system to evaluate"
     )
 
     parser.add_argument(
@@ -112,7 +116,7 @@ def main(arguments=None) -> None:
         help="How many times each SET is executed (default 1).",
     )
     parser.add_argument(
-        "--reports_dir",
+        "--reports-dir",
         "-d",
         default=DEFAULT_REPORTS_DIR,
         help=f"Base directory for reports (default: {DEFAULT_REPORTS_DIR}).",
@@ -210,11 +214,12 @@ def main(arguments=None) -> None:
                 set_config_path=set_config_path,
                 connector_config_path=args.connectorconf,
                 evaluation_model_name=args.elm,
-                output_path=args.output,
                 report_format=report_format,
                 reports_dir=args.reports_dir,
                 generate_ai_summary=args.ai_summary,
                 runs=args.runs,
+                output_path=args.output,
+                target=args.target,
             )
 
             # Print a small summary to the console
