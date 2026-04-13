@@ -28,7 +28,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-DEFAULT_REPORTS_DIR = "reports"
+DEFAULT_REPORTS_DIR = "avise-reports"
 
 # On Windows, ensure triton-windows package is installed
 if os.name == "nt":

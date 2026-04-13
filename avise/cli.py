@@ -37,7 +37,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-DEFAULT_REPORTS_DIR = "reports"
+DEFAULT_REPORTS_DIR = "avise-reports"
 
 DEFAULT_SET_CONFIGS = {
     "red_queen": "configs/SET/languagemodel/multi_turn/red_queen.json",
