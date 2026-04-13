@@ -19,6 +19,10 @@ Install with
     ```bash
     uv install avise
     ```
+    or
+    ```bash
+    uv tool install avise
+    ```
 
 ### 2. Run a model
 
