@@ -1,5 +1,6 @@
 .vscode/
 reports/
+avise-reports/
 test.py
 
 #models
