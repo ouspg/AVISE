@@ -35,6 +35,8 @@ class EvaluationLanguageModel:
     ):
         logger.info("Loading Evaluation Language Model...")
         torch.cuda.empty_cache()
+        self.model = None
+        self.tokenizer = None
         if use_device is None:
             use_device = "auto"
         # Check for CUDA
@@ -196,6 +198,8 @@ class EvaluationLanguageModel:
             del self.model
             del self.tokenizer
             torch.cuda.empty_cache()
+            self.model = None
+            self.tokenizer = None
 
     def _model_download(
         self,
