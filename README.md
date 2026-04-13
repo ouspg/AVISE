@@ -1,5 +1,5 @@
 
-![AVISE logo](/docs/assets/avise_logo.png)
+![](/docs/assets/avise_logo.png)
 
 # AVISE - AI Vulnerability Identification & Security Evaluation
 
@@ -15,52 +15,76 @@ A framework for identifying vulnerabilities in and evaluating the security of AI
 ### Prerequisites
 
 - Python 3.10+
-- Docker (for running models backend)
-- pip
+- Docker (For Running models locally with Ollama)
 
-### 1. Clone the Repository
+### 1. Install AVISE
+
+Install with pip:
+```bash
+pip install avise
+```
+
+Install with uv:
+```bash
+uv install avise
+```
+
+### 2. Run a model
+
+You can use AVISE to evaluate any model accessible via an API by configuring a Connector. In this Quickstart, we will
+assume using the Ollama Docker container for running a language model. If you wish to evaluate models deployed in other ways, see
+the [Full Documentations](https://avise.readthedocs.io) and available template connector configuration files at `AVISE/avise/configs/connector/languagemodel/` dir of this repository.
+
+#### Running a language model locally with Docker & Ollama
+
+- Clone this repository to your local machine with:
 
 ```bash
 git clone https://github.com/ouspg/AVISE.git
-cd AVISE
 ```
 
-### 2. Set Up Python Environment
+- Create the Ollama Docker container
+    - for **GPU** accelerated inference with:
+        ```bash
+        docker compose -f AVISE/docker/ollama/docker-compose.yml up -d
+        ```
+    - or for **CPU** inference with:
+        ```bash
+        docker compose -f AVISE/docker/ollama/docker-compose-cpu.yml up -d
+        ```
+
+- Pull an Ollama model to evaluate into the container with:
+    ```bash
+    docker exec -it avise-ollama ollama pull <model_name>
+    ```
+
+### 3. Evaluate the model with a Security Evaluation Test (SET)
+
+#### Basic usage
 
 ```bash
-# Create virtual environment
-python -m venv venv
-
-source venv/bin/activate # Or venv/Scripts/Activate on Windows
-
-# Install dependencies
-pip install -r requirements.txt
+avise --SET <SET_name> --connectorconf <connector_name> [options]
 ```
 
-### 3. Set Up by using Ollama Backend with Docker
-
-**GPU Version:**
-```bash
-docker-compose -f docker/ollama/docker-compose.yml up -d
-```
-
-**CPU-only Version:**
-```bash
-docker-compose -f docker/ollama/docker-compose-cpu.yml up -d
-```
-
-### 4. Pull Models
-
-After Ollama is running, pull the models you want to test:
+For example, you can run the `prompt_injection` SET on the model pulled to the Ollama Docker container with:
 
 ```bash
-# Pull models for testing and for evaluation
-docker exec -it avise-ollama ollama pull <model_name>
+avise --SET prompt_injection --connectorconf ollama_lm --target <model_name>
 ```
 
-### 5. Configure Connectors
+To list the available SETs, run the command:
+```bash
+avise --SET-list
+```
 
-Edit `avise/configs/connector/languagemodel/ollama.json`:
+
+## Advanced usage
+
+### Configuring Connectors
+
+You can create your own connector configuration files, or if you cloned the AVISE repository, you can modify the existing connector configuration files in `AVISE/avise/configs/connector/languagemodel/`.
+
+For example, you can edit the default Ollama Connector configuration file `AVISE/avise/configs/connector/languagemodel/ollama.json`, and insert the name of an Ollama model you have pulled to be used as a target by default:
 
 ```json
 {
@@ -73,27 +97,10 @@ Edit `avise/configs/connector/languagemodel/ollama.json`:
     }
 }
 ```
-
-## Usage
-
-### Basic usage
-
-```bash
-python -m avise --SET <SET_name> --connectorconf <connector_name> [options]
-```
-
-For example, you can run the `prompt_injection` Security Evaluation Test on a target model running locally via Ollama with:
-
-```bash
-python -m avise --SET prompt_injection --connectorconf ollama_lm
-```
-
-### Advanced usage
-
 If you want to use custom configuration files for SETs and/or Connectors, you can do so by giving the paths to the configuration files with `--SETconf` and `--connectorconf` arguments:
 
 ```bash
-python -m avise --SET prompt_injection --SETconf avise/configs/SET/languagemodel/single_turn/prompt_injection_mini.json --connectorconf avise/configs/connector/languagemodel/ollama.json
+avise --SET prompt_injection --SETconf AVISE/avise/configs/SET/languagemodel/single_turn/prompt_injection_mini.json --connectorconf AVISE/avise/configs/connector/languagemodel/ollama.json
 ```
 
 ### Required Arguments
@@ -109,11 +116,14 @@ python -m avise --SET prompt_injection --SETconf avise/configs/SET/languagemodel
 | Argument | Description |
 |----------|-------------|
 | `--SETconf` | Path to SET configuration JSON file. If not given, uses preconfigured paths for SET config JSON files. |
+| `--target`, `-t` | Name of the target model/system to evaluate. Overrides target name from connector configuration file. |
 | `--format`, `-f` | Report format: `json`, `html`, `md` |
 | `--runs`, `-r` | How many times each SET is executed |
 | `--output` | Custom output file path |
-| `--reports-dir` | Base directory for reports (default: `reports/`) |
-| `--SET_list` | List available Security Evaluation Tests |
-| `--connector_list` | List available Connectors |
+| `--reports-dir` | Base directory for reports (default: `avise-reports/`) |
+| `--SET-list` | List available Security Evaluation Tests |
+| `--connector-list` | List available Connectors |
 | `--verbose`, `-v` | Enable verbose logging |
 | `--version`, `-V` | Print version  |
+
+
