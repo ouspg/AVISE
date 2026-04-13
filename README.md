@@ -19,15 +19,17 @@ A framework for identifying vulnerabilities in and evaluating the security of AI
 
 ### 1. Install AVISE
 
-Install with pip:
-```bash
-pip install avise
-```
+Install with
+- **pip:**
+    ```bash
+    pip install avise
+    ```
 
-Install with uv:
-```bash
-uv install avise
-```
+- **uv:**
+
+    ```bash
+    uv install avise
+    ```
 
 ### 2. Run a model
 
