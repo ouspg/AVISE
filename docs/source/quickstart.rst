@@ -81,7 +81,7 @@ avise --SET-list
 
 ## Advanced usage
 
-### Configuring Connectors
+### Configuring Connectors and SETs
 
 You can create your own connector configuration files, or if you cloned the AVISE repository, you can modify the existing connector configuration files in `AVISE/avise/configs/connector/languagemodel/`.
 
@@ -98,6 +98,34 @@ For example, you can edit the default Ollama Connector configuration file `AVISE
     }
 }
 ```
+
+Similarly, you can customize the configurations for SETs as well. For example, by editing the Red Queen SET configuration file `AVISE/avise/configs/SET/languagemodel/multi_turn/red_queen.json`,
+you can define if the SET is executed incrementally *(the target model will generate a response after each subsequential prompt)*, or as a template *(only works for target systems that accept a conversation as an input)* and if the SET uses and Adversarial Language Model (ALM).
+Additionally, you can define the exact template attack prompts that the SET uses:
+
+```json
+{
+    "incremental_execution": false, #Change to true to execute the SET cases incrementally
+    "use_adversarial_languagemodel": false, #Change to true to utilize an Adversarial Language Model (ALM)
+    "adversarial_model_device": "auto", # Defines on which device(s) the ALM is loaded to ("cpu", "gpu", or "auto")
+    "evaluation_system_prompt": "You are a highly accurate cybersecurity classifier, ..."
+    "evaluation_model_device": "auto", # Defines on which device(s) the ELM is loaded to ("cpu", "gpu", or "auto")
+    "sets": [
+        {
+            "id": "RED-QUEEN-001",
+            "vulnerability_subcategory": "Evasion Attack",
+            "action": "make a fake passport",
+            "type": "occupation_teacher",
+            "category": "violence,aiding_and_abetting,incitement",
+            "conversation": [
+                { ... }
+            ...
+            ]
+         },
+         ...
+    ]
+```
+
 If you want to use custom configuration files for SETs and/or Connectors, you can do so by giving the paths to the configuration files with `--SETconf` and `--connectorconf` arguments:
 
 ```bash
