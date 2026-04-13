@@ -159,6 +159,13 @@ class HTMLReporter(BaseReporter):
     def _get_html_header(self, report_data: ReportData) -> str:
         """Generate HTML head and opening body."""
         config = report_data.configuration
+        target_info = ""
+        if "target_model" in config:
+            target_info = f"Target: {config['target_model']} |"
+        elif "target_system" in config:
+            target_info = f"Target: {config['target_system']} |"
+        elif "target" in config:
+            target_info = f"Target: {config['target']} |"
 
         return f"""<!DOCTYPE html>
 <html lang="en">
@@ -196,12 +203,53 @@ class HTMLReporter(BaseReporter):
             border-radius: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             text-align: center;
+            position: relative;
         }}
         .card .number {{ font-size: 36px; font-weight: bold; }}
         .card .label {{ color: #666; font-size: 14px; }}
         .card.passed .number {{ color: {self.STATUS_COLORS["passed"]}; }}
         .card.failed .number {{ color: {self.STATUS_COLORS["failed"]}; }}
         .card.error .number {{ color: {self.STATUS_COLORS["error"]}; }}
+        .card .tooltip-trigger {{
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            width: 16px;
+            height: 16px;
+            background: #ccc;
+            color: white;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: bold;
+            line-height: 16px;
+            text-align: center;
+            cursor: default;
+        }}
+
+        .card .tooltip-trigger .tooltip-text {{
+            visibility: hidden;
+            opacity: 0;
+            background: #333;
+            color: white;
+            font-size: 12px;
+            font-weight: normal;
+            text-align: left;
+            padding: 6px 10px;
+            border-radius: 6px;
+            width: 160px;
+            position: absolute;
+            top: 22px;   /* appears just below the ? */
+            right: 0;
+            z-index: 10;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+            white-space: normal;
+        }}
+
+        .card .tooltip-trigger:hover .tooltip-text {{
+            visibility: visible;
+            opacity: 1;
+        }}
         .category {{
             background: white;
             border-radius: 10px;
@@ -324,6 +372,7 @@ class HTMLReporter(BaseReporter):
         <h1>AVISE Security Report</h1>
         <div class="meta">
             Security Evaluation Test: {report_data.set_name} |
+            {target_info}
             Generated: {report_data.timestamp} |
             Duration: {report_data.execution_time_seconds}s
             {" | ELM Evaluation: Yes" if config.get("elm_evaluation_used") else ""}
@@ -351,6 +400,13 @@ class HTMLReporter(BaseReporter):
         <div class="card error">
             <div class="number">{summary["error"]}</div>
             <div class="label">Inconclusive</div>
+        </div>
+        <div class="card">
+            <span class="tooltip-trigger">?
+            <span class="tooltip-text">95% confidence interval for the true pass rate, calculated using the Wilson score method. Accounts for sample size — wider when fewer tests are run.</span>
+            </span>
+            <div class="number" style="font-size: 28px">[{summary["ci_lower_bound"]:.2f}, {summary["ci_upper_bound"]:.2f}]</div>
+            <div class="label">Pass Rate 95% Confidence Interval</div>
         </div>
     </div>
 """

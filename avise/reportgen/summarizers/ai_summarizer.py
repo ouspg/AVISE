@@ -43,6 +43,11 @@ class AISummarizer:
                 max_new_tokens=max_new_tokens,
             )
 
+    def del_model(self):
+        """Delete the model from GPU memory."""
+        if self.model:
+            self.model.del_model()
+
     def generate_summary(
         self,
         results: List[Dict[str, Any]],
