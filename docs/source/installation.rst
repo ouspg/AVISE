@@ -25,7 +25,7 @@ Install with
 
   .. code-block:: bash
 
-      uv install avise
+      uv pip install avise
 
   or
 
