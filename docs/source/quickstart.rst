@@ -118,6 +118,10 @@ For example, you can edit the default Ollama Connector configuration file ``AVIS
         }
     }
 
+
+Configuring Security Evaluation Tests (SETs)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Similarly, you can customize the configurations for SETs as well. For example, by editing the Red Queen SET configuration file ``AVISE/avise/configs/SET/languagemodel/multi_turn/red_queen.json``,
 you can define if the SET is executed incrementally *(the target model will generate a response after each subsequential prompt)*, or as a template *(only works for target systems that accept a conversation as an input)* and if the SET uses an Adversarial Language Model (ALM).
 Additionally, you can define the exact template attack prompts that the SET uses:
@@ -143,6 +147,10 @@ Additionally, you can define the exact template attack prompts that the SET uses
             }
         ]
     }
+
+Using custom configuration files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 If you want to use custom configuration files for SETs and/or Connectors, you can do so by giving the paths to the configuration files with ``--SETconf`` and ``--connectorconf`` arguments:
 
