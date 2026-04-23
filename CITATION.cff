@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "AVISE: Framework for Evaluating the Security of AI Systems"
+authors:
+  - family-names: Lempinen
+    given-names: Mikko
+  - family-names: Kemppainen
+    given-names: Joni
+  - family-names: Raesalmi
+    given-names: Niklas
+year: 2026
+identifiers:
+  - type: other
+    value: "arXiv:2604.20833"
+    description: arXiv preprint
+url: "https://arxiv.org/abs/2604.20833"
+preferred-citation:
+  type: article
+  title: "AVISE: Framework for Evaluating the Security of AI Systems"
+  authors:
+    - family-names: Lempinen
+      given-names: Mikko
+    - family-names: Kemppainen
+      given-names: Joni
+    - family-names: Raesalmi
+      given-names: Niklas
+  year: 2026
+  url: "https://arxiv.org/abs/2604.20833"
+  journal: "arXiv preprint arXiv:2604.20833"
