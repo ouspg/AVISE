@@ -5,12 +5,29 @@
 
 A framework for identifying vulnerabilities in and evaluating the security of AI systems.
 
+[![arXiv](https://img.shields.io/badge/arXiv-2604.20833-b31b1b.svg)](https://arxiv.org/abs/2604.20833)
+
+
 #### Full Documentations: https://avise.readthedocs.io
 
-<br>
-<br>
+---
 
-## Quickstart for evaluating Language Models
+## Table of Contents
+- [Quickstart for Evaluating Language Models](#quickstart-for-evaluating-language-models)
+    - [Prerequisites](#prerequisites)
+    - [1. Install AVISE](#1-install-avise)
+    - [2. Run a Model](#2-run-a-model)
+    - [3. Evaluate the model with a Security Evaluation Test (SET)](#3-evaluate-the-model-with-a-security-evaluation-test-set)
+- [Advanced Usage](#advanced-usage)
+    - [Configuring Connectors](#configuring-connectors)
+    - [Configuring Security Evaluation Tests (SETs)](#configuring-security-evaluation-tests-sets)
+    - [Using custom configuration files](#using-custom-configuration-files)
+- [Required Arguments](#required-arguments)
+- [Optional Arguments](#optional-arguments)
+- [Citation](#citation)
+
+
+## Quickstart for Evaluating Language Models
 
 ### Prerequisites
 
@@ -35,7 +52,7 @@ Install with
     uv tool install avise
     ```
 
-### 2. Run a model
+### 2. Run a Model
 
 You can use AVISE to evaluate any model accessible via an API by configuring a Connector. In this Quickstart, we will
 assume using the Ollama Docker container for running a language model. If you wish to evaluate models deployed in other ways, see
@@ -84,7 +101,7 @@ avise --SET-list
 ```
 
 
-## Advanced usage
+## Advanced Usage
 
 ### Configuring Connectors
 
@@ -142,7 +159,7 @@ If you want to use custom configuration files for SETs and/or Connectors, you ca
 avise --SET prompt_injection --SETconf AVISE/avise/configs/SET/languagemodel/single_turn/prompt_injection_mini.json --connectorconf AVISE/avise/configs/connector/languagemodel/ollama.json
 ```
 
-### Required Arguments
+## Required Arguments
 
 | Argument | Description |
 |----------|-------------|
@@ -150,7 +167,7 @@ avise --SET prompt_injection --SETconf AVISE/avise/configs/SET/languagemodel/sin
 | `--connectorconf`, `-c` | Path to Connector configuration JSON (Accepts predefined connector configuration paths: `ollama_lm`, `openai_lm`, `genericrest_lm`)|
 
 
-### Optional Arguments
+## Optional Arguments
 
 | Argument | Description |
 |----------|-------------|
@@ -165,4 +182,23 @@ avise --SET prompt_injection --SETconf AVISE/avise/configs/SET/languagemodel/sin
 | `--verbose`, `-v` | Enable verbose logging |
 | `--version`, `-V` | Print version  |
 
+
+## Citation
+
+If you find AVISE useful, please cite it as below:
+
+```bibtex
+@misc{lempinen2026,
+      title={AVISE: Framework for Evaluating the Security of AI Systems},
+      author={Mikko Lempinen and Joni Kemppainen and Niklas Raesalmi},
+      year={2026},
+      eprint={2604.20833},
+      archivePrefix={arXiv},
+      primaryClass={cs.CR},
+      url={https://arxiv.org/abs/2604.20833},
+}
+```
+
+Lempinen, M., Kemppainen, J., & Raesalmi, N. (2026). *AVISE: Framework for
+Evaluating the Security of AI Systems*. arXiv preprint arXiv:2604.20833.
 
