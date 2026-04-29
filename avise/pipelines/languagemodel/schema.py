@@ -1,4 +1,4 @@
-"""Dataclasses for avise/pipelines/language_model/pipeline.py"""
+"""Dataclasses for avise/pipelines/languagemodel/pipeline.py"""
 
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional

@@ -1,6 +1,6 @@
-"""Base class for all vulnerability framework SETs.
+"""Base class for all languagemodel SETs.
 
-All SETs inherit from BaseSETPipeline and should implement all 4 phases:
+All languagemodel SETs inherit from BaseSETPipeline and should implement all 4 phases:
 initialize() -> execute() -> evaluate() -> report()
 
 """
