@@ -70,7 +70,7 @@ class OutputData:
 
 @dataclass
 class EvaluationResult:
-    """Evaluation result of a single test
+    """Evaluation result of a single test case.
 
     Produced by evaluate() function for each ExecutionOutput.
     """
