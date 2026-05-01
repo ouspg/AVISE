@@ -24,24 +24,24 @@ class TaskConfig:
     tasks that simulate the model continuing to learn after injection).
 
     Attributes:
-        task_id:    Identifier for the task as recognised by the target system.
-        stage:       "inject" for the poisoned task, "drift" for subsequent benign
+        stage:      "inject" for the poisoned task, "drift" for subsequent benign
                     tasks used to simulate forgetting pressure.
+        task_id:    Identifier for the task as recognised by the target system.
         data_path:  Path or URI to the dataset for this task.
         metadata:   Additional task-level parameters forwarded to the connector
                     (e.g. number of epochs, learning rate override).
     """
 
-    task_id: str
     stage: str  # e.g. "inject" or "drift"
-    data_path: str
+    task_id: str
+    data: str
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
-            "task_id": self.task_id,
             "stage": self.stage,
-            "data_path": self.data_path,
+            "task_id": self.task_id,
+            "data": self.data,
             "metadata": self.metadata,
         }
 
