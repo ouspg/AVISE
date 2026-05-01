@@ -1,7 +1,0 @@
-{
-    "trigger_type": "feature_perturbation",
-    "poison_rate": 0.05,
-    "target_label": "BackdoorTriggered",
-    "authentic_label": "AuthenticLabel",
-    "set_cases": {}
-}

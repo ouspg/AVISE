@@ -1,0 +1,22 @@
+target_model:
+  connector: "generic-rest-cl"
+  type: "continual_learning"
+  api_endpoint:
+    base:
+      url: "<PLACEHOLDER>" # Base URL of the target API endpoint
+      headers: null
+      api_key: null
+      method: "POST"
+      prediction_field: null # The field name that contains the model's prediction in the API response
+    # If the API has different endpoints for training and inference,
+    # insert their details here:
+    train:
+      url: null
+      headers: null
+      api_key: null
+      method: "POST"
+    inference:
+      url: null
+      headers: null
+      api_key: null
+      method: "POST"

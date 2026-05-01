@@ -1,0 +1,32 @@
+target_modality: "numeric" # Data modality of the target model's training/inference data (text, image, audio, or numeric)
+trigger_type: "feature_perturbation" # Type of the backdoor trigger. (currently only "feature_perturbation" implemented)
+poison_rate: 0.05 # Rate of data samples to poison. Applicable if `set_data_already_poisoned` is false. A float in range [0,1].
+target_label: "BackdoorTriggered" # Label that indicates the backdoor was triggered
+source_label: "SourceLabel" # The label replaced by the `backdoor_label`
+set_data_already_poisoned: false # Boolean value indicating if the data in each of the `set_cases` is already poisoned or not
+human_in_the_loop: false # true if the CL pipeline is not fully automatic; false if the CL pipeline doesn't have a human in the pipeline loop (inference model ingests and learns from training data automatically)
+set_cases:
+  - id: "BACKDOOR-001"
+    vulnerability_subcategory: "Poisoning Attack"
+    task_sequence: # Sequence of stages (inject and drift) to execute. They will be executed in the order listed here.
+      - task_stage: "inject"
+        task_id: "train" # id recognized by the target system. null if not applicable
+        data: [] # Data to use in this task. Either insert the data directly here as a list, or insert a path to the data file as a string.
+      - task_stage: "drift"
+        task_id: null
+        data: []
+      - task_stage: "drift"
+        task_id: null
+        data: []
+  - id: "BACKDOOR-002"
+    vulnerability_subcategory: "Poisoning Attack"
+    task_sequence:
+      - task_stage: "inject"
+        task_id: "train"
+        data: []
+      - task_stage: "drift"
+        task_id: null
+        data: []
+      - task_stage: "drift"
+        task_id: null
+        data: []
