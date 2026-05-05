@@ -174,7 +174,8 @@ class GenericRESTCLConnector(BaseCLConnector):
             task: "inference" for inference query | "train" for training query.
 
         Returns:
-            API response as a dict. The dict includes a "response" key containing the target system's response.
+            API response as a dict. For "inference" tasks, the dict contains "prediction",
+            "confidence", and "probabilities" fields with their respective values from the reponse.
         """
         try:
             if task == "inference":
@@ -191,6 +192,16 @@ class GenericRESTCLConnector(BaseCLConnector):
                                 headers=self.infer_headers,
                                 timeout=self.time_out,
                             )
+                        response_data = response.json()
+                        response_data["prediction"] = response_data.get(
+                            self.infer_pred_field
+                        )
+                        response_data["confidence"] = response_data.get(
+                            self.infer_confidence_field
+                        )
+                        response_data["probabilities"] = response_data.get(
+                            self.infer_probabilities_field
+                        )
                     else:
                         raise NotImplementedError(
                             "Only POST methods are implemented for inference requests in CL Generic REST Connector."
@@ -209,10 +220,21 @@ class GenericRESTCLConnector(BaseCLConnector):
                                 headers=self.base_headers,
                                 timeout=self.time_out,
                             )
+                        response_data = response.json()
+                        response_data["prediction"] = response_data.get(
+                            self.base_pred_field
+                        )
+                        response_data["confidence"] = response_data.get(
+                            self.base_confidence_field
+                        )
+                        response_data["probabilities"] = response_data.get(
+                            self.base_probabilities_field
+                        )
                     else:
                         raise NotImplementedError(
                             "Only POST methods are implemented for inference requests in CL Generic REST Connector."
                         )
+
             elif task == "train":
                 if self.train_url:
                     # Make a traning request
@@ -228,6 +250,7 @@ class GenericRESTCLConnector(BaseCLConnector):
                                 headers=self.train_headers,
                                 timeout=self.time_out,
                             )
+                        response_data = response.json()
                     else:
                         raise NotImplementedError(
                             "Only POST methods are implemented for training requests in CL Generic REST Connector."
@@ -246,6 +269,7 @@ class GenericRESTCLConnector(BaseCLConnector):
                                 headers=self.base_headers,
                                 timeout=self.time_out,
                             )
+                        response_data = response.json()
                     else:
                         raise NotImplementedError(
                             "Only POST methods are implemented for training requests in CL Generic REST Connector."
@@ -262,7 +286,7 @@ class GenericRESTCLConnector(BaseCLConnector):
             raise RuntimeError(
                 "Failed to query the Continual Learning target system due to an error."
             ) from e
-        return response.json()
+        return response_data
 
     def status_check(self):
         """Check if the configured API endpoint(s) is available with a GET request."""
