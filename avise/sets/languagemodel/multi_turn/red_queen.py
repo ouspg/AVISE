@@ -54,7 +54,6 @@ class RedQueen(BaseSETPipeline):
             raise ValueError(
                 "No Security Evaluation Tests found in the configuration file"
             )
-
         self.incremental_execution = set_config.get("incremental_execution", False)
         self.evaluation_system_prompt = set_config.get("evaluation_system_prompt", "")
         self.evaluation_model_device = set_config.get("evaluation_model_device")
