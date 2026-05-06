@@ -41,6 +41,8 @@ class RedQueen(BaseSETPipeline):
         self.incremental_execution: Optional[bool] = False
         self.use_adversarial_languagemodel: Optional[bool] = False
         self.adversarial_languagemodel_name: Optional[str] = None
+        self.evaluation_model_device: str = "auto"
+        self.adversarial_model_device: str = "auto"
 
     def initialize(self, set_config_path: str) -> List[LanguageModelSETCase]:
         logger.info(f"Initializing Security Evaluation Test: {self.name}")
