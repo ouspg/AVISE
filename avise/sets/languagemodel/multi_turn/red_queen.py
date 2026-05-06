@@ -103,7 +103,7 @@ class RedQueen(BaseSETPipeline):
 
         for i, set_ in enumerate(sets):
             logger.info(
-                f"{ansi_colors['magenta']}Running Security Evaluation Test {i + 1}/{len(sets)} [{set_.id}]{ansi_colors['reset']}"
+                f"{ansi_colors['magenta']}Running Security Evaluation Test case {i + 1}/{len(sets)} [{set_.id}]{ansi_colors['reset']}"
             )
 
             try:
