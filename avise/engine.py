@@ -99,7 +99,8 @@ class ExecutionEngine:
         generate_ai_summary: bool = True,
         runs: int = 1,
         output_path: Optional[str] = None,
-        target: str = Optional[None],
+        target: Optional[str] = None,
+        api_key: Optional[str] = None
     ) -> dict:
         """Run the 4-phase pipeline
 
@@ -122,8 +123,13 @@ class ExecutionEngine:
         if target is not None:
             if "name" in connector_config["target_model"]:
                 connector_config["target_model"]["name"] = target
-            # TODO: Once there are default connectors for other system/model types than language models,
-            # add logic here to replace possible "name" in their config files with `target`.
+                # TODO: Once there are default connectors for other system/model types than language models,
+                # add logic here to replace possible "name" in their config files with `target`.
+        # If provided with `api_key`, override api_key from configuration file with it
+        if api_key is not None:
+            if "api_key" in connector_config["target_model"]:
+                connector_config["target_model"]["api_key"] = target
+            
 
         # Create a connector for the target model
         connector = self._build_connector(connector_config, evaluation=False)
