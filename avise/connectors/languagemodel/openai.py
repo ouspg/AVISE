@@ -42,11 +42,12 @@ class OpenAILMConnector(BaseLMConnector):
         Raises:
             KeyError: If required fields are missing from configuration data.
             TypeError: If configuration data is of a wrong type.
+            SystemError: If failed to initalize OpenAI Client.
         """
         if evaluation:
             if "eval_model" not in config:
                 raise KeyError(
-                    'OpenAI Connector configuration JSON file requires a "eval_model" field. Refer to Connector documentations on how to configure connectors.'
+                    'OpenAI Connector configuration file requires a "eval_model" field. Refer to Connector documentations on how to configure connectors.'
                 )
             if "name" not in config["eval_model"]:
                 raise KeyError(
@@ -70,7 +71,7 @@ class OpenAILMConnector(BaseLMConnector):
                 )
             if not (
                 isinstance(config["eval_model"]["api_url"], str)
-                or isinstance(config["eval_model"]["api_url"], None)
+                or config["target_model"]["api_url"] is None
             ):
                 raise TypeError(
                     "OpenAI connector requires an API URL for the eval_model as a STRING or null."
@@ -90,7 +91,7 @@ class OpenAILMConnector(BaseLMConnector):
         else:
             if "target_model" not in config:
                 raise KeyError(
-                    'OpenAI Connector configuration JSON file requires a "target_model" field. Refer to Connector documentations on how to configure connectors.'
+                    'OpenAI Connector configuration file requires a "target_model" field. Refer to Connector documentations on how to configure connectors.'
                 )
             if "name" not in config["target_model"]:
                 raise KeyError(
@@ -114,16 +115,16 @@ class OpenAILMConnector(BaseLMConnector):
                 )
             if not (
                 isinstance(config["target_model"]["api_url"], str)
-                or isinstance(config["target_model"]["api_url"], None)
+                or config["target_model"]["api_url"] is None
             ):
                 raise TypeError(
                     "OpenAI Connector requires an API URL for the target_model as a STRING or null."
                 )
-
             self.model = config["target_model"]["name"]
             self.api_key = config["target_model"]["api_key"]
             self.base_url = config["target_model"]["api_url"]
             self.headers = config["target_model"].get("headers")
+            self.completion_kwargs = config["target_model"].get("completion_kwargs", {})
             if (
                 "max_tokens" in config["target_model"]
                 and config["target_model"]["max_tokens"] is not None
@@ -133,12 +134,16 @@ class OpenAILMConnector(BaseLMConnector):
                 self.max_tokens = 512
 
         # Initialize OpenAI client
-        client_kwargs = {"api_key": self.api_key}
-        client_kwargs["base_url"] = self.base_url
-        if self.headers is not None:
-            client_kwargs["default_headers"] = self.headers
+        try:
+            client_kwargs = {"api_key": self.api_key}
+            client_kwargs["base_url"] = self.base_url
+            if self.headers is not None:
+                client_kwargs["default_headers"] = self.headers
 
-        self.client = OpenAI(**client_kwargs)
+            self.client = OpenAI(**client_kwargs)
+        except Exception as e:
+            logger.error("Failed to initialize OpenAI client.")
+            raise SystemError from e
 
         logger.info(f"  OpenAI Connector Initialized")
         logger.info(f"  Model: {self.model}")
@@ -239,13 +244,12 @@ class OpenAILMConnector(BaseLMConnector):
             # Generate without system prompt
             messages = [{"role": "user", "content": data["prompt"]}]
         try:
-            response = self.client.chat.completions.create(
+            response = self.client.responses.create(
                 model=self.model,
-                messages=messages,
-                temperature=data["temperature"],
-                max_tokens=data["max_tokens"],
+                input=messages,
+                **self.completion_kwargs
             )
-            return {"response": response.choices[0].message.content or ""}
+            return {"response": response.output_text or ""}
 
         except Exception as e:
             logger.error(
@@ -276,19 +280,18 @@ class OpenAILMConnector(BaseLMConnector):
                     0, {"role": "system", "content": data["system_prompt"]}
                 )
 
-            response = self.client.chat.completions.create(
+            response = self.client.responses.create(
                 model=self.model,
-                messages=openai_messages,
-                temperature=data["temperature"],
-                max_tokens=data["max_tokens"],
+                input=openai_messages,
+                **self.completion_kwargs
             )
-            return {"response": response.choices[0].message.content or ""}
+            return {"response": response.output_text or ""}
 
         except Exception as e:
             logger.error(
-                f"{ansi_colors['red']}ERROR during chat with OpenAI: {e}{ansi_colors['reset']}"
+                f"{ansi_colors['red']}ERROR during OpenAI chat competion: {e}{ansi_colors['reset']}"
             )
-            raise RuntimeError("Failed to chat with OpenAI.") from e
+            raise RuntimeError("Failed to generate a response with the OpenAI API.") from e
 
     def status_check(self) -> bool:
         """Check if the connector can reach the OpenAI API endpoint and the target model is available.
