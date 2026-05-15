@@ -225,7 +225,7 @@ def main(arguments=None) -> None:
                 runs=args.runs,
                 output_path=args.output,
                 target=args.target,
-                api_key=args.api_key
+                api_key=args.api_key,
             )
 
             # Print a small summary to the console

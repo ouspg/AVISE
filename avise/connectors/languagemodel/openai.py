@@ -245,9 +245,7 @@ class OpenAILMConnector(BaseLMConnector):
             messages = [{"role": "user", "content": data["prompt"]}]
         try:
             response = self.client.responses.create(
-                model=self.model,
-                input=messages,
-                **self.completion_kwargs
+                model=self.model, input=messages, **self.completion_kwargs
             )
             return {"response": response.output_text or ""}
 
@@ -281,9 +279,7 @@ class OpenAILMConnector(BaseLMConnector):
                 )
 
             response = self.client.responses.create(
-                model=self.model,
-                input=openai_messages,
-                **self.completion_kwargs
+                model=self.model, input=openai_messages, **self.completion_kwargs
             )
             return {"response": response.output_text or ""}
 
@@ -291,7 +287,9 @@ class OpenAILMConnector(BaseLMConnector):
             logger.error(
                 f"{ansi_colors['red']}ERROR during OpenAI chat competion: {e}{ansi_colors['reset']}"
             )
-            raise RuntimeError("Failed to generate a response with the OpenAI API.") from e
+            raise RuntimeError(
+                "Failed to generate a response with the OpenAI API."
+            ) from e
 
     def status_check(self) -> bool:
         """Check if the connector can reach the OpenAI API endpoint and the target model is available.

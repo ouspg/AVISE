@@ -182,7 +182,7 @@ class BaseSETPipeline(ABC):
             results = []
             # Loop to allow multiple SET runs
             for run in range(runs):
-                logger.info(f"Starting SET run {run+1}/{runs}.")
+                logger.info(f"Starting SET run {run + 1}/{runs}.")
 
                 # Execute
                 execution_data = self.execute(connector, sets)
@@ -190,7 +190,7 @@ class BaseSETPipeline(ABC):
                 # Evaluate
                 results += self.evaluate(execution_data)
 
-                logger.info(f"SET run {run+1}/{runs} finished.")
+                logger.info(f"SET run {run + 1}/{runs} finished.")
 
             # Report
             report_data = self.report(
