@@ -37,10 +37,10 @@ def test_version_command(capsys):
 
 def test_SET_list(capsys):
     """
-    Test that SET_list command output is as expected.
+    Test that SET-list command output is as expected.
     """
     try:
-        cli.main(["--SET_list"])
+        cli.main(["--SET-list"])
     except SystemExit:
         pass
     captured = capsys.readouterr()
