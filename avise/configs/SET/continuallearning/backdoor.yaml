@@ -8,6 +8,10 @@ target_modality: "numeric"
 
 # Type of backdoor trigger to embed in the poisoned samples.
 # Supported values:
+#   "label_only"                    - relabels poisoned samples without modifying
+#                                     features; no trigger_config keys required.
+#                                     Useful as a baseline sanity check or when
+#                                     the trigger has been applied externally.
 #   "static_feature_perturbation"   - identical trigger applied to every poisoned sample
 #   "dynamic_feature_perturbation"  - trigger value/position varies per sample
 #   "frequency_domain"              - sample-specific phase trigger (stealthy, needs ~200+ poison samples)
