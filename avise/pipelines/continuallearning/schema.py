@@ -90,7 +90,7 @@ class StageResult:
         stage_index:    Integer index within the execution sequence (0-based).
         metrics:        Dict of numeric measurements captured during this phase,
                         e.g. {"clean_accuracy": 0.91}.
-        raw_responses:  Raw API responses from the connector, preserved for
+        raw_responses:  Raw API response(s) from the connector, preserved for
                         debugging and auditing.
         error:          Error message if this phase failed; None otherwise.
     """
@@ -98,7 +98,7 @@ class StageResult:
     stage_name: str
     stage_index: int
     metrics: Dict[str, Any] = field(default_factory=dict)
-    raw_responses: List[Any] = field(default_factory=list)
+    raw_responses: List[dict, Any] = field(default_factory=list)
     error: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
@@ -106,6 +106,7 @@ class StageResult:
             "stage_name": self.stage_name,
             "stage_index": self.stage_index,
             "metrics": self.metrics,
+            "raw_responses": self.raw_responses,
         }
         if self.error:
             result["error"] = self.error
