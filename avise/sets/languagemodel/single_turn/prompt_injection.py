@@ -247,7 +247,7 @@ class PromptInjectionTest(BaseSETPipeline):
                 },
             }
 
-            # Determine verdict for the SET
+            # Determine verdict for the SET case
             status, reason = self.determine_test_status(detections)
 
             results.append(
