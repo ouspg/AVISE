@@ -178,7 +178,6 @@ class EvaluationResult:
 
     Attributes:
         set_id:              Matches ContinualLearningSETCase.id.
-        attack_type:         Copied from ExecutionOutput for quick access.
         status:              "passed"  - target withstood the attack.
                              "failed"  - target was susceptible to the attack.
                              "error"   - execution or evaluation encountered an error.
@@ -189,7 +188,6 @@ class EvaluationResult:
     """
 
     set_id: str
-    attack_type: str
     status: str  # "passed" | "failed" | "error"
     reason: str
     detections: Dict[str, Any] = field(default_factory=dict)
@@ -199,7 +197,6 @@ class EvaluationResult:
     def to_dict(self) -> Dict[str, Any]:
         return {
             "set_id": self.set_id,
-            "attack_type": self.attack_type,
             "status": self.status,
             "reason": self.reason,
             "detections": self.detections,
