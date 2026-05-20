@@ -98,7 +98,11 @@ from ...pipelines.continuallearning import (
     EvaluationResult,
     ReportData,
 )
-
+from ...evaluators import (
+    BackdoorInjectionSuccessEvaluator,
+    CleanAccuracyDropEvaluator,
+    TriggerStealthScoreEvaluator,
+)
 from ...registry import set_registry
 from ...connectors.continuallearning.base import BaseCLConnector
 from ...reportgen.reporters import JSONReporter, HTMLReporter, MarkdownReporter
@@ -252,6 +256,11 @@ class Backdoor(BaseSETPipeline):
         self.set_data_already_poisoned: bool = False
         self.manual_stage_progression: bool = True
         self.data_schema: dict = {}
+        self.eval_configs: dict = {}
+
+        self.tss_evaluator = TriggerStealthScoreEvaluator()
+        self.bis_evaluator = BackdoorInjectionSuccessEvaluator()
+        self.cad_evaluator = CleanAccuracyDropEvaluator()
 
     def initialize(self, set_config_path: str) -> List[ContinualLearningSETCase]:
         logger.info(f"Initializing Security Evaluation Test: {self.name}")
@@ -338,7 +347,11 @@ class Backdoor(BaseSETPipeline):
             raise TypeError(
                 f'"data_schema" must be a dict in the Backdoor SET configuration file: {set_config_path}'
             )
-
+        self.eval_configs = set_config.get("eval_configs", {})
+        if not isinstance(self.eval_configs, dict):
+            raise TypeError(
+                f'"eval_configs" must be a dict in the Backdoor SET configuration file: {set_config_path}'
+            )
         if self.modality == "multimodal":
             if not self.trigger_config:
                 raise ValueError(
@@ -350,6 +363,11 @@ class Backdoor(BaseSETPipeline):
                     '"trigger_config" must contain a "components" list when '
                     'target_modality is "multimodal".'
                 )
+
+        # Configure Evaluators' thresholds
+        self._apply_eval_threshold(self.tss_evaluator)
+        self._apply_eval_threshold(self.bis_evaluator)
+        self._apply_eval_threshold(self.cad_evaluator)
 
         # Format loaded SET cases into ContinualLearningSETCase objects.
         cases = []
@@ -418,6 +436,7 @@ class Backdoor(BaseSETPipeline):
 
             try:
                 for j, task in enumerate(case.task_sequence):
+                    stage_metrics = {}
                     # If task data is in a file, load it into a list
                     data = (
                         load_data_file(task.data)
@@ -430,14 +449,14 @@ class Backdoor(BaseSETPipeline):
                     # Query the target model
                     task_type = "train" if task.stage == "inject" else "inference"
                     response = connector.query(data=data, task=task_type)
-                    # TODO: Calculate/get baseline metrics here. Needed for Evaluators: "asr" (for drift), "clean_accuracy"
+                    # TODO: Calculate/get stage metrics here. Needed for Evaluators: "asr" (for drift), "clean_accuracy"
 
                     # Append response to stage_results
                     stage_results.append(
                         StageResult(
                             stage_name=task_type,
                             stage_index=j,
-                            metrics=baseline_metrics,
+                            metrics=stage_metrics,
                             raw_responses=[response],
                         )
                     )
@@ -458,6 +477,14 @@ class Backdoor(BaseSETPipeline):
                             logger.info(
                                 "Model weight update confirmed. Continuing to the next stage..."
                             )
+                outputs.append(
+                    ExecutionOutput(
+                        set_id=case.id,
+                        stage_results=stage_results,
+                        baseline_metrics=baseline_metrics,
+                        metadata=case.metadata,
+                    )
+                )
             except Exception as e:
                 logger.error(
                     f"{ansi_colors['red']}Security Evaluation Test {case.id} failed: {e}{ansi_colors['reset']}",
@@ -479,7 +506,63 @@ class Backdoor(BaseSETPipeline):
         return OutputData(outputs=outputs, duration_seconds=duration)
 
     def evaluate(self, execution_data: OutputData) -> List[EvaluationResult]:
-        pass
+        logger.info(f"Starting to evaluate {len(execution_data.outputs)} outputs...")
+        results = []
+
+        for output in execution_data.outputs:
+            if output.error:
+                results.append(
+                    EvaluationResult(
+                        set_id=output.set_id,
+                        status="error",
+                        reason=f"Execution error: {output.error}",
+                        detections={},
+                        baseline_metrics=output.baseline_metrics,
+                        metadata=output.metadata,
+                    )
+                )
+                continue
+            # TODO: Run evaluators & create EvaluationResult()
+            # The outputs are evaluated by the evaluators
+            bis_susceptible, bis_findings = self.bis_evaluator.evaluate(output)
+            tss_susceptible, tss_findings = self.tss_evaluator.evaluate(output)
+            cad_susceptible, cad_findings = self.cad_evaluator.evaluate(output)
+
+            detections = {
+                "backdoor_injection_success": {
+                    "susceptible": bis_susceptible,
+                    "findings": bis_findings or None,
+                },
+                "trigger_stealth_score": {
+                    "susceptible": tss_susceptible,
+                    "findings": tss_findings or None,
+                },
+                "clean_accuracy_drop": {
+                    "susceptible": cad_susceptible,
+                    "findings": cad_findings or None,
+                },
+            }
+
+            # Determine verdict for the SET case
+            status = "failed" if bis_susceptible else "passed"
+            reason = (
+                "Attack Success Rate (ASR) threshold exceeded for injecting the Backdoor into the target model."
+                if bis_susceptible
+                else "Attack Success Rate (ASR) threshold not exceeded for injecting the Backdoor into the target model."
+            )
+
+            results.append(
+                EvaluationResult(
+                    set_id=output.set_id,
+                    status=status,
+                    reason=reason,
+                    detections=detections,
+                    baseline_metrics=output.baseline_metrics,
+                    metadata=output.metadata,
+                )
+            )
+        logger.info(f"Evaluation complete: {len(results)} results")
+        return results
 
     def report(
         self,
@@ -489,6 +572,39 @@ class Backdoor(BaseSETPipeline):
         generate_ai_summary: bool = True,
     ) -> ReportData:
         pass
+
+    def _apply_eval_threshold(self, evaluator: object) -> None:
+        """Apply a threshold override from eval_configs to an evaluator instance.
+
+        Looks up the evaluator by its own name attribute in self.eval_configs and,
+        if a valid threshold is found, overwrites the evaluator's default threshold
+        value. In all other cases the evaluator's default is left untouched.
+
+        The following cases all result in a no-op:
+            - self.eval_configs is empty
+            - evaluator.name is not a key in self.eval_configs
+            - the entry for evaluator.name does not contain a "threshold" key
+            - the threshold value is not a number, is a bool, or falls outside [0, 1]
+
+        Args:
+            evaluator: The evaluator instance whose threshold attribute may be set.
+                    Must expose a name attribute (str) and a threshold attribute
+                    (float).
+        """
+        threshold = self.eval_configs.get(evaluator.name, {}).get("threshold")
+        if (
+            isinstance(threshold, (int, float))
+            and not isinstance(threshold, bool)
+            and 0.0 <= threshold <= 1.0
+        ):
+            logger.info(
+                f"Initiating {evaluator.name} Evaluator with configured threshold: {threshold}"
+            )
+            evaluator.threshold = float(threshold)
+        else:
+            logger.info(
+                f"Initiating {evaluator.name} Evaluator with default threshold. (No valid threshold for this Evaluator found in the configuration file: {self.set_config_path})"
+            )
 
     def _poison_data(self, data: list, seed_value: int = 0) -> list:
         """Poison a percentage of source-label samples with a backdoor trigger.
