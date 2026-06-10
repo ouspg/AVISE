@@ -86,6 +86,7 @@ import copy
 import random
 
 from datetime import datetime
+from pathlib import Path
 from typing import List, Optional, Dict, Any
 
 from ...pipelines.continuallearning import (
@@ -98,7 +99,7 @@ from ...pipelines.continuallearning import (
     EvaluationResult,
     ReportData,
 )
-from ...evaluators import (
+from ...evaluators.continuallearning import (
     BackdoorInjectionSuccessEvaluator,
     CleanAccuracyDropEvaluator,
     TriggerStealthScoreEvaluator,
@@ -247,6 +248,7 @@ class Backdoor(BaseSETPipeline):
 
     def __init__(self):
         super().__init__()
+        self.set_config: dict = {}
         self.modality: str = "numerical"
         self.target_label: str = "BackdoorTriggered"
         self.source_label: str = ""
@@ -266,8 +268,8 @@ class Backdoor(BaseSETPipeline):
         logger.info(f"Initializing Security Evaluation Test: {self.name}")
 
         # Load configurations from the configuration file
-        set_config = ConfigLoader().load(set_config_path)
-        set_cases = set_config.get("set_cases", [])
+        self.set_config = ConfigLoader().load(set_config_path)
+        set_cases = self.set_config.get("set_cases", [])
         if not set_cases:
             raise ValueError(
                 f'No Security Evaluation Test cases ("set_cases" field) found in the Backdoor SET configuration file: {set_config_path}'
@@ -276,7 +278,7 @@ class Backdoor(BaseSETPipeline):
             raise TypeError(
                 f'"set_cases" must be a list in the Backdoor SET configuration file: {set_config_path}'
             )
-        self.modality = set_config.get("target_modality", "")
+        self.modality = self.set_config.get("target_modality", "")
         if not self.modality:
             raise ValueError(
                 f'"target_modality" is not configured in the Backdoor SET configuration file: {set_config_path}'
@@ -285,12 +287,12 @@ class Backdoor(BaseSETPipeline):
             raise TypeError(
                 f'"target_modality" must be a string in the Backdoor SET configuration file: {set_config_path}'
             )
-        self.source_label = set_config.get("source_label", "")
+        self.source_label = self.set_config.get("source_label", "")
         if not self.source_label:
             raise ValueError(
                 f'"source_label" is not configured in the Backdoor SET configuration file: {set_config_path}'
             )
-        self.poisoning_seed_value = set_config.get("poisoning_seed_value", 0)
+        self.poisoning_seed_value = self.set_config.get("poisoning_seed_value", 0)
         if not isinstance(self.poisoning_seed_value, int):
             raise TypeError(
                 f'"poisoning_seed_value" must be an int in the Backdoor SET configuration file: {set_config_path}'
@@ -299,20 +301,20 @@ class Backdoor(BaseSETPipeline):
             raise TypeError(
                 f'"source_label" must be a str in the Backdoor SET configuration file: {set_config_path}'
             )
-        self.trigger_type = set_config.get(
+        self.trigger_type = self.set_config.get(
             "trigger_type", "static_feature_perturbation"
         )
         if not isinstance(self.trigger_type, str):
             raise TypeError(
                 f'"trigger_type" must be a str in the Backdoor SET configuration file: {set_config_path}'
             )
-        self.trigger_config = set_config.get("trigger_config")
+        self.trigger_config = self.set_config.get("trigger_config")
         if self.trigger_config:
             if not isinstance(self.trigger_config, dict):
                 raise TypeError(
                     f'"trigger_config" must be a dict or null in the Backdoor SET configuration file: {set_config_path}'
                 )
-        self.poison_rate = set_config.get("poison_rate", 0.05)
+        self.poison_rate = self.set_config.get("poison_rate", 0.05)
         if not isinstance(self.poison_rate, (float, int)):
             raise TypeError(
                 f'"poison_rate" must be a float in range [0, 1] the Backdoor SET configuration file: {set_config_path}'
@@ -321,24 +323,24 @@ class Backdoor(BaseSETPipeline):
             raise ValueError(
                 f'"poison_rate" must be a float in range [0, 1] in the Backdoor SET configuration file: {set_config_path}'
             )
-        self.target_label = set_config.get("target_label", "BackdoorTriggered")
+        self.target_label = self.set_config.get("target_label", "BackdoorTriggered")
         if not isinstance(self.target_label, str):
             raise TypeError(
                 f'"target_label" must be a float in the Backdoor SET configuration file: {set_config_path}'
             )
-        self.set_data_already_poisoned = set_config.get(
+        self.set_data_already_poisoned = self.set_config.get(
             "set_data_already_poisoned", False
         )
         if not isinstance(self.set_data_already_poisoned, bool):
             raise TypeError(
                 f'"set_data_already_poisoned" must be a bool (true or false) in the Backdoor SET configuration file: {set_config_path}'
             )
-        self.manual_stage_progression = set_config.get("human_in_the_loop", True)
+        self.manual_stage_progression = self.set_config.get("human_in_the_loop", True)
         if not isinstance(self.manual_stage_progression, bool):
             raise TypeError(
                 f'"human_in_the_loop" must be a bool (true or false) in the Backdoor SET configuration file: {set_config_path}'
             )
-        self.data_schema = set_config.get("data_schema", {})
+        self.data_schema = self.set_config.get("data_schema", {})
         if not self.data_schema:
             raise ValueError(
                 f'"data_schema" is not configured in the Backdoor SET configuration file: {set_config_path}'
@@ -347,7 +349,7 @@ class Backdoor(BaseSETPipeline):
             raise TypeError(
                 f'"data_schema" must be a dict in the Backdoor SET configuration file: {set_config_path}'
             )
-        self.eval_configs = set_config.get("eval_configs", {})
+        self.eval_configs = self.set_config.get("eval_configs", {})
         if not isinstance(self.eval_configs, dict):
             raise TypeError(
                 f'"eval_configs" must be a dict in the Backdoor SET configuration file: {set_config_path}'
@@ -571,7 +573,65 @@ class Backdoor(BaseSETPipeline):
         report_format: ReportFormat = ReportFormat.JSON,
         generate_ai_summary: bool = True,
     ) -> ReportData:
-        pass
+        logger.info(f"Generating {report_format.value.upper()} report...")
+
+        summary_stats = self.calculate_passrates(results)
+
+        ai_summary = None
+        if generate_ai_summary:
+            logger.info("Generating AI summary...")
+            subcategory_runs = self.calculate_subcategory_runs(results)
+            ai_summary = self.generate_ai_summary(
+                results=results,
+                summary_stats=summary_stats,
+                subcategory_runs=subcategory_runs,
+            )
+            if ai_summary:
+                logger.info("AI summary generated successfully!")
+            else:
+                logger.warning("AI summary generation failed.")
+
+        report_data = ReportData(
+            set_name=self.name,
+            timestamp=datetime.now().strftime("%Y-%m-%d | %H:%M"),
+            execution_time_seconds=(
+                round((self.end_time - self.start_time).total_seconds(), 1)
+                if self.start_time and self.end_time
+                else None
+            ),
+            summary=summary_stats,
+            results=results,
+            configuration={  # TODO
+                "model_config": Path(self.connector_config_path).name
+                if self.connector_config_path
+                else "",
+                "set_config": Path(self.set_config_path).name
+                if self.set_config_path
+                else "",
+                **{k: v for k, v in self.set_config.items() if k != "set_cases"},
+            },
+            ai_summary=ai_summary,
+        )
+        output_file = Path(output_path)
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+
+        try:
+            if report_format == ReportFormat.HTML:
+                # If report format is default HTML, write JSON & HTML files
+                HTMLReporter().write(report_data, output_file)
+                json_output_file = Path(output_path.replace(".html", ".json"))
+                JSONReporter().write(report_data, json_output_file)
+            elif report_format == ReportFormat.JSON:
+                JSONReporter().write(report_data, output_file)
+            elif report_format == ReportFormat.MARKDOWN:
+                MarkdownReporter().write(report_data, output_file)
+            logger.info(f"Report written to {output_path}")
+        except Exception as e:
+            logger.error(f"Error writing report: {e}")
+            import traceback
+
+            logger.error(f"Traceback: {traceback.format_exc()}")
+        return report_data
 
     def _apply_eval_threshold(self, evaluator: object) -> None:
         """Apply a threshold override from eval_configs to an evaluator instance.
