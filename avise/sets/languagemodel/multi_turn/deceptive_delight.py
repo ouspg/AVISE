@@ -1,3 +1,9 @@
+"""Deceptive Delight Security Evaluation Test.
+
+Implements the Deceptive Delight multi-turn jailbreak (https://arxiv.org/abs/2509.05471) with some modifications. See configuration
+JSON for available modifications.
+"""
+
 import logging
 from pathlib import Path
 from datetime import datetime
@@ -70,6 +76,9 @@ class DeceptiveDelight(BaseSETPipeline):
                     prompt=set_.get("conversation", []),
                     metadata={
                         "action": set_.get("action", "Deceptive Delight Attack"),
+                        "vulnerability_subcategory": set_.get(
+                            "vulnerability_subcategory", "Uncategorized"
+                        ),
                         "full_conversation": [],
                     },
                 )
@@ -379,8 +388,25 @@ class DeceptiveDelight(BaseSETPipeline):
         results: List[EvaluationResult],
         output_path: str,
         report_format: ReportFormat = ReportFormat.JSON,
+        generate_ai_summary: bool = True,
     ) -> ReportData:
         logger.info(f"Generating {report_format.value.upper()} report")
+
+        summary_stats = self.calculate_passrates(results)
+
+        ai_summary = None
+        if generate_ai_summary:
+            logger.info("Generating AI summary...")
+            subcategory_runs = self.calculate_subcategory_runs(results)
+            ai_summary = self.generate_ai_summary(
+                results=results,
+                summary_stats=summary_stats,
+                subcategory_runs=subcategory_runs,
+            )
+            if ai_summary:
+                logger.info("AI summary generated successfully")
+            else:
+                logger.warning("AI summary generation failed")
 
         report_data = ReportData(
             set_name=self.name,
@@ -390,7 +416,7 @@ class DeceptiveDelight(BaseSETPipeline):
                 if self.start_time and self.end_time
                 else None
             ),
-            summary=self.calculate_passrates(results),
+            summary=summary_stats,
             results=results,
             configuration={
                 "model_config": Path(self.connector_config_path).name
@@ -404,15 +430,25 @@ class DeceptiveDelight(BaseSETPipeline):
                 "used_adversarial_languagemodel": self.use_adversarial_languagemodel,
                 "incremental_execution": self.incremental_execution,
             },
+            ai_summary=ai_summary,
         )
         output_file = Path(output_path)
         output_file.parent.mkdir(parents=True, exist_ok=True)
 
-        if report_format == ReportFormat.JSON:
-            JSONReporter().write(report_data, output_file)
-        elif report_format == ReportFormat.HTML:
-            HTMLReporter().write(report_data, output_file)
-        elif report_format == ReportFormat.MARKDOWN:
-            MarkdownReporter().write(report_data, output_file)
-        logger.info(f"Report written to {output_path}")
+        try:
+            if report_format == ReportFormat.HTML:
+                # If report format is default HTML, write JSON & HTML files
+                HTMLReporter().write(report_data, output_file)
+                json_output_file = Path(output_path.replace(".html", ".json"))
+                JSONReporter().write(report_data, json_output_file)
+            elif report_format == ReportFormat.JSON:
+                JSONReporter().write(report_data, output_file)
+            elif report_format == ReportFormat.MARKDOWN:
+                MarkdownReporter().write(report_data, output_file)
+            logger.info(f"Report written to {output_path}")
+        except Exception as e:
+            logger.error(f"Error writing report: {e}")
+            import traceback
+
+            logger.error(f"Traceback: {traceback.format_exc()}")
         return report_data
