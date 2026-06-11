@@ -40,6 +40,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_REPORTS_DIR = "avise-reports"
 
 DEFAULT_SET_CONFIGS = {
+    "deceptive_delight": "configs/SET/languagemodel/multi_turn/deceptive_delight.json",
     "red_queen": "configs/SET/languagemodel/multi_turn/red_queen.json",
     "prompt_injection": "configs/SET/languagemodel/single_turn/prompt_injection_mini.json",
     "context_test": "configs/SET/languagemodel/multi_turn/context_test.json",
