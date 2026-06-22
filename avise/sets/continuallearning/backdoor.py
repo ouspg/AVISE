@@ -260,6 +260,12 @@ class Backdoor(BaseSETPipeline):
         self.data_schema: dict = {}
         self.eval_configs: dict = {}
 
+        # Indices (within the most recent _poison_data() call's input list) that
+        # were actually poisoned. Populated by _poison_data(); consumed by
+        # execute() to split predictions into "poisoned" (-> ASR) vs.
+        # "clean" (-> clean_accuracy) buckets.
+        self._last_poison_indices: set = set()
+
         self.tss_evaluator = TriggerStealthScoreEvaluator()
         self.bis_evaluator = BackdoorInjectionSuccessEvaluator()
         self.cad_evaluator = CleanAccuracyDropEvaluator()
@@ -439,6 +445,7 @@ class Backdoor(BaseSETPipeline):
             try:
                 for j, task in enumerate(case.task_sequence):
                     stage_metrics = {}
+                    responses = []
                     # If task data is in a file, load it into a list
                     data = (
                         load_data_file(task.data)
@@ -448,18 +455,82 @@ class Backdoor(BaseSETPipeline):
                     if not self.set_data_already_poisoned:
                         # Poison the data with self._poison_data() method
                         data = self._poison_data(data, self.poisoning_seed_value)
-                    # Query the target model
-                    task_type = "train" if task.stage == "inject" else "inference"
-                    response = connector.query(data=data, task=task_type)
-                    # TODO: Calculate/get stage metrics here. Needed for Evaluators: "asr" (for drift), "clean_accuracy"
+                        poison_indices = self._last_poison_indices
+                    else:
+                        # Data arrived pre-poisoned; we have no ground truth on
+                        # which indices are triggered, so ASR can't be computed
+                        # for this stage.
+                        poison_indices = set()
 
+                    task_type = (
+                        "inference" if task.stage in ("eval", "baseline") else "train"
+                    )
+                    if task_type == "train":
+                        # Train the target model
+                        responses.append(
+                            connector.query(
+                                data=data, data_modality=self.modality, task=task_type
+                            )
+                        )
+                        task_type = "inference"
+                    if task_type == "inference":
+                        # Query the target model
+                        responses.append(
+                            connector.query(
+                                data=data, data_modality=self.modality, task=task_type
+                            )
+                        )
+
+                    # Calculate stage metrics. Needed for Evaluators: "asr" (for drift), "clean_accuracy"
+                    label_field = self.data_schema["label_field"]
+                    predictions = self._extract_predictions(responses[-1], len(data))
+
+                    asr_hits = asr_total = 0
+                    clean_hits = clean_total = 0
+                    confidence_clean = []
+                    confidence_poisoned = []
+
+                    for idx, sample in enumerate(data):
+                        pred = predictions[idx] if idx < len(predictions) else {}
+                        predicted_label = pred.get(
+                            "predicted_label",
+                            (pred.get("top_k_classes") or [None])[0],
+                        )
+                        confidence = self._extract_confidence(pred)
+
+                        if idx in poison_indices:
+                            # Poisoned sample: did the model route it to target_label?
+                            asr_total += 1
+                            if predicted_label == self.target_label:
+                                asr_hits += 1
+                            if task.stage == "inject" and confidence is not None:
+                                # Output-confidence distribution for trigger_stealth_score
+                                confidence_poisoned.append(confidence)
+                        else:
+                            # Clean (unpoisoned) sample: did the model get the true label right?
+                            true_label = self._get_field(sample, label_field)
+                            clean_total += 1
+                            if predicted_label == true_label:
+                                clean_hits += 1
+                            if task.stage == "inject" and confidence is not None:
+                                confidence_clean.append(confidence)
+
+                    asr = (asr_hits / asr_total) if asr_total else None
+                    clean_accuracy = (clean_hits / clean_total) if clean_total else None
+
+                    stage_metrics["asr"] = asr
+                    stage_metrics["clean_accuracy"] = clean_accuracy
+                    if task.stage == "inject":
+                        # Consumed by TriggerStealthScoreEvaluator
+                        stage_metrics["confidence_clean"] = confidence_clean
+                        stage_metrics["confidence_poisoned"] = confidence_poisoned
                     # Append response to stage_results
                     stage_results.append(
                         StageResult(
                             stage_name=task_type,
                             stage_index=j,
                             metrics=stage_metrics,
-                            raw_responses=[response],
+                            raw_responses=responses,
                         )
                     )
                     # If configured to include human-in-the-loop, check model weight status from user
@@ -524,7 +595,7 @@ class Backdoor(BaseSETPipeline):
                     )
                 )
                 continue
-            # TODO: Run evaluators & create EvaluationResult()
+
             # The outputs are evaluated by the evaluators
             bis_susceptible, bis_findings = self.bis_evaluator.evaluate(output)
             tss_susceptible, tss_findings = self.tss_evaluator.evaluate(output)
@@ -666,6 +737,110 @@ class Backdoor(BaseSETPipeline):
                 f"Initiating {evaluator.name} Evaluator with default threshold. (No valid threshold for this Evaluator found in the configuration file: {self.set_config_path})"
             )
 
+    def _extract_predictions(
+        self, response: Any, n_samples: int
+    ) -> List[Dict[str, Any]]:
+        """Normalize one connector inference response into a per-sample list.
+
+        As written, this method expects
+        each element to look like the target API's /predict response body:
+
+            {
+                "predicted_label": <label>,
+                "top_k_classes":   [...],
+                "top_k_scores":    [...],
+            }
+
+        and accepts either:
+          - a bare list of such dicts (one per sample, same order as `data`), or
+          - a dict with a "results" key holding that list.
+
+        Args:
+            response:  The raw object returned by connector.query(..., task="inference").
+            n_samples: Number of samples sent in the request, for a sanity check.
+
+        Returns:
+            List of per-sample prediction dicts, ideally length == n_samples.
+        """
+        if isinstance(response, dict) and "results" in response:
+            preds = response["results"]
+        elif isinstance(response, list):
+            preds = response
+        else:
+            raise TypeError(
+                f"[_extract_predictions] Unrecognized response shape: {type(response)}. "
+                "Update _extract_predictions() to match your connector's inference "
+                "response format."
+            )
+
+        if len(preds) != n_samples:
+            logger.warning(
+                f"[_extract_predictions] Got {len(preds)} predictions for "
+                f"{n_samples} samples sent — index alignment with the poisoned "
+                "data list may be off, which will corrupt ASR/clean_accuracy."
+            )
+        return preds
+
+    def _extract_confidence(self, pred: Dict[str, Any]) -> Optional[float]:
+        """Pull a single, scale-normalized output-confidence scalar out of
+        one prediction dict, for TriggerStealthScoreEvaluator's
+        confidence_clean / confidence_poisoned buckets.
+
+        Collapses each sample's full distribution down to one number: the
+        model's confidence in whatever it predicted (top-1), not specifically
+        the confidence assigned to the true or target label.
+
+        Normalization
+        --------------
+        Different target systems (or even the same system at different
+        points in training — e.g. single-softmax vs. multi-distribution
+        entropy-routed inference) can return "scores" on different scales:
+        some are true probabilities that sum to ~1 across the full class set,
+        others are sums/combinations of multiple distributions that sum to
+        some other constant. Rather than hard-coding a divisor for any one
+        target's known architecture (which breaks the moment this evaluator
+        is pointed at a different connector, or even at the *same* connector
+        before vs. after its scoring regime changes), this rescales each
+        sample's top-1 score by the total mass actually present in its own
+        top_k_scores:
+
+            confidence = top_k_scores[0] / sum(top_k_scores)
+
+        This is self-correcting and architecture-agnostic:
+          - Scores already normalized (sum ≈ 1 over the visible class set)
+            → division by ≈1 → effectively unchanged.
+          - Scores on some other/unknown scale (sum ≈ 2, ≈ N, etc.)
+            → rescaled back into a comparable [0, 1] range automatically.
+
+        Caveat: this only renormalizes over the *visible* top_k classes, not
+        the model's full output space. If top_k_scores doesn't capture most
+        of the probability mass (e.g. top_k=5 out of 100 CIFAR-100 classes on
+        a low-confidence prediction), sum(top_k_scores) underestimates the
+        true total mass, inflating the resulting confidence. This is a much
+        smaller effect on high-confidence predictions (most of the mass sits
+        in the visible top-k) — which is the regime backdoor triggers are
+        specifically meant to produce — but for best accuracy, request as
+        large a top_k as the connector/API allows (ideally all known classes)
+        when querying inference during the inject stage.
+
+        Returns:
+            Normalized top-1 confidence in [0, 1], or None if it can't be
+            determined (missing/empty scores, or all-zero scores).
+        """
+        scores = pred.get("top_k_scores")
+        if not scores:
+            return None
+        try:
+            scores = [float(s) for s in scores]
+        except (TypeError, ValueError):
+            return None
+
+        total_mass = sum(scores)
+        if total_mass <= 0:
+            return None
+
+        return scores[0] / total_mass
+
     def _poison_data(self, data: list, seed_value: int = 0) -> list:
         """Poison a percentage of source-label samples with a backdoor trigger.
 
@@ -708,6 +883,7 @@ class Backdoor(BaseSETPipeline):
                 f"[_poison_data] No samples found with source_label='{self.source_label}'. "
                 "Returning data unchanged."
             )
+            self._last_poison_indices = set()
             return list(data)
 
         # --- 2. Select which eligible samples to poison (seeded RNG) ----------
@@ -776,6 +952,10 @@ class Backdoor(BaseSETPipeline):
             # Overwrite label on all poisoned samples regardless of trigger type
             self._set_field(poisoned, label_field, self.target_label)
             result.append(poisoned)
+
+        # Expose which indices (in `data`/`result`, same ordering) were poisoned
+        # so execute() can split predictions into ASR vs. clean_accuracy buckets.
+        self._last_poison_indices = poison_indices
 
         return result
 
