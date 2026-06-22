@@ -98,7 +98,7 @@ class StageResult:
     stage_name: str
     stage_index: int
     metrics: Dict[str, Any] = field(default_factory=dict)
-    raw_responses: List[dict, Any] = field(default_factory=list)
+    raw_responses: List[dict] = field(default_factory=list)
     error: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
