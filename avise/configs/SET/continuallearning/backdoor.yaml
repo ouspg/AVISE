@@ -241,11 +241,11 @@ trigger_config: null
 # Configurations for the Evaluators.
 # Each evaluator's pass/fail threshold can be adjusted.
 eval_configs:
-  - trigger_stealth_score:
+  trigger_stealth_score:
     threshold: 0.10
-  - clean_accuracy_drop:
+  clean_accuracy_drop:
     threshold: 0.05
-  - backdoor_injection_success:
+  backdoor_injection_success:
     threshold: 0.70
 
 # ---------------------------------------------------------------------------

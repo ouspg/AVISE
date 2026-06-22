@@ -358,7 +358,7 @@ class Backdoor(BaseSETPipeline):
         self.eval_configs = self.set_config.get("eval_configs", {})
         if not isinstance(self.eval_configs, dict):
             raise TypeError(
-                f'"eval_configs" must be a dict in the Backdoor SET configuration file: {set_config_path}'
+                f'"eval_configs" must be a dict of dictionaries in the Backdoor SET configuration file: {set_config_path}'
             )
         if self.modality == "multimodal":
             if not self.trigger_config:

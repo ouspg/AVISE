@@ -418,67 +418,85 @@ class GenericRESTCLConnector(BaseCLConnector):
 
     def status_check(self):
         """Check if the configured API endpoint(s) is available with a GET request."""
-        try:
-            if self.infer_url:
-                response = (
-                    requests.get(self.infer_url, timeout=self.time_out)
-                    if self.infer_headers is None
-                    else requests.get(
-                        self.infer_url,
-                        headers=self.infer_headers,
-                        timeout=self.time_out,
-                    )
-                )
-            else:
-                response = (
-                    requests.get(self.base_url, timeout=self.time_out)
-                    if self.base_headers is None
-                    else requests.get(
-                        self.base_url, headers=self.base_headers, timeout=self.time_out
-                    )
-                )
-            response1 = response.json()
+        base_healthy = False if self.base_url else True
+        inference_healthy = False if self.infer_url else True
+        train_healthy = False if self.train_url else True
 
-            if self.train_url:
-                # Perform status check for the training endpoint
-                response = (
-                    requests.get(self.train_url, timeout=self.time_out)
-                    if self.train_headers is None
-                    else requests.get(
-                        self.train_url,
-                        headers=self.train_headers,
-                        timeout=self.time_out,
-                    )
+        if self.infer_url:
+            # Perform status check for the inference endpoint
+            response_infer = (
+                requests.get(self.infer_url, timeout=self.time_out)
+                if self.infer_headers is None
+                else requests.get(
+                    self.infer_url,
+                    headers=self.infer_headers,
+                    timeout=self.time_out,
                 )
-                response2 = response.json()
-                try:
-                    if response1.status_code == 200:
-                        if response2.status_code == 200:
-                            return True
-                except (KeyError, ValueError) as e:
-                    logger.error(
-                        f"{ansi_colors['red']}ERROR while doing a status check on the configured API endpoint: {e}{ansi_colors['reset']}"
-                    )
-                    raise RuntimeError(
-                        f"Status check failed on the configured API endpoint at \
-                                    url:{self.base_url}. Response did not have a valid status_code field."
-                    ) from e
-            try:
-                if response1.status_code == 200:
-                    return True
-            except (KeyError, ValueError) as e:
-                logger.error(
-                    f"{ansi_colors['red']}ERROR while doing a status check on the configured API endpoint: {e}{ansi_colors['reset']}"
-                )
-                raise RuntimeError(
-                    f"Status check failed on the configured API endpoint at \
-                                url:{self.base_url}. Response did not have a valid status_code field."
-                ) from e
-        except Exception as e:
-            logger.error(
-                f"{ansi_colors['red']}ERROR while doing a status check on the configured API endpoint: {e}{ansi_colors['reset']}"
             )
-            raise RuntimeError(
-                f"Failed to send a GET request to url: {self.base_url} due to an error."
-            ) from e
-        return False
+            response_infer = response_infer.json()
+            try:
+                if response_infer.status_code == 200:
+                    inference_healthy = True
+            except (KeyError, ValueError, AttributeError) as e:
+                logger.error(
+                    f"{ansi_colors['red']}ERROR while doing a status check on the configured inference API endpoint: {e}{ansi_colors['reset']}"
+                )
+
+        if self.base_url:
+            # Perform status check for the base endpoint
+            response_base = (
+                requests.get(self.base_url, timeout=self.time_out)
+                if self.base_headers is None
+                else requests.get(
+                    self.base_url, headers=self.base_headers, timeout=self.time_out
+                )
+            )
+            response_base = response_base.json()
+            try:
+                if response_base.status_code == 200:
+                    base_healthy = True
+            except (KeyError, ValueError, AttributeError) as e:
+                logger.error(
+                    f"{ansi_colors['red']}ERROR while doing a status check on the configured base API endpoint: {e}{ansi_colors['reset']}"
+                )
+
+        if self.train_url:
+            # Perform status check for the training endpoint
+            response_train = (
+                requests.get(self.train_url, timeout=self.time_out)
+                if self.train_headers is None
+                else requests.get(
+                    self.train_url,
+                    headers=self.train_headers,
+                    timeout=self.time_out,
+                )
+            )
+            response_train = response_train.json()
+            try:
+                if response_train.status_code == 200:
+                    train_healthy = True
+            except (KeyError, ValueError, AttributeError) as e:
+                logger.error(
+                    f"{ansi_colors['red']}ERROR while doing a status check on the configured training API endpoint: {e}{ansi_colors['reset']}"
+                )
+
+        if all((base_healthy, inference_healthy, train_healthy)):
+            logger.info("All target API status checks passed succesfully!")
+        else:
+            failed_urls = []
+            if not base_healthy:
+                failed_urls.append(self.base_url)
+            if not inference_healthy:
+                failed_urls.append(self.infer_url)
+            if not train_healthy:
+                failed_urls.append(self.train_url)
+
+            logger.info(
+                "Target API status check(s) did not pass for the following URLs: %s",
+                ", ".join(failed_urls),
+            )
+            logger.info(
+                "Continuing with SET execution anyway, since all API endpoints may not allow GET requests..."
+            )
+
+        return True
