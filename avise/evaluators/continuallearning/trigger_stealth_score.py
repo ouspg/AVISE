@@ -78,7 +78,7 @@ class TriggerStealthScoreEvaluator(BaseCLEvaluator):
         """Compute the trigger stealth score for this execution output.
 
         Args:
-            execution_output: CLExecutionOutput from execute().
+            execution_output: ExecutionOutput from execute().
 
         Returns:
             Tuple of:
