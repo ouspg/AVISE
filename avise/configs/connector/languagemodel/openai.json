@@ -2,9 +2,13 @@
     "target_model": {
         "connector": "openai-lm",
         "type": "language_model",
-        "name": "gpt-4o-mini",
+        "name": "gpt-5-nano",
         "api_url": null,
         "headers": null,
-        "api_key": "YOUR_OPENAI_API_KEY_HERE"
+        "api_key": "",
+       "completion_kwargs": {
+            "instructions": "You are a helpful assistant.",
+            "max_output_tokens": 5000
+        }
     }
 }

@@ -10,6 +10,8 @@ A framework for identifying vulnerabilities in and evaluating the security of AI
 
 #### Full Documentations: https://avise.readthedocs.io
 
+#### [Youtube Demo](https://youtu.be/qbymjBHruVM)
+
 ---
 
 ## Table of Contents
@@ -164,19 +166,20 @@ avise --SET prompt_injection --SETconf AVISE/avise/configs/SET/languagemodel/sin
 | Argument | Description |
 |----------|-------------|
 | `--SET`, `-s` | Security Evaluation Test to run (e.g., `prompt_injection`, `context_test`) |
-| `--connectorconf`, `-c` | Path to Connector configuration JSON (Accepts predefined connector configuration paths: `ollama_lm`, `openai_lm`, `genericrest_lm`)|
+| `--connectorconf`, `-c` | Path to Connector configuration file (Accepts predefined connector configuration paths: `ollama_lm`, `openai_lm`, `genericrest_lm`)|
 
 
 ## Optional Arguments
 
 | Argument | Description |
 |----------|-------------|
-| `--SETconf` | Path to SET configuration JSON file. If not given, uses preconfigured paths for SET config JSON files. |
+| `--SETconf` | Path to SET configuration file. If not given, uses preconfigured paths for SET config files. |
 | `--target`, `-t` | Name of the target model/system to evaluate. Overrides target name from connector configuration file. |
 | `--format`, `-f` | Report format: `json`, `html`, `md` |
 | `--runs`, `-r` | How many times each SET is executed |
-| `--output` | Custom output file path |
-| `--reports-dir` | Base directory for reports (default: `avise-reports/`) |
+| `--output`, `-o` | Custom output file path |
+| `--api_key`, `-a` | API Key to use with requests sent to target API (overrides api_key from Connector configuration file). |
+| `--reports-dir`, `-d` | Base directory for reports (default: `avise-reports/`) |
 | `--SET-list` | List available Security Evaluation Tests |
 | `--connector-list` | List available Connectors |
 | `--verbose`, `-v` | Enable verbose logging |

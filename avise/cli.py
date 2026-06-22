@@ -40,6 +40,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_REPORTS_DIR = "avise-reports"
 
 DEFAULT_SET_CONFIGS = {
+    "deceptive_delight": "configs/SET/languagemodel/multi_turn/deceptive_delight.json",
     "red_queen": "configs/SET/languagemodel/multi_turn/red_queen.json",
     "prompt_injection": "configs/SET/languagemodel/single_turn/prompt_injection_mini.json",
     "context_test": "configs/SET/languagemodel/multi_turn/context_test.json",
@@ -80,11 +81,11 @@ def main(arguments=None) -> None:
     )
 
     parser.add_argument(
-        "--connectorconf", "-c", help="Path to connector configuration JSON"
+        "--connectorconf", "-c", help="Path to connector configuration file"
     )
 
     parser.add_argument(
-        "--SETconf", help="Path to Security Evaluation Test configuration JSON"
+        "--SETconf", help="Path to Security Evaluation Test configuration file"
     )
 
     parser.add_argument(
@@ -130,6 +131,11 @@ def main(arguments=None) -> None:
         type=lambda x: x.lower() == "true",
         default=True,
         help="Enable or disable AI-powered summary (True/False). Default: True",
+    )
+    parser.add_argument(
+        "--api-key",
+        "-a",
+        help="API Key to use with requests sent to target API (overrides api_key from Connector configuration file).",
     )
     parser.add_argument("--version", "-V", action="version", version=__version__)
     args = parser.parse_args(arguments)
@@ -220,6 +226,7 @@ def main(arguments=None) -> None:
                 runs=args.runs,
                 output_path=args.output,
                 target=args.target,
+                api_key=args.api_key,
             )
 
             # Print a small summary to the console
