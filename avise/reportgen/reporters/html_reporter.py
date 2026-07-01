@@ -89,7 +89,7 @@ class HTMLReporter(BaseReporter):
                     if result.elm_evaluation:
                         set_["elm_evaluation"] = result.elm_evaluation
                 else:
-                    set_ = result
+                    set_ = result.to_dict() if hasattr(result, "to_dict") else result
                 html += self._get_set_item(set_)
         html += "    </div>\n"
         return html
@@ -435,7 +435,7 @@ class HTMLReporter(BaseReporter):
                 if result.elm_evaluation:
                     set_["elm_evaluation"] = result.elm_evaluation
             else:
-                set_ = result
+                set_ = result.to_dict() if hasattr(result, "to_dict") else result
             html += self._get_set_item(set_)
         html += "    </div>\n"
         return html
