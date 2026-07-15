@@ -2,6 +2,8 @@
 
 import logging
 import requests
+from typing import Any
+
 
 from .base import BaseCLConnector
 from ...registry import connector_registry
@@ -32,6 +34,8 @@ class GenericRESTCLConnector(BaseCLConnector):
             config: Dictionary containing data from Connector configuration JSON.
         """
         self.config = config
+        self.label_field = ""
+        self.input_field = ""
         try:
             self.base_url = config["target_model"]["api_endpoint"]["base"].get(
                 "url", ""
@@ -198,45 +202,136 @@ class GenericRESTCLConnector(BaseCLConnector):
             response = requests.post(
                 url=url, data=data, files=files, headers=headers, timeout=timeout
             )
+        if not response.ok:
+            raise RuntimeError(
+                f"Server returned HTTP {response.status_code} for {url}. "
+                f"Body: {response.text[:500]!r}"  # truncate in case it's a full HTML error page
+            )
         return response.json()
 
-    def _build_request_payload(self, payload, data_modality: str):
-        """Shape one sample (`payload`) into (files, form_data) for `requests.post()`.
+    @staticmethod
+    def _encode_image_if_needed(value: Any, filename: str = "image.png") -> tuple:
+        """Return a requests-compatible file tuple for a single image value.
 
-        "numeric" and "text" samples are sent exactly as before: as a single
-        form-encoded body, with no file part — (None, payload).
+        Handles three cases:
+        - bytes / bytearray  -  wrap in a (filename, bytes, content_type) tuple.
+        - numpy ndarray      - PNG-encode first, then wrap.
+        - pre-built tuple or file-like - returned unchanged (already ready for
+                                        the requests `files` argument).
 
-        "image", "audio", "video", and "multimodal" samples may contain raw
-        binary content (e.g. image bytes) that the target API expects as a
-        multipart file upload (matching, e.g., FastAPI's `UploadFile`) rather
-        than as a form field. If `payload` is a dict, it's split key by key:
-        values that are bytes/bytearray, a file-like object (anything with a
-        `.read()` method), or an already-built `requests` file tuple (e.g.
-        `(filename, fileobj, content_type)`) go into `files`; every remaining
-        (scalar) key/value — e.g. `top_k`, `true_label` — goes into `data` as
-        a normal form field. If `payload` isn't a dict (e.g. it's already raw
-        image bytes with no accompanying metadata), it's sent whole as a
-        single file under the key "file".
+        Args:
+            value:    The image field value from a sample dict.
+            filename: Filename hint embedded in the multipart part (default
+                    "image.png").  Use the sample dict key as the stem when
+                    calling from a loop so each part has a distinct name.
 
         Returns:
-            (files, form_data) tuple. Either element may be None if there's
-            nothing of that kind to send.
+            A (filename, bytes, content_type) tuple.
+
+        Raises:
+            ImportError: If value is a numpy array but numpy or Pillow is absent.
+        """
+        if isinstance(value, (bytes, bytearray)):
+            return (filename, bytes(value), "image/png")
+
+        try:
+            import io
+            import numpy as np
+            from PIL import Image as PILImage
+
+            if isinstance(value, np.ndarray):
+                buf = io.BytesIO()
+                PILImage.fromarray(value.astype("uint8")).save(buf, format="PNG")
+                return (filename, buf.getvalue(), "image/png")
+        except ImportError as exc:
+            raise ImportError(
+                "[_encode_image_if_needed] Encoding a numpy array as PNG requires "
+                "numpy and Pillow to be installed."
+            ) from exc
+
+        # Pre-built (filename, fileobj, content_type) tuple or file-like object
+        # pass through unchanged.
+        return value
+
+    def _build_batch_image_payload(
+        self,
+        data: list,
+    ) -> tuple:
+        """Build a (files, form_data) pair for endpoints that expect
+        multiple UploadFile parts under one field name ("images") and
+        a JSON-encoded label array ("labels").
+        Matches FastAPI's `images: list[UploadFile]` + `labels: str` signature.
+        """
+        import json as _json
+
+        files = [
+            (
+                "images",
+                self._encode_image_if_needed(
+                    sample[self.input_field],
+                    filename=f"img_{i}.png",
+                ),
+            )
+            for i, sample in enumerate(data)
+        ]
+        form_data = {
+            "labels": _json.dumps([sample[self.label_field] for sample in data])
+        }
+        return files, form_data
+
+    def _build_request_payload(self, payload: Any, data_modality: str) -> tuple:
+        """Shape one sample into (files, form_data) for requests.post().
+
+        "numeric" and "text" samples are sent as plain form data - (None, payload).
+
+        For file-based modalities the payload is split key by key:
+        - bytes / bytearray:               file part
+        - numpy ndarray:                   PNG-encoded, then file part
+        - file-like or pre-built tuple:    file part
+        - everything else (scalars, etc):  form field
+
+        If payload is not a dict it is treated as a bare binary blob and sent
+        as a single file part under the key "file", PNG-encoding first if it
+        happens to be a numpy array.
+
+        Args:
+            payload:       One sample item (dict, bytes, ndarray, etc.).
+            data_modality: Modality string from the SET config.
+
+        Returns:
+            (files, form_data) tuple; either element may be None.
         """
         if data_modality not in self._FILE_BASED_MODALITIES:
             return None, payload
 
         if not isinstance(payload, dict):
-            return {"file": payload}, None
+            return {"file": self._encode_image_if_needed(payload)}, None
 
-        files, form_data = {}, {}
+        files: dict = {}
+        form_data: dict = {}
+
         for key, value in payload.items():
             if (
                 isinstance(value, (bytes, bytearray))
                 or hasattr(value, "read")
                 or isinstance(value, tuple)
             ):
+                # Already in a requests-ready form
                 files[key] = value
             else:
+                # Check for numpy array before falling through to form data.
+                # numpy is optional, so guard the import.
+                try:
+                    import numpy as np
+
+                    if isinstance(value, np.ndarray):
+                        files[key] = self._encode_image_if_needed(
+                            value, filename=f"{key}.png"
+                        )
+                        continue
+                except ImportError:
+                    pass
+
                 form_data[key] = value
 
         return (files or None), (form_data or None)
@@ -261,7 +356,7 @@ class GenericRESTCLConnector(BaseCLConnector):
 
         If `batch_handling` is False, the endpoint can only handle one item
         per request, so `data` is iterated over and each item is sent as its
-        own request — shaped per-item the same way as above. The individual
+        own request - shaped per-item the same way as above. The individual
         responses are reconstructed into a single dict shaped like a batch
         response: {"results": [<per-item response>, ...]}, with one entry per
         item, in the same order as `data`. This keeps the return shape
@@ -269,7 +364,16 @@ class GenericRESTCLConnector(BaseCLConnector):
         batches or not.
         """
         if batch_handling:
-            files, form_data = self._build_request_payload(data, data_modality)
+            # Image (and other file-based) batches need multi-file multipart format
+            if (
+                data_modality in self._FILE_BASED_MODALITIES
+                and isinstance(data, list)
+                and data
+                and isinstance(data[0], dict)
+            ):
+                files, form_data = self._build_batch_image_payload(data)
+            else:
+                files, form_data = self._build_request_payload(data, data_modality)
             return self._post(url, headers, form_data, timeout, files=files)
 
         results = []
@@ -278,16 +382,23 @@ class GenericRESTCLConnector(BaseCLConnector):
             results.append(self._post(url, headers, form_data, timeout, files=files))
         return {"results": results}
 
-    def query(self, data: list, data_modality: str, task="inference") -> dict:
+    def query(
+        self,
+        data: list,
+        data_modality: str,
+        label_field: str = "label",
+        input_field: str = "image",
+        task="inference",
+    ) -> dict:
         """Function for making query requests to the target REST API.
 
-        Arguments:
+        Args:
             data: Dictionary containing the required data for the API request.
             data_modality: One of "numeric", "text", "image", "audio", "video",
                 or "multimodal". For "numeric"/"text", each item is sent as a
                 plain form-encoded POST body, same as before. For the other
                 (file-based) modalities, each item is split into a multipart
-                file part and a form-data part — e.g. an `{"image": <bytes>,
+                file part and a form-data part - e.g. an `{"image": <bytes>,
                 "top_k": 5, "true_label": 3}` item is sent with "image" as an
                 uploaded file and "top_k"/"true_label" as regular form fields.
                 See `_build_request_payload` for the exact splitting rules.
@@ -317,6 +428,8 @@ class GenericRESTCLConnector(BaseCLConnector):
             raise ValueError(
                 'Tried to query the target API with an invalid data modality. Use one of the following: "numeric", "text", "image", "audio", "video", or "multimodal"'
             )
+        self.label_field = label_field
+        self.input_field = input_field
         try:
             if task == "inference":
                 if self.infer_url:
