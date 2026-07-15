@@ -5,6 +5,7 @@ initialize() -> execute() -> evaluate() -> report() -> run()
 """
 
 import json
+import yaml
 import logging
 from pathlib import Path
 from typing import Optional, Dict, Any
@@ -80,7 +81,12 @@ class ExecutionEngine:
                 raise FileNotFoundError(f"Configuration not found from: {config_path}")
 
         with open(path, "r") as f:
-            config = json.load(f)
+            if path.suffix.lower() in (".yaml", ".yml"):
+                config = yaml.safe_load(f)
+            elif path.suffix.lower() == ".json":
+                config = json.load(f)
+            else:
+                raise ValueError(f"Unsupported configuration file type: {path.suffix}")
 
         # Validate required fields
         if "target_model" not in config:
@@ -125,6 +131,7 @@ class ExecutionEngine:
                 connector_config["target_model"]["name"] = target
                 # TODO: Once there are default connectors for other system/model types than language models,
                 # add logic here to replace possible "name" in their config files with `target`.
+
         # If provided with `api_key`, override api_key from configuration file with it
         if api_key is not None:
             if "api_key" in connector_config["target_model"]:
@@ -132,9 +139,12 @@ class ExecutionEngine:
 
         # Create a connector for the target model
         connector = self._build_connector(connector_config, evaluation=False)
-
+        target_model = "None"
         try:
-            target_model = connector_config["target_model"].get("name")
+            if "name" in connector_config["target_model"]:
+                target_model = connector_config["target_model"]["name"]
+            elif "target_modality" in connector_config["target_model"]:
+                target_model = connector_config["target_model"]["target_modality"]
         except AttributeError as e:
             raise RuntimeError(
                 'Provided connector configuration file is missing a "target_model" field.'
@@ -195,7 +205,10 @@ class ExecutionEngine:
             connector_type = connector_config["target_model"].get(
                 "connector", "ollama_lm"
             )
-        connector_kwargs = {"config": connector_config, "evaluation": evaluation}
+        if "_lm" in connector_type:
+            connector_kwargs = {"config": connector_config, "evaluation": evaluation}
+        else:
+            connector_kwargs = {"config": connector_config}
         connector = connector_registry.create(connector_type, **connector_kwargs)
 
         return connector

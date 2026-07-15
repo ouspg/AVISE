@@ -178,7 +178,7 @@ class GenericRESTLMConnector(BaseLMConnector):
             ) from e
 
         response_data = response.json()
-        response_data[self.response_field] = response_data.get(self.response_field)
+        response_data["response"] = response_data.get(self.response_field)
         return response_data
 
     def status_check(self) -> bool:

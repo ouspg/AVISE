@@ -1,1 +1,2 @@
-from .prompt_injection import PromptInjectionTest
+from .prompt_injection import PromptInjectionSET
+from .jailbreak import JailbreakSET

@@ -30,7 +30,10 @@ dependencies = [
     "torch>=2.10.0",
     "transformers>=5.2.0,<=5.7.0",
     "accelerate>=1.12.0",
-    "mistral_common>=1.11.0"
+    "mistral_common>=1.11.0",
+    "openpyxl>=3.1.5",
+    "pandas>=3.0.2",
+    "pyarrow>=24.0.0"
 ]
 [project.optional-dependencies]
 unit-tests = [

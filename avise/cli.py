@@ -42,8 +42,16 @@ DEFAULT_REPORTS_DIR = "avise-reports"
 DEFAULT_SET_CONFIGS = {
     "deceptive_delight": "configs/SET/languagemodel/multi_turn/deceptive_delight.json",
     "red_queen": "configs/SET/languagemodel/multi_turn/red_queen.json",
-    "prompt_injection": "configs/SET/languagemodel/single_turn/prompt_injection_mini.json",
+    "prompt_injection": "configs/SET/languagemodel/single_turn/prompt_injection.json",
+    "lm_jailbreak": "configs/SET/languagemodel/single_turn/jailbreak.json",
     "context_test": "configs/SET/languagemodel/multi_turn/context_test.json",
+    "cl_backdoor": "configs/SET/continuallearning/backdoor.yaml",
+}
+DEFAULT_CONNECTOR_CONFIGS = {
+    "ollama_lm": "configs/connector/languagemodel/ollama.json",
+    "openai_lm": "configs/connector/languagemodel/openai.json",
+    "genericrest_lm": "configs/connector/languagemodel/genericrest.json",
+    "genericrest_cl": "configs/connector/continuallearning/genericrest.yaml",
 }
 
 
@@ -183,12 +191,8 @@ def main(arguments=None) -> None:
     report_format = format_map[args.format]
 
     # Predefined connector configs
-    if args.connectorconf == "ollama_lm":
-        args.connectorconf = "configs/connector/languagemodel/ollama.json"
-    elif args.connectorconf == "openai_lm":
-        args.connectorconf = "configs/connector/languagemodel/openai.json"
-    elif args.connectorconf == "genericrest_lm":
-        args.connectorconf = "configs/connector/languagemodel/genericrest.json"
+    if args.connectorconf in DEFAULT_CONNECTOR_CONFIGS:
+        args.connectorconf = DEFAULT_CONNECTOR_CONFIGS[args.connectorconf]
 
     for set_ in args.SET:
         try:

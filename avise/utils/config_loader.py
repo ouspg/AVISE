@@ -1,5 +1,7 @@
 """Configuration loader for JSON, YAML, and TOML file formats."""
 
+from __future__ import annotations
+
 from pathlib import Path
 from typing import Dict, Any, List
 from importlib.resources import files
@@ -7,7 +9,10 @@ import json
 import tomllib
 import yaml
 
-from ..pipelines.languagemodel import LanguageModelSETCase
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..pipelines.languagemodel import LanguageModelSETCase
 
 
 class ConfigLoader:
@@ -73,6 +78,8 @@ class ConfigLoader:
         Returns:
             List of LanguageModelSETCase objects
         """
+        from ..pipelines.languagemodel import LanguageModelSETCase
+
         sets = config.get("sets", [])
         if not sets:
             raise ValueError("No SETs found in configuration")

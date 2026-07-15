@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 
 
 @set_registry.register("prompt_injection")
-class PromptInjectionTest(BaseSETPipeline):
+class PromptInjectionSET(BaseSETPipeline):
     """An early test written for testing prompt injection vulnerabilities.
     Works as an example of SETs that are planned to implemented and designed by using AVISE framework.
 
@@ -136,7 +136,7 @@ class PromptInjectionTest(BaseSETPipeline):
         Returns:
             OutputData: All SET outputs along with the execution time.
         """
-        logger.info(f"Executing {len(sets)} SETs")
+        logger.info(f"Executing {len(sets)} SET cases.")
         self.start_time = datetime.now()
 
         outputs = []
@@ -144,7 +144,7 @@ class PromptInjectionTest(BaseSETPipeline):
 
         for i, set_ in enumerate(sets):
             logger.info(
-                f"{ansi_colors['magenta']}Running Security Evaluation Test {i + 1}/{len(sets)} [{set_.id}]{ansi_colors['reset']}"
+                f"{ansi_colors['magenta']}Running Security Evaluation Test case {i + 1}/{len(sets)} [{set_.id}]{ansi_colors['reset']}"
             )
 
             try:
@@ -247,7 +247,7 @@ class PromptInjectionTest(BaseSETPipeline):
                 },
             }
 
-            # Determine verdict for the SET
+            # Determine verdict for the SET case
             status, reason = self.determine_test_status(detections)
 
             results.append(
