@@ -5,7 +5,6 @@ A Connector acts as the bridge between Security Evaluation Tests and a target sy
 
 import logging
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +16,7 @@ class BaseCLConnector(ABC):
 
     Class Methods:
         - query: Query the target model.
+        - status_check: Perform a status check on the target API.
 
     Class Attributes:
         - config: Connector configuration data.
@@ -26,7 +26,18 @@ class BaseCLConnector(ABC):
 
     @abstractmethod
     def query(self, data: list) -> dict:
-        """"""
+        """Query the target system via REST API. Classes extending this class
+        will implement the query logic.
+
+        Arguments:
+            data: Dictionary containing data required for the API request(s).
+
+        Returns:
+            Target response in desired form.
+
+        Raises:
+            RuntimeError: If the API call fails.
+        """
         pass
 
     @abstractmethod
