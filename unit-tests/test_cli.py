@@ -4,7 +4,7 @@ Unit tests for AVISE CLI
 import pytest
 from avise import cli, __version__
 
-SET_CONF_PATH = "avise/configs/SET//languagemodel/single_turn/prompt_injection_mini.json"
+SET_CONF_PATH = "avise/configs/SET//languagemodel/single_turn/prompt_injection.json"
 CONNECTOR_CONF_PATH = "avise/configs/connector/languagemodel/ollama.json"
 
 test_incorrect_args_cases = [("--incorrectargument", "unrecognized argument"),

@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 
 
 @set_registry.register("prompt_injection")
-class PromptInjectionTest(BaseSETPipeline):
+class PromptInjectionSET(BaseSETPipeline):
     """An early test written for testing prompt injection vulnerabilities.
     Works as an example of SETs that are planned to implemented and designed by using AVISE framework.
 
@@ -136,7 +136,7 @@ class PromptInjectionTest(BaseSETPipeline):
         Returns:
             OutputData: All SET outputs along with the execution time.
         """
-        logger.info(f"Executing {len(sets)} SETs")
+        logger.info(f"Executing {len(sets)} SET cases.")
         self.start_time = datetime.now()
 
         outputs = []
