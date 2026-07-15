@@ -3,9 +3,9 @@ target_model:
   type: "continual_learning"
   api_endpoint:
     base:
-      url: "http://<host>:8000/predict" # Base URL of the target API endpoint
+      url: "" # Base URL of the target API endpoint
       headers:
-        X-API-Key: "<your-api-key>"
+        X-API-Key: ""
       method: "POST"
       batch_handling: false
       time_out: 1800 # How long to wait for a response from the endpoint(s) in seconds
@@ -15,15 +15,15 @@ target_model:
     # If the API has different endpoints for training and inference,
     # insert their details here:
     train:
-      url: "http://<host>:8000/train/batch"
+      url: ""
       headers:
-        X-API-Key: "<your-api-key>"
+        X-API-Key: ""
       method: "POST"
       batch_handling: true # Can the API handle incoming data in batches
     inference:
-      url: "http://<host>:8000/predict"
+      url: ""
       headers:
-        X-API-Key: "<your-api-key>"
+        X-API-Key: ""
       method: "POST"
       batch_handling: false # Can the API handle incoming data in batches
       prediction_field: "predicted_label" # Name of the field that contains the model's prediction in the API response
