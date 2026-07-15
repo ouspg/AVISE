@@ -28,7 +28,7 @@ Modality-specific:
 
 trigger_config reference
 ------------------------
-If trigger_config is None, built-in defaults are used for the chosen
+If trigger_config in SET configuration file is None, built-in defaults are used for the chosen
 modality + trigger_type combination.  Only keys that differ from the defaults
 need to be supplied.  Exception: trigger_config is required for multimodal —
 there are no built-in defaults (see multimodal section below).
@@ -250,8 +250,8 @@ class Backdoor(BaseSETPipeline):
         super().__init__()
         self.set_config: dict = {}
         self.modality: str = "numerical"
-        self.target_label: str = "BackdoorTriggered"
-        self.source_label: str = ""
+        self.target_label: Any = "BackdoorTriggered"
+        self.source_label: Any = ""
         self.trigger_type: str = "static_feature_perturbation"
         self.trigger_config = None
         self.poison_rate: float = 0.05
@@ -294,7 +294,10 @@ class Backdoor(BaseSETPipeline):
                 f'"target_modality" must be a string in the Backdoor SET configuration file: {set_config_path}'
             )
         self.source_label = self.set_config.get("source_label", "")
-        if not self.source_label:
+        if (self.source_label is None) or (
+            isinstance(self.source_label, (str, list, dict, tuple, set))
+            and len(self.source_label) == 0
+        ):
             raise ValueError(
                 f'"source_label" is not configured in the Backdoor SET configuration file: {set_config_path}'
             )
@@ -302,10 +305,6 @@ class Backdoor(BaseSETPipeline):
         if not isinstance(self.poisoning_seed_value, int):
             raise TypeError(
                 f'"poisoning_seed_value" must be an int in the Backdoor SET configuration file: {set_config_path}'
-            )
-        if not isinstance(self.source_label, str):
-            raise TypeError(
-                f'"source_label" must be a str in the Backdoor SET configuration file: {set_config_path}'
             )
         self.trigger_type = self.set_config.get(
             "trigger_type", "static_feature_perturbation"
@@ -330,10 +329,7 @@ class Backdoor(BaseSETPipeline):
                 f'"poison_rate" must be a float in range [0, 1] in the Backdoor SET configuration file: {set_config_path}'
             )
         self.target_label = self.set_config.get("target_label", "BackdoorTriggered")
-        if not isinstance(self.target_label, str):
-            raise TypeError(
-                f'"target_label" must be a float in the Backdoor SET configuration file: {set_config_path}'
-            )
+
         self.set_data_already_poisoned = self.set_config.get(
             "set_data_already_poisoned", False
         )
@@ -436,14 +432,33 @@ class Backdoor(BaseSETPipeline):
         outputs = []
 
         for i, case in enumerate(set_cases):
+            if i != 0:
+                click.echo(
+                    f"\n--- Security Evaluation Test case {i}/{len(set_cases)} has been finished. The target model weights need to be reset before continuing to the next case ---"
+                )
+                click.echo("Action required: reset the target model weights.")
+                click.confirm(
+                    "Confirm model weights have been reset before proceeding to the next Security Evaluation Test case. Continue?",
+                    default=True,
+                    abort=True,
+                )
+                logger.info(
+                    "Model weight reset confirmed. Continuing to the next SET case..."
+                )
             logger.info(
                 f"{ansi_colors['magenta']}Running Security Evaluation Test case {i + 1}/{len(set_cases)} [{case.id}]{ansi_colors['reset']}"
             )
             stage_results = []
             baseline_metrics = {}
+            poisoned_data = []
+            poisoned_indices = ()
+            drift_stage_counter = 0
 
             try:
                 for j, task in enumerate(case.task_sequence):
+                    logger.info(
+                        f"Started executing Task Stage {j + 1}/{len(case.task_sequence)} ({task.stage})..."
+                    )
                     stage_metrics = {}
                     responses = []
                     # If task data is in a file, load it into a list
@@ -452,14 +467,25 @@ class Backdoor(BaseSETPipeline):
                         if isinstance(task.data, str)
                         else task.data
                     )
-                    if not self.set_data_already_poisoned:
-                        # Poison the data with self._poison_data() method
-                        data = self._poison_data(data, self.poisoning_seed_value)
-                        poison_indices = self._last_poison_indices
+                    if task.stage == "inject":
+                        if not self.set_data_already_poisoned:
+                            # Poison the data with self._poison_data() method
+                            data = self._poison_data(data, self.poisoning_seed_value)
+                            poisoned_data = data
+                            poison_indices = self._last_poison_indices
+                            poisoned_indices = self._last_poison_indices
+                        else:
+                            # Data arrived pre-poisoned; we have no ground truth on
+                            # which indices are triggered, so ASR can't be computed
+                            # for this stage.
+                            poison_indices = set()
+                    elif task.stage == "eval":
+                        if poisoned_data:
+                            data = poisoned_data
+                            poison_indices = poisoned_indices
+                        else:
+                            poison_indices = set()
                     else:
-                        # Data arrived pre-poisoned; we have no ground truth on
-                        # which indices are triggered, so ASR can't be computed
-                        # for this stage.
                         poison_indices = set()
 
                     task_type = (
@@ -469,7 +495,11 @@ class Backdoor(BaseSETPipeline):
                         # Train the target model
                         responses.append(
                             connector.query(
-                                data=data, data_modality=self.modality, task=task_type
+                                data=data,
+                                data_modality=self.modality,
+                                label_field=self.data_schema["label_field"],
+                                input_field=self.data_schema["input_field"],
+                                task=task_type,
                             )
                         )
                         task_type = "inference"
@@ -477,7 +507,11 @@ class Backdoor(BaseSETPipeline):
                         # Query the target model
                         responses.append(
                             connector.query(
-                                data=data, data_modality=self.modality, task=task_type
+                                data=data,
+                                data_modality=self.modality,
+                                label_field=self.data_schema["label_field"],
+                                input_field=self.data_schema["input_field"],
+                                task=task_type,
                             )
                         )
 
@@ -492,10 +526,12 @@ class Backdoor(BaseSETPipeline):
 
                     for idx, sample in enumerate(data):
                         pred = predictions[idx] if idx < len(predictions) else {}
-                        predicted_label = pred.get(
-                            "predicted_label",
-                            (pred.get("top_k_classes") or [None])[0],
-                        )
+                        predicted_label = pred.get("prediction")
+                        if predicted_label is None:
+                            predicted_label = pred.get(
+                                "predicted_label",
+                                (pred.get("top_k_classes") or [None])[0],
+                            )
                         confidence = self._extract_confidence(pred)
 
                         if idx in poison_indices:
@@ -518,16 +554,72 @@ class Backdoor(BaseSETPipeline):
                     asr = (asr_hits / asr_total) if asr_total else None
                     clean_accuracy = (clean_hits / clean_total) if clean_total else None
 
+                    # "drift" stages train on the drift task's own fresh,
+                    # unpoisoned data (used above for clean_accuracy), so
+                    # `asr` from it is always None — poison_indices is
+                    # empty for this stage. BackdoorInjectionSuccessEvaluator
+                    # expects each drift stage to report an "asr" so it can
+                    # build a persistence curve showing whether the backdoor
+                    # survives each task update. Re-query the model with the
+                    # original inject-stage poisoned samples right after
+                    # training on the drift task to measure that.
+                    if task.stage == "drift" and poisoned_data and poisoned_indices:
+                        persistence_response = connector.query(
+                            data=poisoned_data,
+                            data_modality=self.modality,
+                            label_field=self.data_schema["label_field"],
+                            input_field=self.data_schema["input_field"],
+                            task="inference",
+                        )
+                        responses.append(persistence_response)
+                        persistence_predictions = self._extract_predictions(
+                            persistence_response, len(poisoned_data)
+                        )
+                        drift_asr_hits = drift_asr_total = 0
+                        for pidx in poisoned_indices:
+                            ppred = (
+                                persistence_predictions[pidx]
+                                if pidx < len(persistence_predictions)
+                                else {}
+                            )
+                            ppredicted_label = ppred.get("prediction")
+                            if ppredicted_label is None:
+                                ppredicted_label = ppred.get(
+                                    "predicted_label",
+                                    (ppred.get("top_k_classes") or [None])[0],
+                                )
+                            drift_asr_total += 1
+                            if ppredicted_label == self.target_label:
+                                drift_asr_hits += 1
+                        if drift_asr_total:
+                            asr = drift_asr_hits / drift_asr_total
+
                     stage_metrics["asr"] = asr
                     stage_metrics["clean_accuracy"] = clean_accuracy
                     if task.stage == "inject":
                         # Consumed by TriggerStealthScoreEvaluator
                         stage_metrics["confidence_clean"] = confidence_clean
                         stage_metrics["confidence_poisoned"] = confidence_poisoned
-                    # Append response to stage_results
+                    # Append response to stage_results.
+                    if task.stage == "drift":
+                        # Multiple drift tasks can appear in one sequence
+                        # (successive task updates meant to test backdoor
+                        # persistence). Each is given a distinctive, ordered name
+                        # so _get_drift_stages() can build the persistence
+                        # curve step by step instead of every drift task
+                        # colliding under the same stage_name.
+                        stage_name = f"drift_{drift_stage_counter}"
+                        drift_stage_counter += 1
+                    else:
+                        # "baseline" / "inject" / "eval" (or any other
+                        # explicitly configured task_stage) pass through as-is.
+                        stage_name = task.stage
+                    for i, r in enumerate(responses):  # TODO: for testing, remove later
+                        if i / 10 == 0:
+                            print(r)
                     stage_results.append(
                         StageResult(
-                            stage_name=task_type,
+                            stage_name=stage_name,
                             stage_index=j,
                             metrics=stage_metrics,
                             raw_responses=responses,
@@ -766,6 +858,11 @@ class Backdoor(BaseSETPipeline):
             preds = response["results"]
         elif isinstance(response, list):
             preds = response
+        elif isinstance(response, dict) and n_samples == 1:
+            # A connector configured with batch_handling=True for a
+            # single-item request returns the (enriched) response dict
+            # itself rather than a {"results": [...]} wrapper.
+            preds = [response]
         else:
             raise TypeError(
                 f"[_extract_predictions] Unrecognized response shape: {type(response)}. "
@@ -776,7 +873,7 @@ class Backdoor(BaseSETPipeline):
         if len(preds) != n_samples:
             logger.warning(
                 f"[_extract_predictions] Got {len(preds)} predictions for "
-                f"{n_samples} samples sent — index alignment with the poisoned "
+                f"{n_samples} samples sent - index alignment with the poisoned "
                 "data list may be off, which will corrupt ASR/clean_accuracy."
             )
         return preds
@@ -793,33 +890,24 @@ class Backdoor(BaseSETPipeline):
         Normalization
         --------------
         Different target systems (or even the same system at different
-        points in training — e.g. single-softmax vs. multi-distribution
+        points in training - e.g. single-softmax vs. multi-distribution
         entropy-routed inference) can return "scores" on different scales:
         some are true probabilities that sum to ~1 across the full class set,
         others are sums/combinations of multiple distributions that sum to
         some other constant. Rather than hard-coding a divisor for any one
-        target's known architecture (which breaks the moment this evaluator
-        is pointed at a different connector, or even at the *same* connector
-        before vs. after its scoring regime changes), this rescales each
+        target's known architecture, this rescales each
         sample's top-1 score by the total mass actually present in its own
         top_k_scores:
 
             confidence = top_k_scores[0] / sum(top_k_scores)
 
-        This is self-correcting and architecture-agnostic:
-          - Scores already normalized (sum ≈ 1 over the visible class set)
-            → division by ≈1 → effectively unchanged.
-          - Scores on some other/unknown scale (sum ≈ 2, ≈ N, etc.)
-            → rescaled back into a comparable [0, 1] range automatically.
-
-        Caveat: this only renormalizes over the *visible* top_k classes, not
+        This only renormalizes over the visible top_k classes, not
         the model's full output space. If top_k_scores doesn't capture most
         of the probability mass (e.g. top_k=5 out of 100 CIFAR-100 classes on
         a low-confidence prediction), sum(top_k_scores) underestimates the
         true total mass, inflating the resulting confidence. This is a much
         smaller effect on high-confidence predictions (most of the mass sits
-        in the visible top-k) — which is the regime backdoor triggers are
-        specifically meant to produce — but for best accuracy, request as
+        in the visible top-k), but for best accuracy, request as
         large a top_k as the connector/API allows (ideally all known classes)
         when querying inference during the inject stage.
 
@@ -827,19 +915,25 @@ class Backdoor(BaseSETPipeline):
             Normalized top-1 confidence in [0, 1], or None if it can't be
             determined (missing/empty scores, or all-zero scores).
         """
-        scores = pred.get("top_k_scores")
-        if not scores:
+        scores = pred.get("probabilities") or pred.get("top_k_scores")
+        if scores:
+            try:
+                scores = [float(s) for s in scores]
+            except (TypeError, ValueError):
+                scores = None
+
+            if scores:
+                total_mass = sum(scores)
+                if total_mass > 0:
+                    return scores[0] / total_mass
+
+        confidence = pred.get("confidence")
+        if confidence is None:
             return None
         try:
-            scores = [float(s) for s in scores]
+            return float(confidence)
         except (TypeError, ValueError):
             return None
-
-        total_mass = sum(scores)
-        if total_mass <= 0:
-            return None
-
-        return scores[0] / total_mass
 
     def _poison_data(self, data: list, seed_value: int = 0) -> list:
         """Poison a percentage of source-label samples with a backdoor trigger.
@@ -869,9 +963,9 @@ class Backdoor(BaseSETPipeline):
             KeyError:   If a required trigger_config parameter is missing.
         """
         label_field = self.data_schema["label_field"]
-        input_field = self.data_schema.get("input_field")
+        input_field = self.data_schema["input_field"]
 
-        # --- 1. Identify eligible sample indices (source label only) ----------
+        # Identify eligible sample indices (source label only)
         eligible_indices = [
             i
             for i, sample in enumerate(data)
@@ -880,13 +974,13 @@ class Backdoor(BaseSETPipeline):
 
         if not eligible_indices:
             logger.warning(
-                f"[_poison_data] No samples found with source_label='{self.source_label}'. "
+                f"[_poison_data] No samples found with source_label={self.source_label}. "
                 "Returning data unchanged."
             )
             self._last_poison_indices = set()
             return list(data)
 
-        # --- 2. Select which eligible samples to poison (seeded RNG) ----------
+        # Select which eligible samples to poison (seeded RNG)
         n_to_poison = max(1, round(len(eligible_indices) * self.poison_rate))
         rng = random.Random(seed_value)
         poison_indices = set(
@@ -898,7 +992,7 @@ class Backdoor(BaseSETPipeline):
             f"eligible samples (poison_rate={self.poison_rate}, seed={seed_value})."
         )
 
-        # --- 3. Build output list, poisoning selected samples -----------------
+        # Build output list, poisoning selected samples
         result = []
         for i, sample in enumerate(data):
             if i not in poison_indices:
@@ -907,7 +1001,7 @@ class Backdoor(BaseSETPipeline):
 
             poisoned = self._copy_sample(sample)
 
-            # Universal trigger — modality-agnostic, no feature modification
+            # Universal trigger - modality-agnostic, no feature modification
             if self.trigger_type == "label_only":
                 pass
 
@@ -1018,21 +1112,21 @@ class Backdoor(BaseSETPipeline):
     ) -> Dict[str, Any]:
         """Return a trigger config with hardcoded defaults filled in.
 
-        Resolution order (highest → lowest priority):
-            1. Keys present in *override_cfg* (i.e. self.trigger_config or a
+        Resolution order (highest to lowest priority):
+            1. Keys present in `override_cfg` (i.e. self.trigger_config or a
             component-level config passed by the multi-modal handler).
-            2. Hardcoded defaults from ``_DEFAULT_TRIGGER_CONFIGS`` for the
+            2. Hardcoded defaults from `_DEFAULT_TRIGGER_CONFIGS` for the
             given (modality, trigger_type) pair.
 
-        If *override_cfg* is ``None`` or an empty mapping the hardcoded defaults
+        If `override_cfg` is `None` or an empty mapping, the hardcoded defaults
         are returned as-is.  If merging the override raises any exception (e.g.
         the value is not a mapping), a warning is logged and the pure defaults
         are returned instead.
 
         Args:
-            modality:     Modality string, e.g. ``"image"``.
-            trigger_type: Trigger-type string, e.g. ``"static_feature_perturbation"``.
-            override_cfg: Caller-supplied config (may be ``None``).
+            modality:     Modality string, e.g. "image".
+            trigger_type: Trigger-type string, e.g. "static_feature_perturbation".
+            override_cfg: Caller-supplied config (may be None).
 
         Returns:
             A new dict that is safe to read from without further fallback logic.
@@ -1048,7 +1142,7 @@ class Backdoor(BaseSETPipeline):
         except Exception as exc:
             logger.warning(
                 "[_resolve_trigger_config] Could not apply trigger_config override "
-                "for (%s, %s): %r — falling back to hardcoded defaults.",
+                "for (%s, %s): %r - falling back to hardcoded defaults.",
                 modality,
                 trigger_type,
                 exc,
@@ -1114,8 +1208,8 @@ class Backdoor(BaseSETPipeline):
             magnitude = trigger_strength * (band_energy if band_energy > 0.0 else rms)
 
             # frequency_domain:        phase relative to the sample's existing phase
-            #                          at the bin — fully input-aware, maximally stealthy.
-            # frequency_domain_hybrid: fixed absolute phase — gives the network a
+            #                          at the bin - fully input-aware, maximally stealthy.
+            # frequency_domain_hybrid: fixed absolute phase - gives the network a
             #                          consistent spatial-domain sinusoid to learn from,
             #                          improving reliability at low poison-sample counts.
             existing_phase = float(np.angle(F[bin_idx]))
@@ -1173,7 +1267,7 @@ class Backdoor(BaseSETPipeline):
                 Insertion position is derived from character-frequency entropy.
             frequency_domain_hybrid:
                 trigger_phrase (str), position ("prefix"|"suffix"|"middle").
-                Fixed insertion position — same on every sample.
+                Fixed insertion position - same on every sample.
 
         Args:
             text:           The original text string.
@@ -1588,7 +1682,7 @@ class Backdoor(BaseSETPipeline):
     ) -> Any:
         """Apply a video trigger by patching one or more frames spatially.
 
-        Expects the video to be a sequence of frames — either a 4-D numpy array
+        Expects the video to be a sequence of frames - either a 4-D numpy array
         of shape (FxHxWxC) or (FxHxW), or a list of 2-D/3-D frame arrays.
         Each selected frame is patched using the same logic as _apply_trigger_image.
 
@@ -1729,7 +1823,7 @@ class Backdoor(BaseSETPipeline):
                 ]
             }
 
-        Example — a (text, image) sample where both components are triggered:
+        Example - a (text, image) sample where both components are triggered:
             {
                 "components": [
                     {
@@ -1763,7 +1857,7 @@ class Backdoor(BaseSETPipeline):
         """
         components: List[Dict[str, Any]] = self.trigger_config["components"]
 
-        # Dispatch map — adding a new modality only requires one entry here
+        # Dispatch map - adding a new modality only requires one entry here
         handler_map = {
             "numeric": self._apply_trigger_numeric,
             "text": self._apply_trigger_text,
