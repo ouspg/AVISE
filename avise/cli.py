@@ -42,7 +42,8 @@ DEFAULT_REPORTS_DIR = "avise-reports"
 DEFAULT_SET_CONFIGS = {
     "deceptive_delight": "configs/SET/languagemodel/multi_turn/deceptive_delight.json",
     "red_queen": "configs/SET/languagemodel/multi_turn/red_queen.json",
-    "prompt_injection": "configs/SET/languagemodel/single_turn/prompt_injection_mini.json",
+    "prompt_injection": "configs/SET/languagemodel/single_turn/prompt_injection.json",
+    "lm_jailbreak": "configs/SET/languagemodel/single_turn/jailbreak.json",
     "context_test": "configs/SET/languagemodel/multi_turn/context_test.json",
     "cl_backdoor": "configs/SET/continuallearning/backdoor.yaml",
 }
