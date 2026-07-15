@@ -96,10 +96,25 @@ def load_data_file(filepath: str) -> list:
         return pd.read_parquet(path).to_dict(orient="records")
 
     # .pkl — unpickled object, normalised to a list
-    elif ext == ".pkl":
+    elif ext == ".pkl" or ext == "":  # handle both .pkl and extensionless
         with open(path, "rb") as f:
-            data = pickle.load(f)
-            return data if isinstance(data, list) else [data]
+            data = pickle.load(f, encoding="bytes")
+
+        # CIFAR-style bulk dict → per-sample list
+        if isinstance(data, dict) and b"data" in data and b"fine_labels" in data:
+            pixel_arrays = data[b"data"]  # (N, 3072) uint8
+            labels = data[b"fine_labels"]  # list of N ints
+            return [
+                {
+                    "image": pixel_arrays[i]  # raw 3072-element flat array for now
+                    .reshape(3, 32, 32)  # CHW
+                    .transpose(1, 2, 0),  # → HWC (32, 32, 3) uint8
+                    "label": int(labels[i]),
+                }
+                for i in range(len(labels))
+            ]
+
+        return data if isinstance(data, list) else [data]
 
     else:
         raise ValueError(f"Unsupported file type for data: '{ext}'")
