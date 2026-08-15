@@ -115,7 +115,7 @@ class ExecutionEngine:
         output_path: Optional[str] = None,
         target: Optional[str] = None,
         api_key: Optional[str] = None,
-        device: Optional[str] = None
+        device: Optional[str] = None,
     ) -> dict:
         """Run the 4-phase pipeline
 
@@ -192,7 +192,7 @@ class ExecutionEngine:
             connector_config_path=connector_config_path,
             generate_ai_summary=generate_ai_summary,
             runs=runs,
-            device=device
+            device=device,
         )
 
     def _build_connector(self, connector_config: dict, evaluation: bool = False) -> Any:

@@ -151,7 +151,7 @@ class BaseSETPipeline(ABC):
         connector_config_path: Optional[str] = None,
         generate_ai_summary: bool = True,
         runs: int = 1,
-        device: Optional[str] = None
+        device: Optional[str] = None,
     ) -> ReportData:
         """Orchestration method that executes the 4-phase pipeline.
         This method gets called by the execution engine.

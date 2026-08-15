@@ -237,7 +237,7 @@ def main(arguments=None) -> None:
                 output_path=args.output,
                 target=args.target,
                 api_key=args.api_key,
-                device=args.device
+                device=args.device,
             )
 
             # Print a small summary to the console
