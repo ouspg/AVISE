@@ -145,6 +145,12 @@ def main(arguments=None) -> None:
         "-a",
         help="API Key to use with requests sent to target API (overrides api_key from Connector configuration file).",
     )
+    parser.add_argument(
+        "--device",
+        default=None,
+        choices=[None, "auto", "cpu", "gpu"],
+        help='Which device to load local models on ("auto", "cpu", or "gpu"). If given, overrides the device setting from SET configuration file.',
+    )
     parser.add_argument("--version", "-V", action="version", version=__version__)
     args = parser.parse_args(arguments)
 
@@ -231,6 +237,7 @@ def main(arguments=None) -> None:
                 output_path=args.output,
                 target=args.target,
                 api_key=args.api_key,
+                device=args.device,
             )
 
             # Print a small summary to the console
@@ -243,7 +250,7 @@ def main(arguments=None) -> None:
             print(
                 f"  Failed: {report.summary['failed']} ({report.summary['fail_rate']}%)"
             )
-            print(f"  Errors: {report.summary['error']}")
+            print(f"  Inconclusive: {report.summary['error']}")
 
         except Exception as e:
             logger.error(
