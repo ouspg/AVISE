@@ -63,6 +63,7 @@ class BaseSETPipeline(ABC):
         self.evaluation_model_name: Optional[str] = None
         self.evaluation_model_max_tokens: Optional[int] = None
         self.evaluation_model: Optional[EvaluationLanguageModel] = None
+        self.device: Optional[str] = None
 
     @abstractmethod
     def initialize(self, set_config_path: str) -> List[LanguageModelSETCase]:
@@ -150,6 +151,7 @@ class BaseSETPipeline(ABC):
         connector_config_path: Optional[str] = None,
         generate_ai_summary: bool = True,
         runs: int = 1,
+        device: Optional[str] = None
     ) -> ReportData:
         """Orchestration method that executes the 4-phase pipeline.
         This method gets called by the execution engine.
@@ -174,6 +176,9 @@ class BaseSETPipeline(ABC):
         self.connector_config_path = connector_config_path
         self.set_config_path = set_config_path
         self.target_model_name = connector.model
+
+        # Store device
+        self.device = device
 
         try:
             # Initialize

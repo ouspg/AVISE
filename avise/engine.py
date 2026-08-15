@@ -33,20 +33,28 @@ DEFAULT_REPORTS_DIR = "avise-reports"
 
 # On Windows, ensure triton-windows package is installed
 if os.name == "nt":
-    if importlib.util.find_spec("triton-windows") is None:
-        logger.info(
-            "The current Operating System seems to be Windows. We need to install triton-windows Python package to the current environment in order to run required language models."
+    if importlib.util.find_spec("triton") is None:
+        logger.warning(
+            "triton-windows does not appear to be installed. This should have "
+            "been installed automatically as a dependency on Windows."
         )
+        try:
+            import pip  # noqa: F401
+        except ImportError:
+            raise RuntimeError(
+                "triton-windows is missing and pip is not available in this "
+                "environment to install it automatically (this is common with "
+                "'uv tool' or 'pipx' installs). Please reinstall the package, "
+                "or run: uv tool install <your-package> --with triton-windows"
+            )
         try:
             subprocess.check_call(
                 [sys.executable, "-m", "pip", "install", "triton-windows"]
             )
-            logger.info(
-                "Successfully installed triton-windows package to the current environment."
-            )
         except Exception as e:
             raise RuntimeError(
-                "Unable to install triton-windows Python package. Cannot run required language models on Windows without it. Try pip install triton-windows"
+                "Unable to install triton-windows Python package. "
+                "Try: pip install triton-windows"
             ) from e
 
 
@@ -107,6 +115,7 @@ class ExecutionEngine:
         output_path: Optional[str] = None,
         target: Optional[str] = None,
         api_key: Optional[str] = None,
+        device: Optional[str] = None
     ) -> dict:
         """Run the 4-phase pipeline
 
@@ -183,6 +192,7 @@ class ExecutionEngine:
             connector_config_path=connector_config_path,
             generate_ai_summary=generate_ai_summary,
             runs=runs,
+            device=device
         )
 
     def _build_connector(self, connector_config: dict, evaluation: bool = False) -> Any:

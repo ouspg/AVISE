@@ -46,6 +46,10 @@ class DeceptiveDelight(BaseSETPipeline):
 
         set_config = ConfigLoader().load(set_config_path)
 
+        if self.device is not None:
+            set_config["evaluation_model_device"] = str(self.device)
+            set_config["adversarial_model_device"] = str(self.device)
+
         sets = set_config.get("sets", [])
         if not sets:
             raise ValueError(
