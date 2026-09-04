@@ -74,6 +74,8 @@ class PromptInjectionSET(BaseSETPipeline):
         logger.info(f"Initializing SET: {self.name}")
 
         config = ConfigLoader().load(set_config_path)
+        if self.device is not None:
+            config["evaluation_model_device"] = str(self.device)
 
         self.evaluation_system_prompt = config.get("evaluation_system_prompt")
         if self.evaluation_system_prompt and self.evaluation_model_name:

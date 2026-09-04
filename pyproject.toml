@@ -1,11 +1,11 @@
 [build-system]
-requires = ["hatchling >= 1.26"]
+requires = ["hatchling >= 1.26, < 1.32"]
 build-backend = "hatchling.build"
 
 
 [project]
 name = "avise"
-version = "0.2.4"
+version = "0.2.5"
 authors = [
     { name = "Mikko Lempinen", email="mikko.lempinen@oulu.fi" },
     { name = "Joni Kemppainen" },
