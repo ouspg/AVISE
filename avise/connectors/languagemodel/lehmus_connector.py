@@ -73,7 +73,7 @@ class LehmusConfig:
     model_alias: str = (
         ""  # Lehmus alias (e.g. "xyz123abc") -> request "model"; env <id>_MODEL
     )
-    timeout: float = 120.0
+    timeout: float = 3600.0
     max_retries: int = 3
     temperature: float = 0.0
     max_tokens: Optional[int] = 512
