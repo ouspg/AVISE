@@ -151,7 +151,7 @@ class ExecutionEngine:
         # If provided with `api_key`, override api_key from configuration file with it
         if api_key is not None:
             if "api_key" in connector_config["target_model"]:
-                connector_config["target_model"]["api_key"] = target
+                connector_config["target_model"]["api_key"] = api_key
 
         # Create a connector for the target model
         connector = self._build_connector(connector_config, evaluation=False)
