@@ -45,6 +45,7 @@ DEFAULT_SET_CONFIGS = {
     "direct_prompt_injection": "configs/SET/languagemodel/single_turn/direct_prompt_injection.json",
     "indirect_prompt_injection": "configs/SET/languagemodel/single_turn/indirect_prompt_injection_rag.json",
     "lm_jailbreak": "configs/SET/languagemodel/single_turn/jailbreak.json",
+    "lm_misinformation": "configs/SET/languagemodel/single_turn/misinformation.json",
     "context_test": "configs/SET/languagemodel/multi_turn/context_test.json",
     "cl_backdoor": "configs/SET/continuallearning/backdoor.yaml",
 }

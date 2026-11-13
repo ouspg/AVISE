@@ -35,10 +35,10 @@ prompt injection attacks can be freely modified:
         ]
     }
 
-Prompt Injection and Jailbreak SETs
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Prompt Injection, Jailbreak and Misinformation SETs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``prompt_injection`` and ``lm_jailbreak`` SETs decide each SET case's verdict in this order:
+The ``prompt_injection``, ``lm_jailbreak`` and ``lm_misinformation`` SETs decide each SET case's verdict in this order:
 
 1. **Evaluators** (hard-coded pattern detection) have the highest priority. If they reach a passed or failed verdict, it is final.
 2. If no evaluator reaches a verdict (no patterns matched, or the evaluators' detections conflict), the **Evaluation Language Model (ELM)** decides the case.
@@ -46,6 +46,10 @@ The ``prompt_injection`` and ``lm_jailbreak`` SETs decide each SET case's verdic
 
 The report shows, for each case, whether the verdict was decided by the evaluators or by the ELM, and the summary counts how many verdicts each decided.
 When the evaluators decide a case and the ELM disagrees, the disagreement is noted in the case's reason.
+
+.. note::
+
+   Whether a response asserts a false claim as fact is a semantic judgement the pattern evaluators cannot make, so the ``lm_misinformation`` SET reuses only the resistance (refusal) evaluator: a detected refusal decides the case **passed**, and every other response is deferred to the ELM. An Evaluation Language Model must therefore be configured for this SET to reach a verdict on compliant-looking responses; without one, such cases are marked inconclusive.
 
 The ELM receives the attack prompt and the target model's response wrapped in ``<attack_prompt>`` and ``<model_response>`` tags, preceded by an
 ``ATTACK TYPE:`` line taken from the case's ``attack_type`` field. The following fields configure the ELM:
