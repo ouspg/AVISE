@@ -33,3 +33,12 @@ avise.sets.languagemodel.single\_turn.jailbreak module
    :members:
    :show-inheritance:
    :undoc-members:
+
+
+avise.sets.languagemodel.single\_turn.misinformation module
+-----------------------------------------------------------
+
+.. automodule:: avise.sets.languagemodel.single_turn.misinformation
+   :members:
+   :show-inheritance:
+   :undoc-members:
